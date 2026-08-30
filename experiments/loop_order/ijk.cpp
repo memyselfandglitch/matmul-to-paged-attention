@@ -4,7 +4,23 @@
 #include <random>
 #include <algorithm>
 #include <iomanip>
+#include <cstring>
+
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+#endif
+
+// The article uses eight 32-bit floats in one 256-bit AVX register.
+// AArch64/NEON registers are 128-bit, so use four floats on this machine.
+#if defined(__AVX__)
 typedef float vec __attribute__ (( vector_size(32) ));
+constexpr int SIMD_LANES = 8;
+#else
+typedef float vec __attribute__ (( vector_size(16) ));
+constexpr int SIMD_LANES = 4;
+#endif
+
+int TILE_SIZE = 64;
 
 
 using Clock = std::chrono::steady_clock;
@@ -46,6 +62,119 @@ void matmul_transposed(
                     a[i * n + k] * bt[j * n + k];
             }
         }
+    }
+}
+
+// ----------------------------------------------------
+// Explicit SIMD, with B already transposed
+// ----------------------------------------------------
+
+void matmul_simd(
+    const float *a,
+    const float *bt,
+    float *c,
+    int n
+) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            vec sum{};
+            int k = 0;
+
+            for (; k + SIMD_LANES <= n; k += SIMD_LANES) {
+                vec av;
+                vec bv;
+
+                // memcpy permits unaligned vector loads.
+                std::memcpy(&av, &a[i * n + k], sizeof(vec));
+                std::memcpy(&bv, &bt[j * n + k], sizeof(vec));
+                sum += av * bv;
+            }
+
+            for (int lane = 0; lane < SIMD_LANES; lane++) {
+                c[i * n + j] += sum[lane];
+            }
+
+            // Handle sizes that are not a multiple of SIMD_LANES.
+            for (; k < n; k++) {
+                c[i * n + j] +=
+                    a[i * n + k] * bt[j * n + k];
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------
+// Six-loop cache tiling + SIMD, with B transposed
+// ----------------------------------------------------
+
+void matmul_tiled_simd(
+    const float *a,
+    const float *bt,
+    float *c,
+    int n
+) {
+    for (int ii = 0; ii < n; ii += TILE_SIZE) {
+        for (int jj = 0; jj < n; jj += TILE_SIZE) {
+            for (int kk = 0; kk < n; kk += TILE_SIZE) {
+                int i_end = std::min(ii + TILE_SIZE, n);
+                int j_end = std::min(jj + TILE_SIZE, n);
+                int k_end = std::min(kk + TILE_SIZE, n);
+
+                for (int i = ii; i < i_end; i++) {
+                    for (int j = jj; j < j_end; j++) {
+                        vec sum{};
+                        int k = kk;
+
+                        for (; k + SIMD_LANES <= k_end;
+                             k += SIMD_LANES) {
+                            vec av;
+                            vec bv;
+                            std::memcpy(
+                                &av, &a[i * n + k], sizeof(vec));
+                            std::memcpy(
+                                &bv, &bt[j * n + k], sizeof(vec));
+                            sum += av * bv;
+                        }
+
+                        for (int lane = 0; lane < SIMD_LANES; lane++) {
+                            c[i * n + j] += sum[lane];
+                        }
+
+                        for (; k < k_end; k++) {
+                            c[i * n + j] +=
+                                a[i * n + k] * bt[j * n + k];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+std::size_t cache_size(const char *name) {
+#if defined(__APPLE__)
+    std::size_t value = 0;
+    std::size_t value_size = sizeof(value);
+    if (sysctlbyname(name, &value, &value_size, nullptr, 0) == 0) {
+        return value;
+    }
+#else
+    (void) name;
+#endif
+    return 0;
+}
+
+int tile_size_for_cache(std::size_t cache_bytes) {
+    // Limit the three square tiles to 75% of L1, leaving room for other data.
+    int tile = SIMD_LANES;
+    while (true) {
+        int next = tile + SIMD_LANES;
+        std::size_t working_set =
+            3ULL * next * next * sizeof(float);
+        if (working_set > cache_bytes * 3 / 4) {
+            return tile;
+        }
+        tile = next;
     }
 }
 
@@ -109,12 +238,67 @@ int main() {
     std::uniform_real_distribution<float>
         dist(0.0f, 1.0f);
 
+    std::size_t performance_l1 =
+        cache_size("hw.perflevel0.l1dcachesize");
+    std::size_t performance_l2 =
+        cache_size("hw.perflevel0.l2cachesize");
+    std::size_t efficiency_l1 =
+        cache_size("hw.perflevel1.l1dcachesize");
+    std::size_t efficiency_l2 =
+        cache_size("hw.perflevel1.l2cachesize");
+
+    std::size_t tiling_cache = 64 * 1024;
+    if (performance_l1 != 0) {
+        tiling_cache = performance_l1;
+    }
+    if (efficiency_l1 != 0) {
+        tiling_cache = std::min(tiling_cache, efficiency_l1);
+    }
+    TILE_SIZE = tile_size_for_cache(tiling_cache);
+
+    std::size_t tile_working_set =
+        3ULL * TILE_SIZE * TILE_SIZE * sizeof(float);
+
+    std::cout
+        << "Performance-core cache: L1D " << performance_l1 / 1024
+        << " KiB, L2 " << performance_l2 / (1024 * 1024) << " MiB\n"
+        << "Efficiency-core cache: L1D " << efficiency_l1 / 1024
+        << " KiB, L2 " << efficiency_l2 / (1024 * 1024) << " MiB\n"
+        << "Selected tile: " << TILE_SIZE << "x" << TILE_SIZE
+        << "; A + BT + C tile working set: "
+        << tile_working_set / 1024 << " KiB\n\n";
+
+    std::cout
+        << "float is " << sizeof(float) * 8 << " bits; "
+        << SIMD_LANES << " floats use " << sizeof(vec) * 8
+        << " SIMD bits.\n";
+
+#if defined(__aarch64__)
+    std::cout
+        << "Hardware: ARM NEON has 128-bit vector registers, not 256-bit "
+        << "registers.\n";
+#elif defined(__AVX__)
+    std::cout
+        << "Hardware target: 256-bit AVX is enabled for this build.\n";
+#else
+    std::cout
+        << "Hardware target: 256-bit AVX is not enabled for this build.\n";
+#endif
+
+    std::cout
+        << "8 float32 values = 256 bits; 8 float16 values = 128 bits.\n\n";
+
     std::cout
         << std::setw(8)  << "n"
         << std::setw(14) << "Memory(MB)"
         << std::setw(18) << "Baseline(us)"
         << std::setw(18) << "Transpose(us)"
-        << std::setw(14) << "Speedup"
+        << std::setw(18) << "SIMD(us)"
+        << std::setw(18) << "Tiled SIMD(us)"
+        << std::setw(14) << "Base/BT"
+        << std::setw(14) << "Base/SIMD"
+        << std::setw(14) << "BT/SIMD"
+        << std::setw(14) << "SIMD/Tiled"
         << "\n";
 
     // ------------------------------------------------
@@ -163,6 +347,22 @@ int main() {
                 C.data(),
                 n
             );
+
+            run_once(
+                matmul_simd,
+                A.data(),
+                BT.data(),
+                C.data(),
+                n
+            );
+
+            run_once(
+                matmul_tiled_simd,
+                A.data(),
+                BT.data(),
+                C.data(),
+                n
+            );
         }
 
         // --------------------------------------------
@@ -171,6 +371,8 @@ int main() {
 
         std::vector<double> baseline_times;
         std::vector<double> transposed_times;
+        std::vector<double> simd_times;
+        std::vector<double> tiled_simd_times;
 
         for (int r = 0; r < REPS; r++) {
 
@@ -198,7 +400,47 @@ int main() {
                     )
                 );
 
+                simd_times.push_back(
+                    run_once(
+                        matmul_simd,
+                        A.data(),
+                        BT.data(),
+                        C.data(),
+                        n
+                    )
+                );
+
+                tiled_simd_times.push_back(
+                    run_once(
+                        matmul_tiled_simd,
+                        A.data(),
+                        BT.data(),
+                        C.data(),
+                        n
+                    )
+                );
+
             } else {
+
+                tiled_simd_times.push_back(
+                    run_once(
+                        matmul_tiled_simd,
+                        A.data(),
+                        BT.data(),
+                        C.data(),
+                        n
+                    )
+                );
+
+                simd_times.push_back(
+                    run_once(
+                        matmul_simd,
+                        A.data(),
+                        BT.data(),
+                        C.data(),
+                        n
+                    )
+                );
 
                 transposed_times.push_back(
                     run_once(
@@ -228,8 +470,23 @@ int main() {
         double transposed =
             median(transposed_times);
 
-        double speedup =
+        double simd =
+            median(simd_times);
+
+        double tiled_simd =
+            median(tiled_simd_times);
+
+        double transpose_speedup =
             baseline / transposed;
+
+        double simd_speedup =
+            baseline / simd;
+
+        double simd_over_transposed =
+            transposed / simd;
+
+        double tiling_over_simd =
+            simd / tiled_simd;
 
         // A + B + C
         double memory_mb =
@@ -242,46 +499,14 @@ int main() {
             << memory_mb
             << std::setw(18) << baseline
             << std::setw(18) << transposed
-            << std::setw(13) << speedup << "x"
+            << std::setw(18) << simd
+            << std::setw(18) << tiled_simd
+            << std::setw(13) << transpose_speedup << "x"
+            << std::setw(13) << simd_speedup << "x"
+            << std::setw(13) << simd_over_transposed << "x"
+            << std::setw(13) << tiling_over_simd << "x"
             << "\n";
     }
 
     return 0;
-}
-
-// a helper function that allocates n vectors and initializes them with zeros
-vec* alloc(int n) {
-    vec* ptr = (vec*) std::aligned_alloc(32, 32 * n);
-    memset(ptr, 0, 32 * n);
-    return ptr;
-}
-
-
-void simd(vector<float> &A, vector<float> &B, vector<float> &C, int n) {
-    // SIMD implementation would go here
-
-    int Nb=n / 8; // Number of blocks of 8 floats
-    vec *a=alloc(n*Nb);
-    vec *b=alloc(n*Nb);
-
-    //now these are vectors of vectors of 8 floats. 
-    //now we will allocate A and B into these vectors of vectors of 8 floats.
-    for(int i=0;i<n;i++){
-        for(int j=0;j<Nb;j++){
-            a[i*Nb+j/8][j%8]=A[i*n+j];
-            b[i*Nb+j/8][j%8]=B[j*n+i];
-        }
-    }
-
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
-            vec s{};
-            for(int k=0;k<Nb;k++){
-                s += a[i*Nb+k] * b[j*Nb+k];
-            }
-            for (int k = 0; k < 8; k++)
-                C[i * n + j] += s[k];
-
-        }
-    }
 }
