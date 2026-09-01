@@ -10,10 +10,11 @@ endif
 
 BUILD_DIR := build
 TARGET := $(BUILD_DIR)/kv_layout_study
+TRAVERSAL_TARGET := $(BUILD_DIR)/block_traversal_study
 
 .PHONY: all check clean
 
-all: $(TARGET)
+all: $(TARGET) $(TRAVERSAL_TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -21,8 +22,12 @@ $(BUILD_DIR):
 $(TARGET): kv_layout_study.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE_FLAGS) $< -o $@
 
-check: $(TARGET)
+$(TRAVERSAL_TARGET): block_traversal_study.cpp | $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(NATIVE_FLAGS) $< -o $@
+
+check: $(TARGET) $(TRAVERSAL_TARGET)
 	$(TARGET) 7
+	$(TRAVERSAL_TARGET) 7
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(TRAVERSAL_TARGET)

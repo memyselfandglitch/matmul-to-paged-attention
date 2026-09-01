@@ -106,6 +106,46 @@ The executable uses one stride-aware attention-like kernel for both HND and
 NHD, then separately compares layer-major and block-major block gathering. It
 demonstrates the structural effects; it does not predict vLLM GPU performance.
 
+## When does block-major plus block-first hold up?
+
+`block_traversal_study` separates physical layout from loop order and tests all
+four combinations:
+
+```text
+                         traversal
+                    layer-first  block-first
+physical layer-major      yes         yes
+layout   block-major      yes         yes
+```
+
+For row-major storage, `[layer, block, page]` naturally matches a layer-first
+loop, while `[block, layer, page]` naturally matches a block-first loop. The
+matching pair walks page-sized regions contiguously.
+
+The study then sweeps the number of layers consumed per selected block and the
+density of selected blocks. The expected regimes are:
+
+- **BL + block-first wins:** a connector, offloader, or cache manager selects a
+  relatively small set of blocks and consumes/transfers many layers for each
+  selected block. Each chosen block becomes one long contiguous region.
+- **The difference shrinks:** only one layer is needed per block, or every block
+  and every layer is traversed. There is little cross-layer contiguity to reuse
+  in the first case; both matching orders are sequential in the second.
+- **LB + layer-first wins:** the work selects layers and processes many blocks
+  within each layer, as ordinary layer-by-layer attention execution does.
+
+Run the crossover study separately with:
+
+```sh
+make
+./build/block_traversal_study 7
+```
+
+The program touches one value per cache line, evicts caches before each timed
+sample, verifies identical checksums, and includes a layer-owned counterexample.
+Its timings describe this CPU's memory hierarchy, not a vLLM GPU deployment;
+the useful result is the crossover shape rather than the exact ratios.
+
 ## Primary references
 
 - [vLLM physical layout enum](https://github.com/vllm-project/vllm/blob/main/vllm/v1/kv_cache_layout.py)
