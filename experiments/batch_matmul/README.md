@@ -30,10 +30,10 @@ B address = base_B + b * K*N
 C address = base_C + b * M*N
 ```
 
-On a CPU, a BMM library may loop over GEMM kernels or parallelize matrices
-across cores. On a GPU, the batch index normally becomes another grid/scheduling
-dimension, allowing one launch to schedule many small products. Libraries may
-also use strided-batched or grouped-GEMM kernels.
+`torch.matmul` performs this batching when at least one input has more than two
+dimensions. It treats the final two dimensions as matrix dimensions and
+broadcasts the preceding dimensions. The study now calls the real PyTorch
+operation; it contains no handwritten matrix-multiplication kernel.
 
 ## When BMM helps
 
@@ -67,7 +67,7 @@ these are genuine matrix products. During token-by-token decoding, `Q=1`, so
 each product degenerates into a batched matrix-vector operation. Reading the
 growing K/V cache often becomes more important than arithmetic at that point.
 
-The included benchmark uses a simple contiguous cache layout:
+The included benchmark uses PyTorch tensors with the cache layout:
 
 ```text
 [batch, heads, context_tokens, head_dim]
@@ -81,9 +81,17 @@ Production systems may use blocked or paged cache layouts, but the underlying
 ```sh
 cd batch_matmul
 make check
-./build/bmm_kv_study 9
+python3 bmm_kv_study.py --repetitions 9
 ```
 
-The optional argument is the number of timing repetitions. This is portable
-C++ intended to expose structure and dispatch overhead; it is not a benchmark
-of Accelerate, oneDNN, cuBLAS, or another vendor library.
+The explicit-loop baseline also calls `torch.matmul` for every individual
+matrix. This isolates the difference between issuing many PyTorch calls and
+giving all leading batch dimensions to one `torch.matmul` call. The script
+automatically uses CUDA, MPS, or CPU in that order; pass `--device cpu` to
+select CPU explicitly.
+
+References:
+
+- [`torch.matmul`](https://docs.pytorch.org/docs/stable/generated/torch.matmul.html)
+- [`torch.bmm`](https://docs.pytorch.org/docs/stable/generated/torch.bmm.html),
+  the stricter three-dimensional operation that does not broadcast
