@@ -180,6 +180,62 @@ The three per-layer layouts correspond to `LBNHC`, `LBHNC`, and `LHBNC` in the
 newer vLLM physical-layout interface. Backend support varies, so this standalone
 matrix studies the layouts independently of a particular production backend.
 
+## Fragmentation crossover study
+
+Phase 2 showed that matched `HBND` wins with sequential blocks while matched
+`BHND` wins with a shuffled block table on the target AMD CPU. The crossover
+study replaces those two extremes with a controlled contiguous-run length.
+Physical block runs are shuffled, but block numbers inside each run remain
+consecutive. A run length equal to the number of blocks is sequential; run
+length one is maximally fragmented.
+
+Submit the focused timing study on IISc:
+
+```bash
+sbatch slurm/run_crossover.sbatch
+```
+
+Its default shape remains `B=512, H=32, N=16, D=128`, and it tests run lengths
+`512,256,128,64,32,16,8,4,2,1`. Only the three memory-matched cases are timed.
+Each point is repeated with five deterministic block-table seeds. Results are:
+
+```text
+results/crossover-<job-id>/crossover-raw.csv
+results/crossover-<job-id>/crossover-summary.csv
+results/crossover-<job-id>/crossover-analysis.txt
+```
+
+The useful arithmetic intensity is `0.5 FLOP/KV byte`: conventional QK and
+weighted-V account for four useful floating-point operations per head-dimension
+element, while reading K and V consumes eight bytes in float32. This deliberately
+excludes online-softmax bookkeeping and assumes Q/output state is cache-resident.
+
+## Hardware-counter study
+
+After locating the crossover, profile the two matched competitors at the
+extremes and around the switch:
+
+```bash
+RUN_LENGTHS=512,32,16,8,4,1 sbatch --export=ALL slurm/run_perf_counters.sbatch
+```
+
+The isolated-case mode ensures each `perf stat` invocation contains only one
+layout/traversal pair. It collects cycles, instructions, generic cache events,
+L1D and LLC load events, and data-TLB events. A high repetition count makes the
+decode kernels dominate process startup; cache scrubbing is disabled inside
+this counter run so scrub traffic does not contaminate the counters.
+
+Outputs are:
+
+```text
+results/perf-<job-id>/perf-counters.csv
+results/perf-<job-id>/perf-analysis.txt
+```
+
+Some events may be unavailable under the node's kernel or `perf_event_paranoid`
+policy. The raw CSV leaves unsupported counters empty rather than inventing a
+value.
+
 ## Inspect newer vLLM layout definitions
 
 The source probe reuses the newer checkout's actual `KVCacheLayout` enum:

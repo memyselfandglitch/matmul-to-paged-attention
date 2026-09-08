@@ -12,16 +12,7 @@ readonly HEAD_DIM="${HEAD_DIM:-64}"
 readonly WARMUPS="${WARMUPS:-1}"
 readonly REPEATS="${REPEATS:-5}"
 
-if command -v cmake >/dev/null 2>&1; then
-  cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
-  cmake --build "${BUILD_DIR}" --parallel
-else
-  readonly CXX="${CXX:-c++}"
-  mkdir -p "${BUILD_DIR}"
-  "${CXX}" -std=c++20 -O3 -Wall -Wextra -Wpedantic \
-    "${REPO_ROOT}/src/paged_kv_study.cpp" \
-    -o "${BUILD_DIR}/paged_kv_study"
-fi
+"${REPO_ROOT}/scripts/build.sh"
 mkdir -p "${RESULT_DIR}"
 
 common_args=(

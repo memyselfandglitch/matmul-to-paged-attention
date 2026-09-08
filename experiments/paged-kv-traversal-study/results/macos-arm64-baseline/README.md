@@ -21,3 +21,10 @@ in both patterns. Shuffling particularly penalised the global head-major
 These are smoke-test findings, not target-machine conclusions. The committed
 CSV files and reports make the local result reproducible; performance claims
 should use the AMD CPU run with the larger Slurm dimensions.
+
+The local fragmentation smoke test adds contiguous run lengths from 128 down
+to 1. With a 2% tie band, HBND is preferred at run lengths 64, 32, and 16;
+run length 8 is a tie; and BHND is preferred at 4, 2, and 1. This brackets the
+local crossover between run lengths 16 and 4. The kernel times are only about
+1.2 ms, so the AMD run is required to locate a defensible target-system
+crossover.
