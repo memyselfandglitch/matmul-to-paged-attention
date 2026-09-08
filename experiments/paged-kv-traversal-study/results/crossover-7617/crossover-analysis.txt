@@ -1,0 +1,16 @@
+Matched-layout crossover versus contiguous physical-block run length
+    run    runs     BNHD ms     BHND ms     HBND ms   winner    HBND/BHND    pair
+    512       1      31.477      30.997      29.044     HBND       0.937x    HBND
+    256       2      31.809      30.982      29.026     HBND       0.937x    HBND
+    128       4      31.360      31.084      29.073     HBND       0.935x    HBND
+     64       8      31.302      30.884      29.129     HBND       0.943x    HBND
+     32      16      31.310      30.874      29.208     HBND       0.946x    HBND
+     16      32      31.337      31.087      29.447     HBND       0.947x    HBND
+      8      64      31.404      30.878      29.868     HBND       0.967x    HBND
+      4     128      31.303      30.869      30.520     HBND       0.989x     tie
+      2     256      31.401      30.898      31.728     BHND       1.027x    BHND
+      1     512      31.431      31.063      32.888     BHND       1.059x    BHND
+
+Useful arithmetic intensity: [0.5] FLOP/KV byte
+BHND/HBND differences within 2.0% are reported as ties.
+BHND/HBND preference changes between contiguous run lengths 8 and 2: HBND -> BHND.
