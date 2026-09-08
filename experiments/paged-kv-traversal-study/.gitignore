@@ -3,6 +3,7 @@
 !/results/.gitkeep
 !/results/macos-arm64-baseline/
 !/results/macos-arm64-baseline/*.csv
+!/results/macos-arm64-baseline/*.txt
 !/results/macos-arm64-baseline/README.md
 __pycache__/
 *.pyc

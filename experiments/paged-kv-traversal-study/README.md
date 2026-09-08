@@ -7,7 +7,8 @@ This repository follows a two-phase research plan:
 2. Only after analysing Phase 1, choose and test alternative physical memory
    layouts.
 
-Phase 1 is implemented. Phase 2 is deliberately not part of the default run.
+Both phases are implemented. Phase 2 remains opt-in so the fixed-layout
+baseline can still be run independently.
 
 ## What is actually the default?
 
@@ -146,29 +147,38 @@ Each Slurm run writes its CSV files and `analysis.txt` under
 `results/job-<job-id>/`, preventing parameter-sweep jobs from overwriting one
 another.
 
-## Phase 2 boundary
+## Run Phase 2
 
-Do not interpret the exploratory `--stage full` mode as the Phase 2 decision.
-After running Phase 1 on the target machine, first examine:
+Phase 2 crosses every physical layout with every traversal:
 
-- whether head-first, block-first, or memory-matched traversal wins;
-- whether the result changes with contiguous versus shuffled block tables;
-- whether it changes with number of heads, context length, block size and head
-  dimension.
+| Physical memory | `BNHD` traversal | `BHND` traversal | `HBND` traversal |
+| --- | --- | --- | --- |
+| `BNHD` | matched | mismatched | mismatched |
+| `BHND` | mismatched | matched | mismatched |
+| `HBND` | mismatched | mismatched | matched |
 
-Those results determine which alternative memory arrangement is justified.
-For example, if head-first traversal consistently wins despite NHD's large
-head-to-head stride, a head-grouped layout becomes a sensible Phase 2
-candidate. If the NHD-matched traversal wins, changing memory may be
-unnecessary.
-
-An exploratory 3x3 layout/traversal matrix remains available for development:
+The complete matrix is measured with both sequential and shuffled block tables:
 
 ```bash
 RUN_PHASE2=1 ./scripts/run_study.sh
 ```
 
-It is disabled by default so the experiment order remains controlled.
+This produces:
+
+```text
+results/phase2-sequential.csv
+results/phase2-shuffled.csv
+results/phase2-analysis.txt
+```
+
+The analysis reports the best traversal for each physical layout, the global
+layout/traversal winner, the head-first versus block-first ratio, and
+sensitivity to block-table shuffling. All nine cases use identical logical K,
+V and Q values and are checked against the same output.
+
+The three per-layer layouts correspond to `LBNHC`, `LBHNC`, and `LHBNC` in the
+newer vLLM physical-layout interface. Backend support varies, so this standalone
+matrix studies the layouts independently of a particular production backend.
 
 ## Inspect newer vLLM layout definitions
 

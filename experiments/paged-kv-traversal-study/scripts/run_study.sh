@@ -56,12 +56,26 @@ python3 "${REPO_ROOT}/python/analyze_phase1.py" \
 
 if [[ "${RUN_PHASE2:-0}" == "1" ]]; then
   echo
-  echo "Exploratory Phase 2: layout/traversal matrix"
+  echo "Phase 2A: full layout/traversal matrix, sequential block table"
+  "${BUILD_DIR}/paged_kv_study" \
+    "${common_args[@]}" \
+    --stage full \
+    --block-order sequential \
+    --csv "${RESULT_DIR}/phase2-sequential.csv"
+
+  echo
+  echo "Phase 2B: full layout/traversal matrix, shuffled block table"
   "${BUILD_DIR}/paged_kv_study" \
     "${common_args[@]}" \
     --stage full \
     --block-order shuffled \
-    --csv "${RESULT_DIR}/phase2-layout-matrix.csv"
+    --csv "${RESULT_DIR}/phase2-shuffled.csv"
+
+  echo
+  python3 "${REPO_ROOT}/python/analyze_phase2.py" \
+    "${RESULT_DIR}/phase2-sequential.csv" \
+    "${RESULT_DIR}/phase2-shuffled.csv" \
+    | tee "${RESULT_DIR}/phase2-analysis.txt"
 fi
 
 echo

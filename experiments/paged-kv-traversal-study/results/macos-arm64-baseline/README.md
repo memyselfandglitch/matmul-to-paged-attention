@@ -1,4 +1,4 @@
-# macOS arm64 Phase 1 baseline
+# macOS arm64 Phase 1 and Phase 2 baseline
 
 This is a local correctness and smoke-test result, not the target IISc result.
 
@@ -12,8 +12,12 @@ This is a local correctness and smoke-test result, not the target IISc result.
 - Computation: scaled QK, online softmax and weighted V accumulation
 - Correctness: all traversal outputs matched within each block-table test
 
-With sequential blocks, the memory-matched `BNHD` traversal was fastest. With
-shuffled physical blocks, `BHND` was fastest in this small run. That reversal
-is exactly why the block table must be included before selecting a Phase 2
-memory layout. Performance conclusions should come from repeated runs on the
-target AMD system over a parameter sweep.
+Phase 1 favoured the memory-matched `BNHD` traversal with both block-table
+patterns. In the Phase 2 3x3 matrix, the traversal matching physical memory won
+for all three layouts. `BNHD` memory with `BNHD` traversal was the global winner
+in both patterns. Shuffling particularly penalised the global head-major
+`HBND` memory layout.
+
+These are smoke-test findings, not target-machine conclusions. The committed
+CSV files and reports make the local result reproducible; performance claims
+should use the AMD CPU run with the larger Slurm dimensions.
