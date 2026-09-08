@@ -1,0 +1,19 @@
+Sequential physical block table
+rank  traversal    median ms    vs best      GiB/s
+   1  BNHD            38.764     1.000x      6.449
+   2  BHND            44.654     1.152x      5.599
+   3  HBND            74.011     1.909x      3.378
+winner: BNHD
+head-first / block-first: 1.657x
+block-first / NHD-matched: 1.152x
+
+Shuffled physical block table
+rank  traversal    median ms    vs best      GiB/s
+   1  BNHD            38.713     1.000x      6.458
+   2  BHND            45.012     1.163x      5.554
+   3  HBND            74.497     1.924x      3.356
+winner: BNHD
+head-first / block-first: 1.655x
+block-first / NHD-matched: 1.163x
+
+Both block-table patterns favour BNHD.

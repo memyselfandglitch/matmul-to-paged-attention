@@ -1,0 +1,37 @@
+Sequential physical block table
+Median decode time (ms); rows are physical memory layouts
+memory          BNHD        BHND        HBND    winner   matched/best
+BNHD          38.494      44.421      72.182      BNHD         1.000x
+BHND          56.252      37.068      40.427      BHND         1.000x
+HBND          46.524      40.154      35.461      HBND         1.000x
+matched traversal wins: 3/3 layouts
+global winner: memory=HBND, traversal=HBND, 35.461 ms
+Head-first versus block-first within each physical layout:
+  BNHD: HBND/BHND = 1.625x
+  BHND: HBND/BHND = 1.091x
+  HBND: HBND/BHND = 0.883x
+
+Shuffled physical block table
+Median decode time (ms); rows are physical memory layouts
+memory          BNHD        BHND        HBND    winner   matched/best
+BNHD          38.880      44.672      74.469      BNHD         1.000x
+BHND          57.559      37.515      40.762      BHND         1.000x
+HBND          50.696      42.436      41.632      HBND         1.000x
+matched traversal wins: 3/3 layouts
+global winner: memory=BHND, traversal=BHND, 37.515 ms
+Head-first versus block-first within each physical layout:
+  BNHD: HBND/BHND = 1.667x
+  BHND: HBND/BHND = 1.087x
+  HBND: HBND/BHND = 0.981x
+
+Block-table sensitivity (shuffled/sequential time)
+memory  traversal        ratio      change
+BNHD    BNHD            1.010x       +1.0%
+BNHD    BHND            1.006x       +0.6%
+BNHD    HBND            1.032x       +3.2%
+BHND    BNHD            1.023x       +2.3%
+BHND    BHND            1.012x       +1.2%
+BHND    HBND            1.008x       +0.8%
+HBND    BNHD            1.090x       +9.0%
+HBND    BHND            1.057x       +5.7%
+HBND    HBND            1.174x      +17.4%
