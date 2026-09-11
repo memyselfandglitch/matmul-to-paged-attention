@@ -1,4 +1,4 @@
-# Matrix multiplication, BMM, and K/V cache
+# Matrix multiplication and BMM
 
 ## Structural difference
 
@@ -35,46 +35,16 @@ dimensions. It treats the final two dimensions as matrix dimensions and
 broadcasts the preceding dimensions. The study now calls the real PyTorch
 operation; it contains no handwritten matrix-multiplication kernel.
 
-## When BMM helps
+## Why compare the two calls?
 
 BMM can help when matrices are individually too small to use the machine well:
 
 - one API/kernel dispatch replaces many dispatches;
 - independent products provide additional parallel work;
 - uniform shapes and strides simplify scheduling;
-- a shared operand can sometimes be reused from cache.
 
 BMM does not inherently perform fewer FLOPs. For large matrices, looping over
-well-optimized GEMMs can be just as fast. If every batch item shares the same
-right-hand matrix, contiguous `A[batch,M,K]` can instead be viewed as
-`A[batch*M,K]` and processed as one larger ordinary GEMM.
-
-## Mapping attention to BMM
-
-For attention, batch and head are commonly flattened into one group dimension:
-
-```text
-groups = batch * heads
-
-Q[groups,Q,D] * K^T[groups,D,T] -> scores[groups,Q,T]
-softmax(scores)
-probabilities[groups,Q,T] * V[groups,T,D] -> output[groups,Q,D]
-```
-
-Thus K/V-cache attention contains two batched matrix products with a softmax
-between them. During prompt processing, `Q` can contain many query tokens and
-these are genuine matrix products. During token-by-token decoding, `Q=1`, so
-each product degenerates into a batched matrix-vector operation. Reading the
-growing K/V cache often becomes more important than arithmetic at that point.
-
-The included benchmark uses PyTorch tensors with the cache layout:
-
-```text
-[batch, heads, context_tokens, head_dim]
-```
-
-Production systems may use blocked or paged cache layouts, but the underlying
-`QK^T -> softmax -> probabilities*V` structure remains the same.
+well-optimized GEMMs can be just as fast.
 
 ## Run the study
 

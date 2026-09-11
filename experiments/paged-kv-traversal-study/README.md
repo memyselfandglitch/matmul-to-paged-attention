@@ -10,6 +10,27 @@ This repository follows a two-phase research plan:
 Both phases are implemented. Phase 2 remains opt-in so the fixed-layout
 baseline can still be run independently.
 
+## Presentation quick start
+
+On the IISc Slurm server, run the complete Phase 1 + Phase 2 study with no
+arguments:
+
+```bash
+cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-traversal-study
+./run.sh
+```
+
+After the submitted job finishes, display the newest Phase 1 and Phase 2
+reports with:
+
+```bash
+./show_results.sh
+```
+
+The launcher resolves paths relative to itself, so it does not depend on the
+directory from which Slurm was invoked. The lower-level commands documented
+below remain available when custom dimensions or individual phases are needed.
+
 ## What is actually the default?
 
 There are two relevant vLLM versions in this workspace.
