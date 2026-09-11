@@ -18,6 +18,7 @@ readonly job_id="${submission%%;*}"
 readonly result_dir="${STUDY_ROOT}/results/job-${job_id}"
 
 echo "Submitted optimization-stage and final loop-order studies as job ${job_id}."
+echo "Quick presentation sweep: n=384, 768, 1152 with 3 timed repetitions."
 
 last_state=""
 while true; do

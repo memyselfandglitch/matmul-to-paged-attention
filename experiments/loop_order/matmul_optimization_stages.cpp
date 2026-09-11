@@ -393,16 +393,17 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    // ------------------------------------------------
-    // n values: all multiples of 48
-    // ------------------------------------------------
-
+    // Use the same representative sizes as the loop-order study. Testing every
+    // multiple of 48 makes the cubic baseline dominate presentation runtime
+    // without adding a new optimization stage.
+    constexpr int candidate_sizes[] = {384, 768, 1152, 1536, 1920};
     std::vector<int> sizes;
-
-    for (int n = min_n; n <= max_n; n += 48) {
-        sizes.push_back(n);
+    for (int n : candidate_sizes) {
+        if (n >= min_n && n <= max_n) {
+            sizes.push_back(n);
+        }
     }
-    if (sizes.back() != max_n) {
+    if (sizes.empty() || sizes.back() != max_n) {
         sizes.push_back(max_n);
     }
 

@@ -54,6 +54,16 @@ cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/loop_order
 
 The launcher submits a CPU Slurm job, waits for it, and prints both reports.
 Raw output and machine information are saved under `results/job-<job-id>/`.
+The no-argument presentation run uses `n = 384, 768, 1152` and three timed
+repetitions. This keeps every optimization stage and all six loop orders while
+avoiding dozens of repeated cubic baseline runs.
+
+For a longer run through `n = 1920`, override the Slurm defaults without
+editing any files:
+
+```bash
+MAX_N=1920 REPETITIONS=5 ./run.sh
+```
 
 ## Build and run
 

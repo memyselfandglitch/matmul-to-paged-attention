@@ -13,8 +13,8 @@ set -euo pipefail
 
 readonly STUDY_ROOT="${STUDY_ROOT:-${SLURM_SUBMIT_DIR}}"
 readonly RESULT_DIR="${STUDY_ROOT}/results/job-${SLURM_JOB_ID}"
-readonly MAX_N="${MAX_N:-1920}"
-readonly REPETITIONS="${REPETITIONS:-5}"
+readonly MAX_N="${MAX_N:-1152}"
+readonly REPETITIONS="${REPETITIONS:-3}"
 readonly MIN_N="${MIN_N:-384}"
 
 cd "${STUDY_ROOT}"
