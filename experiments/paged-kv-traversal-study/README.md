@@ -236,6 +236,36 @@ Some events may be unavailable under the node's kernel or `perf_event_paranoid`
 policy. The raw CSV leaves unsupported counters empty rather than inventing a
 value.
 
+### AMD uProf L3 and memory counters
+
+On the IISc EPYC server, Linux perf mode does not expose the `amd_l3` or
+`amd_df` PMU devices. The installed uProf binary has capabilities configured
+for non-root MSR access, so use the dedicated MSR-mode study instead:
+
+```bash
+sbatch slurm/run_uprof_counters.sbatch
+```
+
+The default run pins every benchmark process to core 0 with `taskset` and
+collects counters for CCX 0, which contains that core. CCX scope is required by
+uProf for normalized L3 metrics. The study compares matched `BHND` and `HBND`
+at fragmented run lengths `8,4,3,2,1` and repeats each point with block-table
+seeds `0,1,2`. It collects IPC, L3 accesses, L3 misses, L3 miss latency, and
+Data Fabric memory bandwidth in the same process.
+
+Results are written under:
+
+```text
+results/uprof-<job-id>/uprof-counters.csv
+results/uprof-<job-id>/uprof-analysis.txt
+results/uprof-<job-id>/raw/
+```
+
+The `raw/` directory preserves both the benchmark timing CSV and complete
+AMDuProfPcm report for every isolated case. The L3 and Data Fabric counters are
+hardware-scoped rather than process-attributed, so paired runs should be made
+on the same core while the corresponding CCX and system are otherwise quiet.
+
 ## Inspect newer vLLM layout definitions
 
 The source probe reuses the newer checkout's actual `KVCacheLayout` enum:

@@ -1,9 +1,0 @@
-Triton KV-cache layout A/B
-NHD samples: 10
-HND samples: 10
-NHD average: 0.302950 s
-HND average: 0.294569 s
-NHD median:  0.301095 s
-HND median:  0.294631 s
-NHD/HND median ratio: 1.0219x
-Faster median: HND
