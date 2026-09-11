@@ -13,6 +13,23 @@ from pathlib import Path
 LAYOUTS = ("BNHD", "BHND", "HBND")
 
 
+def describe_result(preference: str, ratio: float, agreeing: int, trials: int) -> str:
+    """Turn a paired timing result into a compact presentation statement."""
+    if preference == "tie":
+        return "Effective tie"
+
+    magnitude = abs(ratio - 1.0)
+    if agreeing == trials and magnitude >= 0.05:
+        return f"{preference} clearly faster"
+    if agreeing == trials:
+        return f"{preference} faster"
+
+    contrary = trials - agreeing
+    if contrary == 1:
+        return f"{preference} faster, one outlier"
+    return f"{preference} faster, {contrary} contrary trials"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("input", type=Path)
@@ -103,6 +120,21 @@ def main() -> None:
                 )
             previous_decisive_preference = preference
             previous_decisive_run_length = run_length
+        hbnd_trial_wins = sum(trial_ratio < 1.0 for trial_ratio in trial_ratios)
+        bhnd_trial_wins = sum(trial_ratio > 1.0 for trial_ratio in trial_ratios)
+        if hbnd_trial_wins >= bhnd_trial_wins:
+            trial_winner = "HBND"
+            trial_wins = hbnd_trial_wins
+        else:
+            trial_winner = "BHND"
+            trial_wins = bhnd_trial_wins
+        trial_agreement = f"{trial_winner} {trial_wins}/{len(trial_ratios)}"
+        agreeing_with_preference = (
+            hbnd_trial_wins if preference == "HBND" else bhnd_trial_wins
+        )
+        interpretation = describe_result(
+            preference, ratio, agreeing_with_preference, len(trial_ratios)
+        )
         print(
             f"{run_length:>7} {num_runs[run_length]:>7} "
             f"{medians['BNHD']:>11.3f} {medians['BHND']:>11.3f} "
@@ -120,11 +152,28 @@ def main() -> None:
                 "hbnd_over_bhnd": ratio,
                 "pair_preference": preference,
                 "trials": len(trial_ratios),
+                "hbnd_trial_wins": hbnd_trial_wins,
+                "bhnd_trial_wins": bhnd_trial_wins,
+                "trial_agreement": trial_agreement,
+                "interpretation": interpretation,
                 "bhnd_min_ms": min(grouped[(run_length, "BHND")]),
                 "bhnd_max_ms": max(grouped[(run_length, "BHND")]),
                 "hbnd_min_ms": min(grouped[(run_length, "HBND")]),
                 "hbnd_max_ms": max(grouped[(run_length, "HBND")]),
             }
+        )
+
+    print()
+    print("Compact HBND/BHND crossover summary")
+    print(
+        f"{'contiguous run':>14} {'HBND/BHND':>12} "
+        f"{'trial agreement':>17}  interpretation"
+    )
+    for row in summary_rows:
+        print(
+            f"{int(row['run_length']):>14} "
+            f"{float(row['hbnd_over_bhnd']):>11.3f}x "
+            f"{str(row['trial_agreement']):>17}  {row['interpretation']}"
         )
 
     print()

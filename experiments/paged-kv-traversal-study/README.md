@@ -1,26 +1,28 @@
 # Paged KV traversal study
 
-This repository follows a two-phase research plan:
+This repository follows a three-phase research plan:
 
 1. Keep the installed vLLM default KV-cache memory layout fixed and measure
    different traversal orders for one-token decode attention.
 2. Only after analysing Phase 1, choose and test alternative physical memory
    layouts.
+3. Sweep physical-block fragmentation from sequential runs to fully shuffled
+   blocks and locate where the matched HBND/BHND preference changes.
 
-Both phases are implemented. Phase 2 remains opt-in so the fixed-layout
-baseline can still be run independently.
+All three phases are implemented. The lower-level scripts keep later phases
+opt-in so each experiment can still be run independently.
 
 ## Presentation quick start
 
-On the IISc Slurm server, run the complete Phase 1 + Phase 2 study with no
-arguments:
+On the IISc Slurm server, run the complete Phase 1 + Phase 2 + fragmentation
+crossover study with no arguments:
 
 ```bash
 cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-traversal-study
 ./run.sh
 ```
 
-`run.sh` waits for that exact job to finish and then prints both reports. To
+`run.sh` waits for that exact job to finish and then prints all three reports. To
 redisplay the newest completed result later, use:
 
 ```bash
@@ -30,6 +32,12 @@ redisplay the newest completed result later, use:
 The launcher resolves paths relative to itself, so it does not depend on the
 directory from which Slurm was invoked. The lower-level commands documented
 below remain available when custom dimensions or individual phases are needed.
+
+Phase 3 uses contiguous run lengths `512,256,128,64,32,16,8,4,2,1` with five
+deterministic trials. Run length 512 is fully sequential; run length 1 shuffles
+individual blocks; intermediate values shuffle contiguous chunks. Its report
+includes the HBND/BHND ratio, trial agreement, interpretation, and the interval
+in which the preference changes.
 
 ## What is actually the default?
 
@@ -209,6 +217,14 @@ study replaces those two extremes with a controlled contiguous-run length.
 Physical block runs are shuffled, but block numbers inside each run remain
 consecutive. A run length equal to the number of blocks is sequential; run
 length one is maximally fragmented.
+
+The top-level `./run.sh` includes this as Phase 3 and writes its files beside
+the Phase 1 and Phase 2 results under `results/job-<job-id>/`. For the same
+integrated run without Slurm, use:
+
+```bash
+RUN_PHASE2=1 RUN_CROSSOVER=1 ./scripts/run_study.sh
+```
 
 Submit the focused timing study on IISc:
 

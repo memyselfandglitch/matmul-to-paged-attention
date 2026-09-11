@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Submit, wait for, and display the complete Phase 1 + Phase 2 study.
+# Submit, wait for, and display the complete layout/traversal study.
 
 set -euo pipefail
 
@@ -11,11 +11,11 @@ if ! command -v sbatch >/dev/null 2>&1; then
   exit 1
 fi
 
-submission="$(sbatch --parsable --export=ALL,RUN_PHASE2=1 \
+submission="$(sbatch --parsable --export=ALL,RUN_PHASE2=1,RUN_CROSSOVER=1 \
   "${REPO_ROOT}/slurm/run_cpu_study.sbatch")"
 readonly job_id="${submission%%;*}"
 
-echo "Submitted Phase 1 + Phase 2 as Slurm job ${job_id}."
+echo "Submitted Phase 1 + Phase 2 + fragmentation crossover as Slurm job ${job_id}."
 echo "Raw results: results/job-${job_id}/"
 
 last_state=""
@@ -35,14 +35,16 @@ done
 # Slurm may remove a completed job from squeue just before its files become
 # visible. Give the filesystem a few seconds to settle.
 for _ in {1..10}; do
-  if [[ -f "results/job-${job_id}/phase2-analysis.txt" ]]; then
+  if [[ -f "results/job-${job_id}/phase2-analysis.txt" && \
+        -f "results/job-${job_id}/crossover-analysis.txt" ]]; then
     break
   fi
   sleep 1
 done
 
-if [[ ! -f "results/job-${job_id}/phase2-analysis.txt" ]]; then
-  echo "error: job ${job_id} ended without a Phase 2 report" >&2
+if [[ ! -f "results/job-${job_id}/phase2-analysis.txt" || \
+      ! -f "results/job-${job_id}/crossover-analysis.txt" ]]; then
+  echo "error: job ${job_id} ended without complete Phase 2 and crossover reports" >&2
   sacct --jobs "${job_id}" --format=JobID,State,ExitCode 2>/dev/null || true
   echo "Inspect cpu-study-${job_id}.out and cpu-study-${job_id}.err." >&2
   exit 1

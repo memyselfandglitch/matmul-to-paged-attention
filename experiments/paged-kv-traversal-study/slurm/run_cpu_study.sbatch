@@ -21,6 +21,7 @@ export BLOCK_SIZE="${BLOCK_SIZE:-16}"
 export HEAD_DIM="${HEAD_DIM:-128}"
 export WARMUPS="${WARMUPS:-2}"
 export REPEATS="${REPEATS:-9}"
+export TRIALS="${TRIALS:-5}"
 export RESULT_DIR="${RESULT_DIR:-${REPO_ROOT}/results/job-${SLURM_JOB_ID}}"
 
 ./scripts/run_study.sh

@@ -49,3 +49,12 @@ else
   echo "Phase 2 results are not present in ${result_dir}."
   echo "The job may still be running; ./run.sh waits and prints only complete results."
 fi
+
+if [[ -f "${result_dir}/crossover-analysis.txt" ]]; then
+  echo
+  echo "PHASE 3 — FRAGMENTATION CROSSOVER"
+  sed -n '1,320p' "${result_dir}/crossover-analysis.txt"
+else
+  echo
+  echo "Fragmentation-crossover results are not present in ${result_dir}."
+fi

@@ -11,6 +11,19 @@ readonly BLOCK_SIZE="${BLOCK_SIZE:-16}"
 readonly HEAD_DIM="${HEAD_DIM:-64}"
 readonly WARMUPS="${WARMUPS:-1}"
 readonly REPEATS="${REPEATS:-5}"
+readonly TRIALS="${TRIALS:-5}"
+
+if [[ -n "${RUN_LENGTHS:-}" ]]; then
+  run_lengths="${RUN_LENGTHS}"
+else
+  run_lengths="${BLOCKS}"
+  for candidate in 512 256 128 64 32 16 8 4 2 1; do
+    if (( candidate < BLOCKS )); then
+      run_lengths+=",${candidate}"
+    fi
+  done
+fi
+readonly RUN_LENGTHS="${run_lengths}"
 
 "${REPO_ROOT}/scripts/build.sh"
 mkdir -p "${RESULT_DIR}"
@@ -67,6 +80,28 @@ if [[ "${RUN_PHASE2:-0}" == "1" ]]; then
     "${RESULT_DIR}/phase2-sequential.csv" \
     "${RESULT_DIR}/phase2-shuffled.csv" \
     | tee "${RESULT_DIR}/phase2-analysis.txt"
+fi
+
+if [[ "${RUN_CROSSOVER:-0}" == "1" ]]; then
+  echo
+  echo "Phase 3: matched-layout crossover from sequential to shuffled blocks"
+  python3 "${REPO_ROOT}/python/run_crossover.py" \
+    --binary "${BUILD_DIR}/paged_kv_study" \
+    --output "${RESULT_DIR}/crossover-raw.csv" \
+    --blocks "${BLOCKS}" \
+    --heads "${HEADS}" \
+    --block-size "${BLOCK_SIZE}" \
+    --head-dim "${HEAD_DIM}" \
+    --run-lengths "${RUN_LENGTHS}" \
+    --trials "${TRIALS}" \
+    --warmups "${WARMUPS}" \
+    --repeats "${REPEATS}"
+
+  echo
+  python3 "${REPO_ROOT}/python/analyze_crossover.py" \
+    "${RESULT_DIR}/crossover-raw.csv" \
+    --summary-csv "${RESULT_DIR}/crossover-summary.csv" \
+    | tee "${RESULT_DIR}/crossover-analysis.txt"
 fi
 
 echo
