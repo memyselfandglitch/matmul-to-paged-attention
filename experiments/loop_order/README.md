@@ -10,6 +10,13 @@ This directory contains two separate experiments:
   all six permutations of the macro-tile loops at two stages: cache tiled, and
   cache tiled plus SIMD register blocked.
 
+The presentation runner shows these in causal order. Part 1 measures every
+optimization stage. Part 2 applies the final cumulative implementation—cache
+tiling plus SIMD register blocking—to all six loop orders. It also retains the
+tiled-only columns as a useful control. "Final" here means the fullest
+optimization stack implemented by this study; it is not selected dynamically
+from whichever timing happens to be lowest in one run.
+
 ## Fair-comparison rules
 
 Within each stage, the six kernels differ only in the order of their `Mc`, `Nc`,

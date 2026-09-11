@@ -32,8 +32,11 @@ mkdir -p "${RESULT_DIR}"
 
 make all
 
-./build/loop_order_study "${MAX_N}" "${REPETITIONS}" "${MIN_N}" \
-  | tee "${RESULT_DIR}/loop-order.txt"
-
+# First establish the optimization progression. The final cumulative stage
+# (cache tiling + SIMD register blocking) is then used for every loop order in
+# the controlled comparison below.
 ./build/matmul_optimization_stages "${MAX_N}" "${REPETITIONS}" "${MIN_N}" \
   | tee "${RESULT_DIR}/optimization-stages.txt"
+
+./build/loop_order_study "${MAX_N}" "${REPETITIONS}" "${MIN_N}" \
+  | tee "${RESULT_DIR}/loop-order.txt"

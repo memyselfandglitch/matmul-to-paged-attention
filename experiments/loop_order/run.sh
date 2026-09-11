@@ -17,7 +17,7 @@ submission="$(sbatch --parsable \
 readonly job_id="${submission%%;*}"
 readonly result_dir="${STUDY_ROOT}/results/job-${job_id}"
 
-echo "Submitted loop-order and optimization-stage studies as job ${job_id}."
+echo "Submitted optimization-stage and final loop-order studies as job ${job_id}."
 
 last_state=""
 while true; do
@@ -50,12 +50,13 @@ if [[ ! -f "${result_dir}/loop-order.txt" || \
 fi
 
 echo
-echo "LOOP-ORDER STUDY"
-sed -n '1,320p' "${result_dir}/loop-order.txt"
+echo "PART 1 — MATRIX-MULTIPLICATION OPTIMIZATION STAGES"
+sed -n '1,320p' "${result_dir}/optimization-stages.txt"
 
 echo
-echo "OPTIMIZATION-STAGE STUDY"
-sed -n '1,320p' "${result_dir}/optimization-stages.txt"
+echo "PART 2 — ALL LOOP ORDERS USING THE FINAL OPTIMIZATION STACK"
+echo "Each order uses cache tiling + SIMD register blocking; only Mc/Nc/Kc order changes."
+sed -n '1,320p' "${result_dir}/loop-order.txt"
 
 echo
 echo "Raw results: ${result_dir}"
