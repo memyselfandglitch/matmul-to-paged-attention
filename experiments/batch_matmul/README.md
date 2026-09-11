@@ -58,6 +58,8 @@ The presentation run also sweeps square matrices from `64x64` through
 - CPU0's reported L2 and L3 size per cache instance;
 - whether one product and the complete batch exceed that L3-instance size;
 - looped and batched median time and their ratio;
+- effective useful GFLOP/s for both paths;
+- nominal square-GEMM arithmetic intensity in FLOP per `A+B+C` byte;
 - the first observed point within 5% of parity.
 
 This separates measurement from interpretation. A ratio approaching one can
@@ -65,6 +67,10 @@ happen because Python dispatch and output-stacking overhead becomes negligible
 beside cubic GEMM work. If it happens after a cache threshold, that is a useful
 correlation, but cache misses require hardware counters before being claimed as
 the cause. The raw sweep is saved as `cache-sweep.csv`.
+The nominal GEMM arithmetic intensity is identical for both paths because they
+perform the same useful arithmetic on the same A, B and final C tensors. The
+loop's additional stack copy is discussed separately rather than represented
+as a different matrix-multiplication algorithm.
 
 ## Presentation quick start on IISc
 

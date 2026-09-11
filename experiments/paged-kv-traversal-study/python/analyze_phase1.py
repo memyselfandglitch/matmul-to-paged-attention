@@ -21,6 +21,7 @@ def load(path: Path) -> dict[str, dict[str, float | str]]:
             "memory_layout": row["memory_layout"],
             "median_ms": float(row["median_ms"]),
             "gib_per_second": float(row["gib_per_second"]),
+            "gflops": float(row["gflops"]),
             "max_abs_error": float(row["max_abs_error"]),
         }
     return parsed
@@ -31,13 +32,18 @@ def report(label: str, rows: dict[str, dict[str, float | str]]) -> None:
     best_ms = float(ordered[0][1]["median_ms"])
 
     print(label)
-    print(f"{'rank':>4}  {'traversal':<10} {'median ms':>11} {'vs best':>10} {'GiB/s':>10}")
+    print(
+        f"{'rank':>4}  {'traversal':<10} {'median ms':>11} "
+        f"{'vs best':>10} {'GiB/s':>10} {'GFLOP/s':>10}"
+    )
     for rank, (traversal, row) in enumerate(ordered, start=1):
         median_ms = float(row["median_ms"])
         bandwidth = float(row["gib_per_second"])
+        throughput = float(row["gflops"])
         print(
             f"{rank:>4}  {traversal:<10} {median_ms:>11.3f} "
-            f"{median_ms / best_ms:>9.3f}x {bandwidth:>10.3f}"
+            f"{median_ms / best_ms:>9.3f}x {bandwidth:>10.3f} "
+            f"{throughput:>10.3f}"
         )
 
     block_ms = float(rows["BHND"]["median_ms"])

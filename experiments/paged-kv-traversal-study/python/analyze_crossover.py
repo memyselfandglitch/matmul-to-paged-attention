@@ -46,6 +46,8 @@ def main() -> None:
     tie_fraction = args.tie_threshold_pct / 100.0
 
     grouped: dict[tuple[int, str], list[float]] = defaultdict(list)
+    bandwidths: dict[tuple[int, str], list[float]] = defaultdict(list)
+    throughputs: dict[tuple[int, str], list[float]] = defaultdict(list)
     paired: dict[tuple[int, int], dict[str, float]] = defaultdict(dict)
     num_runs: dict[int, int] = {}
     intensities: set[float] = set()
@@ -65,6 +67,8 @@ def main() -> None:
         trial = int(row["trial"])
         median_ms = float(row["median_ms"])
         grouped[(run_length, memory)].append(median_ms)
+        bandwidths[(run_length, memory)].append(float(row["gib_per_second"]))
+        throughputs[(run_length, memory)].append(float(row["gflops"]))
         paired[(run_length, trial)][memory] = median_ms
         num_runs[run_length] = int(row["num_runs"])
         intensities.add(float(row["useful_flops_per_kv_byte"]))
@@ -87,6 +91,14 @@ def main() -> None:
     for run_length in run_lengths:
         medians = {
             layout: statistics.median(grouped[(run_length, layout)])
+            for layout in LAYOUTS
+        }
+        median_bandwidths = {
+            layout: statistics.median(bandwidths[(run_length, layout)])
+            for layout in LAYOUTS
+        }
+        median_throughputs = {
+            layout: statistics.median(throughputs[(run_length, layout)])
             for layout in LAYOUTS
         }
         winner = min(medians, key=medians.get)
@@ -148,6 +160,12 @@ def main() -> None:
                 "bnhd_median_ms": medians["BNHD"],
                 "bhnd_median_ms": medians["BHND"],
                 "hbnd_median_ms": medians["HBND"],
+                "bnhd_gib_per_second": median_bandwidths["BNHD"],
+                "bhnd_gib_per_second": median_bandwidths["BHND"],
+                "hbnd_gib_per_second": median_bandwidths["HBND"],
+                "bnhd_gflops": median_throughputs["BNHD"],
+                "bhnd_gflops": median_throughputs["BHND"],
+                "hbnd_gflops": median_throughputs["HBND"],
                 "winner": winner,
                 "hbnd_over_bhnd": ratio,
                 "pair_preference": preference,
@@ -166,12 +184,17 @@ def main() -> None:
     print()
     print("Compact HBND/BHND crossover summary")
     print(
-        f"{'contiguous run':>14} {'HBND/BHND':>12} "
+        f"{'run':>5} {'BHND GiB/s':>11} {'HBND GiB/s':>11} "
+        f"{'BHND GF/s':>10} {'HBND GF/s':>10} {'HBND/BHND':>12} "
         f"{'trial agreement':>17}  interpretation"
     )
     for row in summary_rows:
         print(
-            f"{int(row['run_length']):>14} "
+            f"{int(row['run_length']):>5} "
+            f"{float(row['bhnd_gib_per_second']):>11.3f} "
+            f"{float(row['hbnd_gib_per_second']):>11.3f} "
+            f"{float(row['bhnd_gflops']):>10.3f} "
+            f"{float(row['hbnd_gflops']):>10.3f} "
             f"{float(row['hbnd_over_bhnd']):>11.3f}x "
             f"{str(row['trial_agreement']):>17}  {row['interpretation']}"
         )

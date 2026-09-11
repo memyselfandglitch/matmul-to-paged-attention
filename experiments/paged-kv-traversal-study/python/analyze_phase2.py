@@ -25,6 +25,7 @@ def load(path: Path) -> dict[tuple[str, str], dict[str, float]]:
         parsed[key] = {
             "median_ms": float(row["median_ms"]),
             "gib_per_second": float(row["gib_per_second"]),
+            "gflops": float(row["gflops"]),
             "max_abs_error": float(row["max_abs_error"]),
         }
 
@@ -73,12 +74,24 @@ def report_pattern(
             f"{matched_ms / best_ms:>12.3f}x"
         )
 
+    print("\nUseful GFLOP/s; rows are physical memory layouts")
+    print(f"{'memory':<8}" + "".join(f"{traversal:>12}" for traversal in LAYOUTS))
+    for memory in LAYOUTS:
+        values = "".join(
+            f"{rows[(memory, traversal)]['gflops']:>12.3f}"
+            for traversal in LAYOUTS
+        )
+        print(f"{memory:<8}{values}")
+
     global_pair = min(rows, key=lambda pair: rows[pair]["median_ms"])
     global_ms = rows[global_pair]["median_ms"]
     print(f"matched traversal wins: {matched_wins}/{len(LAYOUTS)} layouts")
+    global_result = rows[global_pair]
     print(
         "global winner: "
-        f"memory={global_pair[0]}, traversal={global_pair[1]}, {global_ms:.3f} ms"
+        f"memory={global_pair[0]}, traversal={global_pair[1]}, {global_ms:.3f} ms, "
+        f"{global_result['gib_per_second']:.3f} GiB/s, "
+        f"{global_result['gflops']:.3f} GFLOP/s"
     )
     print("Head-first versus block-first within each physical layout:")
     for memory in LAYOUTS:

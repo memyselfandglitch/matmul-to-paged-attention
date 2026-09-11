@@ -37,7 +37,10 @@ Phase 3 uses contiguous run lengths `512,256,128,64,32,16,8,4,2,1` with five
 deterministic trials. Run length 512 is fully sequential; run length 1 shuffles
 individual blocks; intermediate values shuffle contiguous chunks. Its report
 includes the HBND/BHND ratio, trial agreement, interpretation, and the interval
-in which the preference changes.
+in which the preference changes. All phase reports display achieved useful
+GFLOP/s alongside latency; Phase 1 and the fragmentation crossover also show
+KV bandwidth in GiB/s. These are performance rates, while useful arithmetic
+intensity remains `0.5 FLOP/KV byte` for every layout and traversal.
 
 ## What is actually the default?
 

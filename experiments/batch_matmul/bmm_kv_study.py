@@ -88,6 +88,13 @@ def gflops(batch: int, m: int, n: int, k: int, microseconds: float) -> float:
     return 2.0 * batch * m * n * k / (microseconds * 1.0e3)
 
 
+def nominal_gemm_intensity(size: int, element_bytes: int) -> float:
+    """Ideal square-GEMM FLOPs per A+B+C byte, counting each tensor once."""
+    flops = 2.0 * size**3
+    tensor_bytes = 3.0 * size**2 * element_bytes
+    return flops / tensor_bytes
+
+
 def parse_size_bytes(text: str) -> int:
     suffixes = {"K": 1024, "M": 1024**2, "G": 1024**3}
     value = text.strip().upper()
@@ -155,6 +162,9 @@ def measure_square_case(
         "batch_working_set_mib": batch_bytes / 1024**2,
         "loop_us": loop_us,
         "batched_us": batched_us,
+        "loop_gflops": gflops(batch, size, size, size, loop_us),
+        "batched_gflops": gflops(batch, size, size, size, batched_us),
+        "nominal_flops_per_byte": nominal_gemm_intensity(size, element_bytes),
         "loop_over_batched": ratio,
         "classification": classification,
     }
@@ -207,6 +217,9 @@ def write_sweep_csv(
         "batch_vs_cpu0_l3",
         "loop_us",
         "batched_us",
+        "loop_gflops",
+        "batched_gflops",
+        "nominal_flops_per_byte",
         "loop_over_batched",
         "classification",
         "cpu0_l2_mib",
@@ -286,6 +299,11 @@ def main() -> None:
     print("   A[B,M,K] @ B[B,K,N] -> C[B,M,N]")
     print(f"   shape: batch={batch}, M=N=K={m}")
     print(
+        "   nominal GEMM arithmetic intensity: "
+        f"{nominal_gemm_intensity(m, a.element_size()):.2f} FLOP/A+B+C byte "
+        "(same useful GEMM work for both paths)"
+    )
+    print(
         f"   loop of torch.matmul: {loop_us:10.2f} us, "
         f"{gflops(batch, m, n, k_size, loop_us):7.2f} GFLOP/s"
     )
@@ -318,6 +336,7 @@ def main() -> None:
         print(
             f"\n{'n':>6} {'item MiB':>10} {'batch MiB':>11} "
             f"{'item cache':>15} {'batch/L3':>10} {'loop ms':>11} {'batch ms':>11} "
+            f"{'loop GF/s':>11} {'BMM GF/s':>10} {'AI F/B':>9} "
             f"{'loop/batch':>11} {'result':>16}"
         )
         sweep_rows: list[dict[str, float | int | str]] = []
@@ -336,6 +355,9 @@ def main() -> None:
                 f"{region:>15} {batch_region:>10} "
                 f"{float(row['loop_us']) / 1000:11.3f} "
                 f"{float(row['batched_us']) / 1000:11.3f} "
+                f"{float(row['loop_gflops']):11.2f} "
+                f"{float(row['batched_gflops']):10.2f} "
+                f"{float(row['nominal_flops_per_byte']):9.2f} "
                 f"{float(row['loop_over_batched']):11.3f}x "
                 f"{str(row['classification']):>16}"
             )
