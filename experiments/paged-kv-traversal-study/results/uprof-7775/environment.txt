@@ -1,0 +1,8 @@
+host=mn01
+kernel=6.2.0-39-generic
+job=7775
+profile_core=0
+profile_ccx=0
+cpus_allowed=0-191
+uprof=AMDuProfPcm Version 5.3.521.0 (PUBLIC)
+capabilities=/data/scratch/deveshisingh/tools/AMDuProf_Linux_x64_5.3.521/bin/AMDuProfPcm cap_sys_rawio,cap_perfmon=eip

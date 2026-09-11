@@ -1,0 +1,2 @@
+memory_layout,traversal,median_ms,gib_per_second,gflops,useful_flops_per_kv_byte,checksum,max_abs_error
+HBND,HBND,31.124218,8.032330322,4.312324506,0.5,-2.508999363,0

@@ -1,0 +1,80 @@
+
+AMDuProfPcm Report
+
+Processor Name:,AMD EPYC 9654 96-Core Processor                
+System:,Family(0x19) Model(0x11) Stepping(0x1)
+Operating System:,Linux 6.2.0-39-generic
+Number of Sockets :,2
+Number of Core Complexes(CCX) :,24
+Number of Cores :,192
+Number of Threads :,192
+SMT Enabled in HW:,False
+SMT Enabled by OS :,False
+
+Core P0 state frequency (MHz):,2400.000000
+Multiplex interval (ms):,100
+Data Collection Driver:,MSR Driver
+NMI Watchdog Enabled:,1
+Version:,5.3.521.0 (PUBLIC)
+
+Hypervisor Info:
+Hypervisor Enabled:,False
+Command:,"AMDuProfPcm --msr -m ipc,l3,memory -c ccx=0 -C -q -o /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-traversal-study/results/uprof-7775/raw/hbnd-run4-seed2-uprof.csv -- taskset -c 0 /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-traversal-study/build/paged_kv_study --memory-layout HBND --traversal HBND --block-order fragmented --block-run-length 4 --block-seed 2 --blocks 512 --heads 32 --block-size 16 --head-dim 128 --warmups 3 --repeats 200 --no-cache-scrub --csv /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-traversal-study/results/uprof-7775/raw/hbnd-run4-seed2-timing.csv"
+
+Abbreviation :
+IPC    : Instructions Per CPU Cycle
+CPI    : CPU Cycles Per Instructions
+pti    : Per Thousand Instructions
+ptc    : Per Thousand CPU Cycles
+pto    : Per Thousand Operations
+Topdown metrics are reported in "% slots"
+
+Profile Time: 2026/09/11 10:22:13:867
+CORE METRICS
+Metric,System (Aggregated)
+Retired Instructions,25641070164.00
+Retired Macro Ops,26889428442.00
+Cycles Not in Halt,23327764587.00
+Utilization (%),11.08
+System time (%),5.24
+User time (%),94.76
+System instructions (%),3.24
+User instructions (%),96.76
+Eff Freq (MHz),3666.63
+IPC (Sys + User),1.09
+IPC (Sys),0.67
+IPC (User),1.11
+CPI (Sys + User),0.92
+CPI (Sys),1.49
+CPI (User),0.90
+Giga Instructions Per Sec,3.54
+Locked Instructions (pti),0.00
+Retired Branches (pti),76.26
+Retired Branches Mispredicted (pti),0.33
+
+L3 METRICS
+Metric,System (Aggregated)
+L3 Access,908725908.00
+L3 Miss,816999750.00
+L3 Access (pti),34.32
+L3 Miss (pti),30.86
+L3 Miss %,89.91
+L3 Hit %,10.09
+Ave L3 Miss Latency (ns),98.16
+L3 Miss Latency From Local Memory or I/O (%),99.75
+L3 Miss Latency From Remote Memory or I/O (%),0.11
+L3 Miss Latency From another CCX in same node (%),0.03
+L3 Miss Latency From another CCX in remote node (%),0.06
+L3 Miss Latency From Extension Memory (CXL) (%),0.00
+
+DF METRICS
+Metric,System (Aggregated)
+Total Mem Bw (GB/s),7.42
+Local DRAM Read Data Bytes(GB/s),7.23
+Local DRAM Write Data Bytes(GB/s),0.17
+Remote DRAM Read Data Bytes (GB/s),0.02
+Remote DRAM Write Data Bytes (GB/s),0.00
+Total Mem RdBw (GB/s),7.25
+Total Mem WrBw (GB/s),0.18
+
+

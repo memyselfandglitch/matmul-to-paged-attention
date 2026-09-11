@@ -1,0 +1,22 @@
+AMD uProf MSR results (median across independent block-table seeds)
+ run layout   n   time ms    GiB/s    IPC   L3 miss  L3 miss pti   L3 latency  DRAM GB/s
+   8   BHND   3    30.685    8.147  1.100    93.27%        30.11      98.82 ns       7.23
+   8   HBND   3    30.883    8.095  1.080    91.20%        31.45      98.47 ns       7.27
+   4   BHND   3    30.720    8.138  1.090    93.29%        30.15      98.96 ns       7.28
+   4   HBND   3    30.882    8.095  1.080    90.05%        31.15      98.12 ns       7.38
+   3   BHND   3    30.699    8.144  1.100    93.20%        30.23      98.74 ns       7.26
+   3   HBND   3    31.471    7.944  1.060    89.42%        32.82      98.24 ns       7.60
+   2   BHND   3    30.899    8.091  1.090    93.05%        30.26      98.89 ns       7.23
+   2   HBND   3    32.656    7.656  1.030    88.99%        32.30      97.75 ns       7.69
+   1   BHND   3    30.831    8.109  1.090    92.90%        30.33      98.83 ns       7.26
+   1   HBND   3    33.536    7.455  1.010    90.70%        32.00      96.64 ns       7.35
+
+Paired HBND relative to BHND
+ run       time   L3 miss pp   L3 miss pti        IPC   winner
+   8     1.006x       -2.07        1.045x     0.982x      tie
+   4     1.005x       -3.24        1.033x     0.991x      tie
+   3     1.025x       -3.78        1.086x     0.964x     BHND
+   2     1.057x       -4.06        1.067x     0.945x     BHND
+   1     1.088x       -2.20        1.055x     0.927x     BHND
+
+L3 and DRAM counters are collected by hardware scope, not attributed exclusively to the process. Interpret them only from otherwise quiet, paired runs on the same core/CCX.
