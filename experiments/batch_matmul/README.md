@@ -46,6 +46,26 @@ BMM can help when matrices are individually too small to use the machine well:
 BMM does not inherently perform fewer FLOPs. For large matrices, looping over
 well-optimized GEMMs can be just as fast.
 
+## Cache-capacity hypothesis
+
+The presentation run also sweeps square matrices from `64x64` through
+`3072x3072` at batch size 8. The largest nominal `A+B+C` batch footprint is
+864 MiB, which exceeds the 384 MiB aggregate L3 reported by the target EPYC
+9654. It reports:
+
+- the nominal `A + B + C` working set for one matrix product;
+- the nominal working set for the complete batch;
+- CPU0's reported L2 and L3 size per cache instance;
+- whether one product and the complete batch exceed that L3-instance size;
+- looped and batched median time and their ratio;
+- the first observed point within 5% of parity.
+
+This separates measurement from interpretation. A ratio approaching one can
+happen because Python dispatch and output-stacking overhead becomes negligible
+beside cubic GEMM work. If it happens after a cache threshold, that is a useful
+correlation, but cache misses require hardware counters before being claimed as
+the cause. The raw sweep is saved as `cache-sweep.csv`.
+
 ## Presentation quick start on IISc
 
 Run the complete PyTorch matmul-versus-BMM comparison with one command:

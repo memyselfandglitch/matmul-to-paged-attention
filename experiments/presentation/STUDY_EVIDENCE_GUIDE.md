@@ -96,6 +96,14 @@ batched `torch.matmul` call. It does not contain a separate handwritten BMM or
 K/V-attention kernel. The structural attention mapping in the presentation is
 conceptual, not an additional benchmark claimed by this file.
 
+The same run now includes a cache-capacity sweep at batch size 8 for square
+matrices from `64x64` through `3072x3072`. It records per-product and full-batch
+`A+B+C` footprints, CPU0 L2/L3-instance sizes, loop and batch timings, their
+ratio, and a ±5% parity classification in `results/job-<job-id>/cache-sweep.csv`.
+The largest nominal batch footprint is 864 MiB. Treat agreement with a cache
+threshold as correlation: cubic compute growth also amortizes Python dispatch
+and output-stacking overhead, and cache causation would need counters.
+
 ## 3. vLLM layout facts
 
 Checked-out upstream source:

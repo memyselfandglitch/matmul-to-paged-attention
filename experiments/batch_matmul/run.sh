@@ -16,6 +16,7 @@ submission="$(sbatch --parsable \
   "${STUDY_ROOT}/slurm/run_study.sbatch")"
 readonly job_id="${submission%%;*}"
 readonly result_file="${STUDY_ROOT}/results/job-${job_id}/bmm-study.txt"
+readonly csv_file="${STUDY_ROOT}/results/job-${job_id}/cache-sweep.csv"
 
 echo "Submitted matmul/BMM study as job ${job_id}."
 
@@ -34,14 +35,14 @@ while true; do
 done
 
 for _ in {1..10}; do
-  if [[ -f "${result_file}" ]]; then
+  if [[ -f "${result_file}" && -f "${csv_file}" ]]; then
     break
   fi
   sleep 1
 done
 
-if [[ ! -f "${result_file}" ]]; then
-  echo "error: job ${job_id} ended without a result file" >&2
+if [[ ! -f "${result_file}" || ! -f "${csv_file}" ]]; then
+  echo "error: job ${job_id} ended without both result files" >&2
   sacct --jobs "${job_id}" --format=JobID,State,ExitCode 2>/dev/null || true
   echo "Inspect batch-matmul-${job_id}.out and batch-matmul-${job_id}.err." >&2
   exit 1

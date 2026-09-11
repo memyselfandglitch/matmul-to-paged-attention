@@ -4,8 +4,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=4G
-#SBATCH --time=00:10:00
+#SBATCH --mem=8G
+#SBATCH --time=00:20:00
 #SBATCH --output=batch-matmul-%j.out
 #SBATCH --error=batch-matmul-%j.err
 
@@ -14,6 +14,7 @@ set -euo pipefail
 readonly STUDY_ROOT="${STUDY_ROOT:-${SLURM_SUBMIT_DIR}}"
 readonly RESULT_DIR="${STUDY_ROOT}/results/job-${SLURM_JOB_ID}"
 readonly REPETITIONS="${REPETITIONS:-21}"
+readonly SWEEP_REPETITIONS="${SWEEP_REPETITIONS:-5}"
 
 cd "${STUDY_ROOT}"
 mkdir -p "${RESULT_DIR}"
@@ -49,7 +50,13 @@ export OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-4}"
   "${python_exec}" -c 'import torch; print(f"torch={torch.__version__}")'
   echo "cpu_threads=${SLURM_CPUS_PER_TASK:-4}"
   echo "repetitions=${REPETITIONS}"
+  echo "sweep_repetitions=${SWEEP_REPETITIONS}"
 } >"${RESULT_DIR}/environment.txt"
 
-"${python_exec}" bmm_kv_study.py --device cpu --repetitions "${REPETITIONS}" \
+"${python_exec}" bmm_kv_study.py \
+  --device cpu \
+  --repetitions "${REPETITIONS}" \
+  --cache-sweep \
+  --sweep-repetitions "${SWEEP_REPETITIONS}" \
+  --csv "${RESULT_DIR}/cache-sweep.csv" \
   | tee "${RESULT_DIR}/bmm-study.txt"
