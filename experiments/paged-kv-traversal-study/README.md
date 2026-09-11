@@ -20,8 +20,8 @@ cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-tra
 ./run.sh
 ```
 
-After the submitted job finishes, display the newest Phase 1 and Phase 2
-reports with:
+`run.sh` waits for that exact job to finish and then prints both reports. To
+redisplay the newest completed result later, use:
 
 ```bash
 ./show_results.sh

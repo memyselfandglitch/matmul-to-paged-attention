@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Submit the complete Phase 1 + Phase 2 study from any working directory.
+# Submit, wait for, and display the complete Phase 1 + Phase 2 study.
 
 set -euo pipefail
 
@@ -16,6 +16,37 @@ submission="$(sbatch --parsable --export=ALL,RUN_PHASE2=1 \
 readonly job_id="${submission%%;*}"
 
 echo "Submitted Phase 1 + Phase 2 as Slurm job ${job_id}."
-echo "Monitor: squeue -j ${job_id}"
-echo "After it finishes: ./show_results.sh"
 echo "Raw results: results/job-${job_id}/"
+
+last_state=""
+while true; do
+  state="$(squeue --noheader --jobs="${job_id}" --format='%T' 2>/dev/null \
+    | sed -n '1p' | tr -d '[:space:]')"
+  if [[ -z "${state}" ]]; then
+    break
+  fi
+  if [[ "${state}" != "${last_state}" ]]; then
+    echo "Job ${job_id}: ${state}"
+    last_state="${state}"
+  fi
+  sleep 3
+done
+
+# Slurm may remove a completed job from squeue just before its files become
+# visible. Give the filesystem a few seconds to settle.
+for _ in {1..10}; do
+  if [[ -f "results/job-${job_id}/phase2-analysis.txt" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+if [[ ! -f "results/job-${job_id}/phase2-analysis.txt" ]]; then
+  echo "error: job ${job_id} ended without a Phase 2 report" >&2
+  sacct --jobs "${job_id}" --format=JobID,State,ExitCode 2>/dev/null || true
+  echo "Inspect cpu-study-${job_id}.out and cpu-study-${job_id}.err." >&2
+  exit 1
+fi
+
+echo "Job ${job_id}: COMPLETED"
+"${REPO_ROOT}/show_results.sh" "${job_id}"

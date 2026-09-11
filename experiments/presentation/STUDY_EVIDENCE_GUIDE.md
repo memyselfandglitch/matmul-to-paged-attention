@@ -21,7 +21,8 @@ cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/paged-kv-tra
 ./run.sh
 ```
 
-After the job finishes:
+The command waits for its Slurm job and prints both reports automatically. To
+redisplay the newest reports later:
 
 ```bash
 ./show_results.sh
