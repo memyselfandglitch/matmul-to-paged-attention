@@ -20,7 +20,27 @@ cd "${STUDY_ROOT}"
 mkdir -p "${RESULT_DIR}"
 
 python_exec=""
-for candidate in "${PYTHON_BIN:-}" "${HOME}/envs/vllm-rocm721/bin/python" python3; do
+readonly USER_SCRATCH="/data/scratch/${USER}"
+python_candidates=(
+  "${PYTHON_BIN:-}"
+  "${USER_SCRATCH}/envs/vllm-rocm721/bin/python"
+  "${USER_SCRATCH}/pace-venv/bin/python"
+  "${USER_SCRATCH}/miniforge3/bin/python"
+  "${HOME}/envs/vllm-rocm721/bin/python"
+  "${HOME}/pace-venv/bin/python"
+  "${HOME}/miniforge3/bin/python"
+  python3
+)
+
+# Include any other conda/venv interpreters created under the user's scratch
+# directory. nullglob prevents an unmatched pattern from becoming a fake path.
+shopt -s nullglob
+for candidate in "${USER_SCRATCH}"/envs/*/bin/python "${HOME}"/envs/*/bin/python; do
+  python_candidates+=("${candidate}")
+done
+shopt -u nullglob
+
+for candidate in "${python_candidates[@]}"; do
   if [[ -z "${candidate}" ]]; then
     continue
   fi
@@ -32,7 +52,9 @@ done
 
 if [[ -z "${python_exec}" ]]; then
   echo "error: no Python interpreter with PyTorch was found" >&2
-  echo "Set PYTHON_BIN to a Python executable that can import torch." >&2
+  echo "Tried:" >&2
+  printf '  %s\n' "${python_candidates[@]}" >&2
+  echo "Set PYTHON_BIN to a Python executable that can run: import torch" >&2
   exit 1
 fi
 readonly python_exec
