@@ -35,6 +35,19 @@ architecture-specific assembly can improve absolute peak performance, but they
 are intentionally outside this experiment because their traversal and packing
 costs would introduce additional variables.
 
+## Presentation quick start on IISc
+
+Run both the six-order comparison and the full optimization-stage progression
+with one command:
+
+```bash
+cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/loop_order
+./run.sh
+```
+
+The launcher submits a CPU Slurm job, waits for it, and prints both reports.
+Raw output and machine information are saved under `results/job-<job-id>/`.
+
 ## Build and run
 
 ```sh

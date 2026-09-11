@@ -1,7 +1,7 @@
 # Matmul-to-paged-attention study: code and evidence guide
 
 This guide maps every presentation claim to the code and raw result that a
-reviewer can inspect. The repository revision used to prepare the deck was:
+reviewer can inspect. The committed AMD result baseline used for the deck was:
 
 ```text
 main repository: https://github.com/memyselfandglitch/matmul-to-paged-attention
@@ -13,6 +13,24 @@ The AMD/IISc measurements are primary. The macOS files are retained only as a
 correctness and qualitative sanity check.
 
 ## Presentation-day quick start
+
+Each study directory has its own no-argument launcher:
+
+```bash
+cd experiments/loop_order
+./run.sh
+
+cd ../batch_matmul
+./run.sh
+
+cd ../paged-kv-traversal-study
+./run.sh
+```
+
+Each command submits only that directory's CPU study, waits for its exact Slurm
+job, and prints the report. The `vllm/` source checkout is not modified or run.
+
+For the paged-KV Phase 1 + Phase 2 study specifically:
 
 On the IISc server, the complete Phase 1 + Phase 2 study needs no parameters:
 
@@ -42,10 +60,10 @@ Run:
 
 ```bash
 cd experiments/loop_order
-make check
-./build/loop_order_study 1920 5 384
-./build/matmul_optimization_stages 1920 5 384
+./run.sh
 ```
+
+This submits both C++ programs to `jobmn01`, waits, and prints their reports.
 
 Interpretation:
 
@@ -56,34 +74,27 @@ Interpretation:
   blocking reduced tiled time by roughly `2.9x–3.1x` across the six macro
   orders. Absolute numbers and small order differences are machine-sensitive.
 
-## 2. Matmul, BMM, and K/V attention structure
+## 2. Matmul and BMM structure
 
 Code:
 
 - `../batch_matmul/bmm_kv_study.py` — uses real `torch.matmul` for both the
   looped and batched paths; there is no handwritten matrix kernel.
-- `../batch_matmul/README.md` — shape definitions and attention mapping.
+- `../batch_matmul/README.md` — shape and address definitions.
 
 Run:
 
 ```bash
 cd experiments/batch_matmul
-python3 bmm_kv_study.py --device cpu --repetitions 21
+./run.sh
 ```
 
-One local CPU sanity run during deck preparation, PyTorch 2.4.0 with four CPU
-threads, produced:
-
-| Case | Looped / alternative |
-| --- | ---: |
-| 32 independent `64x64` products: loop / batched | `1.92x` |
-| Shared right operand: broadcast / flattened GEMM | `0.96x` |
-| Decode-shaped attention, `B=2,H=8,Q=1,T=512,D=64`: loop / batched | `2.98x` |
-
-These are dispatch/scheduling observations from a macOS sanity run, not the
-primary AMD profiling result. The structural conclusion is machine-independent:
-BMM performs the same independent products under one batched operation, and
-decode attention reduces to batched matrix-vector-like work when `Q=1`.
+This finds a cluster Python with PyTorch, submits the CPU study, waits, and
+prints the report. The current implementation intentionally measures only 32
+independent `64x64` products as a Python loop of `torch.matmul` calls versus one
+batched `torch.matmul` call. It does not contain a separate handwritten BMM or
+K/V-attention kernel. The structural attention mapping in the presentation is
+conceptual, not an additional benchmark claimed by this file.
 
 ## 3. vLLM layout facts
 

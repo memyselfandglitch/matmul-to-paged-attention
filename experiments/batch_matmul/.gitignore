@@ -1,1 +1,4 @@
 /build/
+/results/
+/batch-matmul-*.out
+/batch-matmul-*.err

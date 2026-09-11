@@ -1,1 +1,4 @@
 /build/
+/results/
+/loop-order-*.out
+/loop-order-*.err

@@ -46,6 +46,19 @@ BMM can help when matrices are individually too small to use the machine well:
 BMM does not inherently perform fewer FLOPs. For large matrices, looping over
 well-optimized GEMMs can be just as fast.
 
+## Presentation quick start on IISc
+
+Run the complete PyTorch matmul-versus-BMM comparison with one command:
+
+```bash
+cd /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/batch_matmul
+./run.sh
+```
+
+The launcher finds an existing cluster Python environment that can import
+PyTorch, submits a CPU Slurm job, waits, and prints the report. Raw output and
+machine information are saved under `results/job-<job-id>/`.
+
 ## Run the study
 
 ```sh
