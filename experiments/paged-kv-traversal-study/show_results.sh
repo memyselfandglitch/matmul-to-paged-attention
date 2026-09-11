@@ -34,6 +34,32 @@ fi
 
 echo "Showing ${result_dir}"
 
+# Rebuild human-readable reports from the authoritative raw CSV files. This
+# lets an existing benchmark run benefit from newer reporting columns without
+# repeating the measurements.
+if [[ -f "${result_dir}/phase1-sequential.csv" && \
+      -f "${result_dir}/phase1-shuffled.csv" ]]; then
+  python3 "${REPO_ROOT}/python/analyze_phase1.py" \
+    "${result_dir}/phase1-sequential.csv" \
+    "${result_dir}/phase1-shuffled.csv" \
+    >"${result_dir}/analysis.txt"
+fi
+
+if [[ -f "${result_dir}/phase2-sequential.csv" && \
+      -f "${result_dir}/phase2-shuffled.csv" ]]; then
+  python3 "${REPO_ROOT}/python/analyze_phase2.py" \
+    "${result_dir}/phase2-sequential.csv" \
+    "${result_dir}/phase2-shuffled.csv" \
+    >"${result_dir}/phase2-analysis.txt"
+fi
+
+if [[ -f "${result_dir}/crossover-raw.csv" ]]; then
+  python3 "${REPO_ROOT}/python/analyze_crossover.py" \
+    "${result_dir}/crossover-raw.csv" \
+    --summary-csv "${result_dir}/crossover-summary.csv" \
+    >"${result_dir}/crossover-analysis.txt"
+fi
+
 if [[ -f "${result_dir}/analysis.txt" ]]; then
   echo
   echo "PHASE 1 — fixed BNHD memory"
