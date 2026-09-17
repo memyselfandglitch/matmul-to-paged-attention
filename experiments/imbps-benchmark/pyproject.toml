@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "imbps-bench"
+version = "0.1.0"
+description = "Reproducible CPU benchmarks for Iterative MLP Blocks with Parameter Splits"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["torch>=2.3"]
+
+[project.scripts]
+imbps-bench = "imbps_bench.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["imbps_bench*"]
+
