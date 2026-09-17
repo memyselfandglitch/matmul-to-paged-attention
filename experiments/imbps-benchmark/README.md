@@ -51,6 +51,21 @@ If the server already has the intended PyTorch build, omit the requirements
 installation and use `pip install -e . --no-deps`. Record the exact wheel and
 oneDNN configuration in `metadata.json` before comparing runs.
 
+On a PEP 668-managed Ubuntu system with no preinstalled PyTorch, create the
+environment on the scratch filesystem with:
+
+```bash
+cd /data/scratch/deveshisingh/imbps-benchmark
+./scripts/bootstrap_venv.sh
+source .venv/bin/activate
+```
+
+The bootstrap script does not modify system Python. It puts the virtual
+environment, pip cache, and temporary downloads below the repository and uses
+the official PyTorch CPU wheel index. If the cluster blocks outbound downloads,
+load a cluster-provided Python/PyTorch module first or set `TORCH_INDEX_URL` to
+the site's wheel mirror.
+
 ## Validation
 
 Run the unit tests and FP32/BF16 kernel checks:
