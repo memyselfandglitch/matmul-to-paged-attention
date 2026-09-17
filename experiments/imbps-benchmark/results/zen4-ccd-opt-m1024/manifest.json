@@ -1,0 +1,42 @@
+{
+  "completed_at_utc": "2026-09-17T12:58:50.070892+00:00",
+  "config": {
+    "allow_correctness_failure": false,
+    "dtype_name": "bf16",
+    "estimated_peak_bytes": 701287628,
+    "gelu_approximate": "none",
+    "hidden_size": 4096,
+    "intermediate_size": 16384,
+    "max_allocation_gib": 16.0,
+    "mlp_kind": "opt",
+    "output_dir": "results/zen4-ccd-opt-m1024",
+    "repeats": 10,
+    "seed": 20250917,
+    "skip_correctness": false,
+    "splits": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      16,
+      32,
+      64
+    ],
+    "threads": 8,
+    "tokens": 1024,
+    "warmup": 3,
+    "weight_layout": "prepacked"
+  },
+  "paths": {
+    "metadata_json": "results/zen4-ccd-opt-m1024/metadata.json",
+    "raw_csv": "results/zen4-ccd-opt-m1024/raw.csv",
+    "summary_csv": "results/zen4-ccd-opt-m1024/summary.csv"
+  },
+  "row_count": 200,
+  "run_id": "20260917T125802Z-opt-m1024-h4096-i16384-t8-bf16",
+  "status": "complete",
+  "summary_count": 20
+}
