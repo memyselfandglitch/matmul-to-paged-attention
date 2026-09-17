@@ -1,5 +1,2 @@
 /build/
 /__pycache__/
-/results/
-/batch-matmul-*.out
-/batch-matmul-*.err
