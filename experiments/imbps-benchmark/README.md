@@ -1,9 +1,8 @@
 # IMBPS CPU Benchmark
 
 This repository independently evaluates Iterative MLP Blocks with Parameter
-Splits (IMBPS) for OPT/GPT-style GELU MLPs and Llama-style SwiGLU MLPs. It is a
-microbenchmark for the MLP transformation itself; it does not claim end-to-end
-Hugging Face or vLLM results.
+Splits (IMBPS). It contains both an isolated mathematical MLP microbenchmark
+and real Hugging Face OPT layer/end-to-end benchmarks.
 
 The harness provides:
 
@@ -14,7 +13,16 @@ The harness provides:
 - correctness checks for every split before it is timed;
 - randomized paired baseline/IMBPS observations;
 - raw CSV, summary CSV, run manifest, and machine/software metadata;
-- support for uneven split counts such as `K=6` or `K=7`.
+- support for uneven split counts such as `K=6` or `K=7`;
+- Hugging Face OPT `fc1 -> configured activation -> fc2` execution using native
+  `nn.Linear` weight layout and both biases;
+- complete `OPTForCausalLM` execution with paired reference/IMBPS runs and
+  prefill latency, TTFT, decode throughput, and output-token throughput.
+
+The original `sweep` command is deliberately synthetic. The `hf-opt-layer` and
+`hf-opt-e2e` commands load actual Transformers classes and, in pretrained mode,
+actual model weights. Hugging Face OPT defaults to **ReLU**, not GELU; the real
+model commands always use and record `config.activation_function`.
 
 ## Target machine
 
@@ -66,6 +74,20 @@ the official PyTorch CPU wheel index. If the cluster blocks outbound downloads,
 load a cluster-provided Python/PyTorch module first or set `TORCH_INDEX_URL` to
 the site's wheel mirror.
 
+For the real Hugging Face experiments, install the paper-matched Transformers
+4.48 dependency line:
+
+```bash
+./scripts/bootstrap_hf_venv.sh
+source .venv/bin/activate
+```
+
+This remains inside the repository virtual environment and does not modify the
+PEP 668-managed system Python. The Zen 4 scripts also place Hugging Face model
+downloads under the ignored `.cache/huggingface` directory on the scratch
+filesystem instead of consuming the login-home quota. Override `HF_HOME` when a
+shared cluster model cache is available.
+
 ## Validation
 
 Run the unit tests and FP32/BF16 kernel checks:
@@ -77,6 +99,128 @@ Run the unit tests and FP32/BF16 kernel checks:
 The numerical comparison uses both absolute and relative errors. Relative error
 can be very large near a zero-valued reference element, so pass/fail is based on
 `torch.allclose`; both raw error values are retained for analysis.
+
+The test suite also checks native Hugging Face Linear layout, uneven splits,
+`fc1` and `fc2` bias semantics, model patch enable/restore behavior, and the
+expected workspace reduction.
+
+## Real Hugging Face OPT layer benchmark
+
+Run an actual pretrained OPT layer on one Zen 4 CCD:
+
+```bash
+MODEL=facebook/opt-125m \
+BATCH_SIZE=1 \
+SEQUENCE_LENGTH=256 \
+OUTPUT_DIR=results/hf-opt125m-layer-m256 \
+./scripts/run_hf_opt_layer_zen4.sh
+```
+
+For OPT-6.7B:
+
+```bash
+MODEL=facebook/opt-6.7b \
+BATCH_SIZE=1 \
+SEQUENCE_LENGTH=1024 \
+OUTPUT_DIR=results/hf-opt6.7b-layer-m1024 \
+./scripts/run_hf_opt_layer_zen4.sh
+```
+
+The default `--input-source captured` registers a pre-hook on the selected
+layer's real `fc1`, begins a normal model forward, clones the tensor delivered
+to that projection, and stops the model immediately. Thus the timed MLP sees an
+activation produced by embeddings, attention, residuals, and layer norm rather
+than a normal-distribution placeholder. `--input-source random` is available
+for shape-controlled ablations.
+
+The reference is exactly:
+
+```python
+layer.fc2(layer.activation_fn(layer.fc1(hidden_states)))
+```
+
+Hugging Face stores `fc1.weight` as `[intermediate, hidden]` and `fc2.weight` as
+`[hidden, intermediate]`. IMBPS slices rows of `fc1` and columns of `fc2`; it
+adds each `fc1` bias slice before activation and adds the `fc2` bias exactly once
+after accumulating all partial down projections. `prepacked` makes persistent
+contiguous block copies and excludes the recorded one-time packing cost from
+steady-state latency.
+
+Use `--model-mode random-config --input-source random` for a download-light
+framework smoke test. That path still uses the real Transformers
+`OPTDecoderLayer` class, activation, biases, and Linear layouts, but not
+pretrained values.
+
+## Complete OPT benchmark
+
+Run the full model, with every decoder MLP toggled between the Hugging Face
+reference and IMBPS replacement:
+
+```bash
+MODEL=facebook/opt-125m \
+BATCH_SIZE=1 \
+INPUT_TOKENS=256 \
+OUTPUT_TOKENS=16 \
+OUTPUT_DIR=results/hf-opt125m-e2e \
+./scripts/run_hf_opt_e2e_zen4.sh
+```
+
+The replacement does not duplicate or reimplement the OPT decoder layer. It
+temporarily makes the existing `fc1` and activation slots pass-throughs and
+lets the replacement `fc2` slot execute the complete split MLP. Hugging Face's
+attention, SDPA selection, layer norms, residuals, dropout-in-eval behavior,
+position handling, LM head, and KV-cache path remain unchanged. The patch is
+restored after every K experiment.
+
+Generation is fixed-length greedy decoding so every variant performs identical
+work and EOS cannot shorten a sample. Model loading, weight packing, input
+creation, correctness checks, and warmups are outside timed samples. The
+reported metrics are:
+
+- `prefill_ms`: prompt forward through `OPTForCausalLM`, including KV-cache and
+  prompt logits creation;
+- `ttft_ms`: prefill plus first-token argmax;
+- `decode_ms`: KV-cached forwards for the remaining `output_tokens - 1` tokens;
+- `decode_tokens_per_second`: batch-scaled decode tokens divided by decode time;
+- `output_tokens_per_second`: all requested generated tokens divided by total
+  generation time.
+
+Before timing each K, the harness compares first-token logits with
+`torch.allclose` and records whether all generated token IDs match exactly.
+Raw observations go to `raw.csv`; medians, p95 values, and paired speedups go to
+`summary.csv`.
+
+Memory columns distinguish logical activation size from implementation-owned
+storage. `logical_activation_bytes` (layer CSV) and
+`prefill_activation_bytes_per_layer` (end-to-end CSV) compare the full
+intermediate width with the largest split width. `workspace_bytes` reports only
+the persistent reusable buffers owned by the IMBPS adapter; native Hugging Face
+allocations are transient and therefore show zero in that column rather than
+implying that the reference uses no activation memory.
+
+Omitting `--prompt` uses deterministic random vocabulary IDs, matching AMD
+PACE's controlled synthetic-input approach. Passing `--prompt 'text...'`
+loads the model tokenizer and pads/truncates to `--input-tokens`.
+
+## Relationship to the paper and AMD PACE
+
+The paper reports Transformers 4.48, oneDNN 3.7, SDPA for Hugging Face, BF16
+and FP32, sequence lengths 256 and 1920, and TTFT as its principal end-to-end
+metric. Its batch sizes make the effective MLP row count `M = batch * sequence`
+much larger than the initial synthetic `M=256/1024/4096` experiments. Start
+with OPT-125M to validate the workflow, then use OPT-6.7B with the paper's
+batch/sequence grid as memory and run time permit.
+
+AMD PACE's offline benchmark informed four measurement choices here: fixed
+input/output token counts, deterministic reusable inputs, explicit warmup/run
+counts, and separate TTFT/token-throughput reporting. Like PACE, this harness
+does not enable a background CPU/RAM monitor during absolute timing because
+monitoring can perturb the measurement. PACE itself is not a runtime dependency.
+
+Transformers versions before 4.48 may reject OPT `--attn-implementation sdpa`;
+use the pinned HF bootstrap above. `--attn-implementation eager` remains
+available as an explicit ablation, but results from different attention
+implementations must not be combined.
 
 ## First pinned Zen 4 run
 
@@ -108,9 +252,9 @@ python -m imbps_bench sweep \
 ```
 
 Here `--tokens` means the actual flattened row dimension `M` passed to the MLP
-GEMMs. It is deliberately not named batch size: the paper's relationship among
-batch size, sequence length, and the analytical `B*C` term is ambiguous. Record
-actual runtime tensor shapes before translating end-to-end workloads into `M`.
+GEMMs. It is deliberately not named batch size: for the paper's three-dimensional
+input `[B, C, H]`, the Linear modules flatten the active row count to `M = B*C`.
+Record the actual runtime tensor shape when comparing end-to-end workloads.
 
 Override the script through environment variables. For example, a
 Llama-3.1-8B-shaped SwiGLU layer is:

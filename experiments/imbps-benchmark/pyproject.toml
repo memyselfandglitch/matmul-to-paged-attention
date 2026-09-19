@@ -10,9 +10,12 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["torch>=2.3"]
 
+[project.optional-dependencies]
+# The paper reports Transformers v4.48; pin that line for reproducibility.
+hf = ["transformers>=4.48,<4.49", "safetensors>=0.4"]
+
 [project.scripts]
 imbps-bench = "imbps_bench.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["imbps_bench*"]
-

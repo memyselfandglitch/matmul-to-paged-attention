@@ -212,6 +212,61 @@ def _predict_k(args: argparse.Namespace) -> int:
     return 0
 
 
+def _hf_opt_layer(args: argparse.Namespace) -> int:
+    from imbps_bench.hf_runner import HFOPTLayerConfig, run_hf_opt_layer
+
+    output_dir = args.output_dir or _default_output("hf-opt-layer")
+    result = run_hf_opt_layer(
+        HFOPTLayerConfig(
+            model_name_or_path=args.model_name_or_path,
+            model_mode=args.model_mode,
+            layer_index=args.layer_index,
+            input_source=args.input_source,
+            batch_size=args.batch_size,
+            sequence_length=args.sequence_length,
+            dtype_name=args.dtype,
+            splits=args.splits,
+            threads=args.threads,
+            warmup=args.warmup,
+            repeats=args.repeats,
+            seed=args.seed,
+            weight_layout=args.weight_layout,
+            attn_implementation=args.attn_implementation,
+            local_files_only=args.local_files_only,
+            output_dir=output_dir,
+        )
+    )
+    print(json.dumps(result, indent=2, default=str))
+    return 0
+
+
+def _hf_opt_e2e(args: argparse.Namespace) -> int:
+    from imbps_bench.hf_runner import HFOPTE2EConfig, run_hf_opt_e2e
+
+    output_dir = args.output_dir or _default_output("hf-opt-e2e")
+    result = run_hf_opt_e2e(
+        HFOPTE2EConfig(
+            model_name_or_path=args.model_name_or_path,
+            batch_size=args.batch_size,
+            input_tokens=args.input_tokens,
+            output_tokens=args.output_tokens,
+            prompt=args.prompt,
+            dtype_name=args.dtype,
+            splits=args.splits,
+            threads=args.threads,
+            warmup=args.warmup,
+            repeats=args.repeats,
+            seed=args.seed,
+            weight_layout=args.weight_layout,
+            attn_implementation=args.attn_implementation,
+            local_files_only=args.local_files_only,
+            output_dir=output_dir,
+        )
+    )
+    print(json.dumps(result, indent=2, default=str))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="imbps-bench",
@@ -276,6 +331,62 @@ def build_parser() -> argparse.ArgumentParser:
     predict.add_argument("--cache-fraction", type=float, default=1.0)
     predict.add_argument("--splits", type=_splits, default=[1, 2, 4, 8, 16, 32, 64])
     predict.set_defaults(function=_predict_k)
+
+    hf_layer = subparsers.add_parser(
+        "hf-opt-layer",
+        help="benchmark an actual Hugging Face OPT fc1/activation/fc2 module",
+    )
+    hf_layer.add_argument("--model-name-or-path", required=True)
+    hf_layer.add_argument(
+        "--model-mode",
+        choices=("pretrained", "random-config"),
+        default="pretrained",
+        help="load pretrained weights or instantiate the real layer class from config",
+    )
+    hf_layer.add_argument("--layer-index", type=_nonnegative_int, default=0)
+    hf_layer.add_argument(
+        "--input-source",
+        choices=("captured", "random"),
+        default="captured",
+        help="capture the real fc1 input or use a deterministic synthetic activation",
+    )
+    hf_layer.add_argument("--batch-size", type=_positive_int, default=1)
+    hf_layer.add_argument("--sequence-length", type=_positive_int, default=256)
+    hf_layer.add_argument("--dtype", choices=tuple(DTYPES), default="bf16")
+    hf_layer.add_argument("--splits", type=_splits, default=[1, 2, 4, 5, 6, 7, 8, 16])
+    hf_layer.add_argument("--threads", type=_positive_int, default=8)
+    hf_layer.add_argument("--warmup", type=_nonnegative_int, default=3)
+    hf_layer.add_argument("--repeats", type=_positive_int, default=10)
+    hf_layer.add_argument("--seed", type=int, default=20250917)
+    hf_layer.add_argument("--weight-layout", choices=("prepacked", "views"), default="prepacked")
+    hf_layer.add_argument("--attn-implementation", choices=("eager", "sdpa"), default="sdpa")
+    hf_layer.add_argument("--local-files-only", action="store_true")
+    hf_layer.add_argument("--output-dir", type=Path)
+    hf_layer.set_defaults(function=_hf_opt_layer)
+
+    hf_e2e = subparsers.add_parser(
+        "hf-opt-e2e",
+        help="benchmark complete Hugging Face OPT prefill, TTFT, and decode throughput",
+    )
+    hf_e2e.add_argument("--model-name-or-path", required=True)
+    hf_e2e.add_argument("--batch-size", type=_positive_int, default=1)
+    hf_e2e.add_argument("--input-tokens", type=_positive_int, default=256)
+    hf_e2e.add_argument("--output-tokens", type=_positive_int, default=16)
+    hf_e2e.add_argument(
+        "--prompt",
+        help="optional text prompt; omitted uses deterministic random token IDs like AMD PACE",
+    )
+    hf_e2e.add_argument("--dtype", choices=tuple(DTYPES), default="bf16")
+    hf_e2e.add_argument("--splits", type=_splits, default=[1, 2, 4, 5, 6, 7, 8])
+    hf_e2e.add_argument("--threads", type=_positive_int, default=8)
+    hf_e2e.add_argument("--warmup", type=_nonnegative_int, default=1)
+    hf_e2e.add_argument("--repeats", type=_positive_int, default=5)
+    hf_e2e.add_argument("--seed", type=int, default=20250917)
+    hf_e2e.add_argument("--weight-layout", choices=("prepacked", "views"), default="prepacked")
+    hf_e2e.add_argument("--attn-implementation", choices=("eager", "sdpa"), default="sdpa")
+    hf_e2e.add_argument("--local-files-only", action="store_true")
+    hf_e2e.add_argument("--output-dir", type=Path)
+    hf_e2e.set_defaults(function=_hf_opt_e2e)
     return parser
 
 
