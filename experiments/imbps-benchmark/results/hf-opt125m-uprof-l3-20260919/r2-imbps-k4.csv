@@ -1,0 +1,54 @@
+
+AMDuProfPcm Report
+
+Processor Name:,AMD EPYC 9654 96-Core Processor
+System:,Family(0x19) Model(0x11) Stepping(0x1)
+Operating System:,Linux 6.2.0-39-generic
+Number of Sockets :,2
+Number of Core Complexes(CCX) :,24
+Number of Cores :,192
+Number of Threads :,192
+SMT Enabled in HW:,False
+SMT Enabled by OS :,False
+
+Core P0 state frequency (MHz):,2400.000000
+Multiplex interval (ms):,100
+Data Collection Driver:,MSR Driver
+NMI Watchdog Enabled:,1
+Version:,5.3.521.0 (PUBLIC)
+
+Hypervisor Info:
+Hypervisor Enabled:,False
+Command:,"AMDuProfPcm -m l3,memory --msr -c l3=0 -C -P 6 --start-delay 6000 -q -o results/hf-opt125m-uprof-l3-20260919/r2-imbps-k4.csv -- numactl --physcpubind=0-7 --membind=0 .venv/bin/python /tmp/imbps_perf_kernel.py --variant imbps --split-k 4 --iterations 3000 --measurement-delay 4.0"
+
+Abbreviation :
+IPC    : Instructions Per CPU Cycle
+CPI    : CPU Cycles Per Instructions
+pti    : Per Thousand Instructions
+ptc    : Per Thousand CPU Cycles
+pto    : Per Thousand Operations
+Topdown metrics are reported in "% slots"
+
+Profile Time: 2026/09/19 13:23:58:243
+L3 METRICS
+Metric,System (Aggregated)
+L3 Access,2256642825.000000
+L3 Miss,642184743.000000
+L3 Miss %,28.457527
+L3 Hit %,71.542473
+Ave L3 Miss Latency (ns),98.926055
+L3 Miss Latency From Local Memory or I/O (%),96.472110
+L3 Miss Latency From Remote Memory or I/O (%),2.987299
+L3 Miss Latency From another CCX in same node (%),0.220835
+L3 Miss Latency From another CCX in remote node (%),0.271435
+L3 Miss Latency From Extension Memory (CXL) (%),0.000000
+
+DF METRICS
+Metric,System (Aggregated)
+Total Mem Bw (GB/s),3.111334
+Local DRAM Read Data Bytes(GB/s),3.049151
+Local DRAM Write Data Bytes(GB/s),0.046395
+Remote DRAM Read Data Bytes (GB/s),0.015476
+Remote DRAM Write Data Bytes (GB/s),0.000312
+Total Mem RdBw (GB/s),3.064627
+Total Mem WrBw (GB/s),0.046706

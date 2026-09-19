@@ -1,0 +1,1 @@
+seed,layer_index,split_k,dtype,accumulation_dtype,max_abs_output,mean_abs_output,p99_abs_output,max_rel_output,output_allclose

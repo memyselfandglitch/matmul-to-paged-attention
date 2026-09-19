@@ -1,0 +1,37 @@
+{
+  "completed_at_utc": "2026-09-19T12:38:35.531002+00:00",
+  "config": {
+    "allow_correctness_failure": true,
+    "dtype_name": "bf16",
+    "estimated_peak_bytes": 6090129408,
+    "gelu_approximate": "none",
+    "hidden_size": 4096,
+    "intermediate_size": 14336,
+    "max_allocation_gib": 16.0,
+    "mlp_kind": "swiglu",
+    "output_dir": "results/synthetic-llama31-8b-table6-m32768-t96-20260919",
+    "repeats": 3,
+    "seed": 20250917,
+    "skip_correctness": false,
+    "splits": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "threads": 96,
+    "tokens": 32768,
+    "warmup": 1,
+    "weight_layout": "prepacked"
+  },
+  "paths": {
+    "metadata_json": "results/synthetic-llama31-8b-table6-m32768-t96-20260919/metadata.json",
+    "raw_csv": "results/synthetic-llama31-8b-table6-m32768-t96-20260919/raw.csv",
+    "summary_csv": "results/synthetic-llama31-8b-table6-m32768-t96-20260919/summary.csv"
+  },
+  "row_count": 30,
+  "run_id": "20260919T123732Z-swiglu-m32768-h4096-i14336-t96-bf16",
+  "status": "complete",
+  "summary_count": 10
+}

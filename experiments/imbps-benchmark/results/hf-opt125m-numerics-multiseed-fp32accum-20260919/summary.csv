@@ -1,0 +1,5 @@
+split_k,dtype,accumulation_dtype,seeds,model_max_abs_median,model_max_abs_max,model_p99_abs_median,model_allclose_count,first_token_match_count,layer_checks,layer_max_abs_median,layer_max_abs_max,layer_allclose_count,worst_layer_index
+1,bf16,fp32,5,0.125,0.2421875,0.0625,2,5,60,0.00390625,0.25,60,1
+4,bf16,fp32,5,0.125,0.2421875,0.0625,2,5,60,0.00390625,0.25,60,1
+8,bf16,fp32,5,0.125,0.2421875,0.0625,2,5,60,0.00390625,0.25,60,1
+16,bf16,fp32,5,0.125,0.2421875,0.0625,2,5,60,0.00390625,0.25,60,1

@@ -1,0 +1,41 @@
+{
+  "activation_function": "relu",
+  "config": {
+    "accumulation_dtype": "fp32",
+    "allow_correctness_failure": true,
+    "attn_implementation": "sdpa",
+    "batch_size": 1,
+    "dtype_name": "bf16",
+    "input_tokens": 256,
+    "local_files_only": true,
+    "model_name_or_path": "facebook/opt-125m",
+    "output_dir": "results/hf-opt125m-e2e-fp32accum-20260919",
+    "output_tokens": 16,
+    "prompt": null,
+    "repeats": 3,
+    "seed": 20250917,
+    "splits": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      16
+    ],
+    "threads": 8,
+    "warmup": 1,
+    "weight_layout": "prepacked"
+  },
+  "input_mode": "random_token_ids",
+  "paths": {
+    "metadata": "results/hf-opt125m-e2e-fp32accum-20260919/metadata.json",
+    "raw_csv": "results/hf-opt125m-e2e-fp32accum-20260919/raw.csv",
+    "summary_csv": "results/hf-opt125m-e2e-fp32accum-20260919/summary.csv"
+  },
+  "row_count": 48,
+  "run_id": "20260919T082446Z-hf-opt-e2e",
+  "status": "complete",
+  "transformers_version": "4.48.3"
+}

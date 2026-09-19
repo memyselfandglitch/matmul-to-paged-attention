@@ -1,0 +1,63 @@
+{
+  "config": {
+    "accumulation_dtype": "input",
+    "attn_implementation": "sdpa",
+    "batch_size": 1,
+    "dtype_name": "bf16",
+    "input_source": "random",
+    "layer_index": 0,
+    "local_files_only": true,
+    "model_mode": "pretrained",
+    "model_name_or_path": "facebook/opt-125m",
+    "output_dir": "results/hf-opt125m-row-sweep-20260919/m4096",
+    "repeats": 20,
+    "seed": 20250917,
+    "sequence_length": 4096,
+    "splits": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "threads": 8,
+    "warmup": 5,
+    "weight_layout": "prepacked"
+  },
+  "paths": {
+    "metadata": "results/hf-opt125m-row-sweep-20260919/m4096/metadata.json",
+    "raw_csv": "results/hf-opt125m-row-sweep-20260919/m4096/raw.csv",
+    "summary_csv": "results/hf-opt125m-row-sweep-20260919/m4096/summary.csv"
+  },
+  "row_count": 200,
+  "run_id": "20260919T121411Z-hf-opt-layer",
+  "software": {
+    "activation_function": "relu",
+    "config_class": "OPTConfig",
+    "enable_bias": true,
+    "layer_class": "OPTDecoderLayer",
+    "loaded_module": {
+      "parameter_bytes": 250478592,
+      "parameter_count": 125239296
+    },
+    "opt_config": {
+      "activation_function": "relu",
+      "attention_dropout": 0.0,
+      "commit_hash": "27dcfa74d334bc871f3234de431e71c6eeba5dd6",
+      "do_layer_norm_before": true,
+      "dropout": 0.1,
+      "enable_bias": true,
+      "ffn_dim": 3072,
+      "hidden_size": 768,
+      "layerdrop": 0.0,
+      "max_position_embeddings": 2048,
+      "model_type": "opt",
+      "num_attention_heads": 12,
+      "num_hidden_layers": 12,
+      "vocab_size": 50272,
+      "word_embed_proj_dim": 768
+    },
+    "transformers_version": "4.48.3"
+  },
+  "status": "complete"
+}

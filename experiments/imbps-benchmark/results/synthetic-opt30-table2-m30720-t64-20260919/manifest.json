@@ -1,0 +1,36 @@
+{
+  "completed_at_utc": "2026-09-19T12:22:47.235964+00:00",
+  "config": {
+    "allow_correctness_failure": true,
+    "dtype_name": "bf16",
+    "estimated_peak_bytes": 7621889228,
+    "gelu_approximate": "none",
+    "hidden_size": 7168,
+    "intermediate_size": 28672,
+    "max_allocation_gib": 16.0,
+    "mlp_kind": "opt",
+    "output_dir": "results/synthetic-opt30-table2-m30720-t64-20260919",
+    "repeats": 3,
+    "seed": 20250917,
+    "skip_correctness": false,
+    "splits": [
+      1,
+      4,
+      8,
+      16
+    ],
+    "threads": 64,
+    "tokens": 30720,
+    "warmup": 1,
+    "weight_layout": "prepacked"
+  },
+  "paths": {
+    "metadata_json": "results/synthetic-opt30-table2-m30720-t64-20260919/metadata.json",
+    "raw_csv": "results/synthetic-opt30-table2-m30720-t64-20260919/raw.csv",
+    "summary_csv": "results/synthetic-opt30-table2-m30720-t64-20260919/summary.csv"
+  },
+  "row_count": 24,
+  "run_id": "20260919T122107Z-opt-m30720-h7168-i28672-t64-bf16",
+  "status": "complete",
+  "summary_count": 8
+}

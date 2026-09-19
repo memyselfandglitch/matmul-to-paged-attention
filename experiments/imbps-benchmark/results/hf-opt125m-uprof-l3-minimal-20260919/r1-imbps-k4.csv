@@ -1,0 +1,44 @@
+
+AMDuProfPcm Report
+
+Processor Name:,AMD EPYC 9654 96-Core Processor
+System:,Family(0x19) Model(0x11) Stepping(0x1)
+Operating System:,Linux 6.2.0-39-generic
+Number of Sockets :,2
+Number of Core Complexes(CCX) :,24
+Number of Cores :,192
+Number of Threads :,192
+SMT Enabled in HW:,False
+SMT Enabled by OS :,False
+
+Core P0 state frequency (MHz):,2400.000000
+Multiplex interval (ms):,100
+Data Collection Driver:,MSR Driver
+NMI Watchdog Enabled:,1
+Version:,5.3.521.0 (PUBLIC)
+
+Hypervisor Info:
+Hypervisor Enabled:,False
+Command:,"AMDuProfPcm -i /tmp/uprof_l3_access_miss_zen4.xml --msr -c l3=0 -C -P 6 --start-delay 6000 -q -o results/hf-opt125m-uprof-l3-minimal-20260919/r1-imbps-k4.csv -- numactl --physcpubind=0-7 --membind=0 .venv/bin/python /tmp/imbps_perf_kernel.py --variant imbps --split-k 4 --iterations 3000 --measurement-delay 4.0"
+
+Abbreviation :
+IPC    : Instructions Per CPU Cycle
+CPI    : CPU Cycles Per Instructions
+pti    : Per Thousand Instructions
+ptc    : Per Thousand CPU Cycles
+pto    : Per Thousand Operations
+Topdown metrics are reported in "% slots"
+
+Profile Time: 2026/09/19 13:31:56:444
+CORE METRICS
+Metric,System (Aggregated)
+Retired Instructions,213641518262.000000
+Retired Macro Ops,216189116851.000000
+Cycles Not in Halt,147867517739.000000
+
+L3 METRICS
+Metric,System (Aggregated)
+L3 Access,2214679278.000000
+L3 Miss,612109025.000000
+L3 Miss %,27.638721
+L3 Hit %,72.361279
