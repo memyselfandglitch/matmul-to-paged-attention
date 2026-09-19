@@ -13,7 +13,14 @@ splits=${SPLITS:-1,2,4,5,6,7,8}
 threads=${THREADS:-8}
 repeats=${REPEATS:-5}
 output_dir=${OUTPUT_DIR:-results/hf-opt-e2e-zen4}
+accumulation_dtype=${ACCUMULATION_DTYPE:-input}
+allow_correctness_failure=${ALLOW_CORRECTNESS_FAILURE:-0}
 export HF_HOME=${HF_HOME:-$repo_dir/.cache/huggingface}
+
+extra_args=()
+if [[ "$allow_correctness_failure" == "1" ]]; then
+    extra_args+=(--allow-correctness-failure)
+fi
 
 export OMP_NUM_THREADS=$threads
 export MKL_NUM_THREADS=$threads
@@ -33,5 +40,7 @@ exec numactl --physcpubind=0-7 --membind=0 \
     --warmup 1 \
     --repeats "$repeats" \
     --weight-layout prepacked \
+    --accumulation-dtype "$accumulation_dtype" \
     --attn-implementation sdpa \
+    "${extra_args[@]}" \
     --output-dir "$output_dir"

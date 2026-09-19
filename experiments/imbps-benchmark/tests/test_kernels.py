@@ -4,7 +4,12 @@ from pathlib import Path
 
 import torch
 
-from imbps_bench.analytical import paper_split_prediction, paper_working_set_bytes
+from imbps_bench.analytical import (
+    paper_split_prediction,
+    paper_working_set_bytes,
+    resident_split_prediction,
+    resident_working_set_bytes,
+)
 from imbps_bench.kernels import (
     imbps_forward_into,
     make_input,
@@ -55,6 +60,40 @@ class AnalyticalModelTests(unittest.TestCase):
         )
         self.assertFalse(prediction.feasible)
         self.assertIsNone(prediction.ceiling_k)
+
+    def test_exact_integer_bound_requires_next_split(self):
+        tokens = 2
+        hidden = 3
+        intermediate = 5
+        element_size = 2
+        input_bytes = element_size * tokens * hidden
+        numerator = element_size * intermediate * (tokens + hidden)
+        cache_bytes = input_bytes + numerator // 2
+        prediction = paper_split_prediction(
+            cache_bytes=cache_bytes,
+            tokens=tokens,
+            hidden_size=hidden,
+            intermediate_size=intermediate,
+            element_size=element_size,
+        )
+        self.assertEqual(prediction.continuous_k, 2.0)
+        self.assertEqual(prediction.ceiling_k, 3)
+        working_set = paper_working_set_bytes(
+            tokens, hidden, intermediate, element_size, prediction.ceiling_k
+        )
+        self.assertLess(working_set, cache_bytes)
+
+    def test_resident_bound_accounts_for_output_accumulator(self):
+        paper = paper_working_set_bytes(32, 64, 256, 2, 4)
+        resident = resident_working_set_bytes(32, 64, 256, 2, 4)
+        self.assertEqual(resident - paper, 32 * 64 * 2)
+
+    def test_resident_bound_can_be_infeasible_when_paper_bound_is_feasible(self):
+        cache_bytes = 7_000
+        paper = paper_split_prediction(cache_bytes, 32, 64, 256, 2)
+        resident = resident_split_prediction(cache_bytes, 32, 64, 256, 2)
+        self.assertTrue(paper.feasible)
+        self.assertFalse(resident.feasible)
 
 
 class KernelCorrectnessTests(unittest.TestCase):

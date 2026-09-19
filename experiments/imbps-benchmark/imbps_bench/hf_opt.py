@@ -39,6 +39,8 @@ class HFOPTBlock:
     up_bias: Optional[torch.Tensor]
     # Mathematical down layout used by addmm: [block_width, hidden].
     down_weight_t: torch.Tensor
+    # Optional FP32 copy used to avoid rounding each partial sum to BF16.
+    down_weight_t_accum: Optional[torch.Tensor] = None
 
     @property
     def width(self) -> int:
@@ -88,6 +90,7 @@ class HFOPTIMBPSMLP(nn.Module):
         split_k: int,
         weight_layout: str = "prepacked",
         activation_name: str = "unknown",
+        accumulation_dtype: str = "input",
     ) -> None:
         super().__init__()
         if not isinstance(fc1, nn.Linear) or not isinstance(fc2, nn.Linear):
@@ -102,12 +105,15 @@ class HFOPTIMBPSMLP(nn.Module):
             raise ValueError("fc1 and fc2 weights must use the same dtype")
         if weight_layout not in ("prepacked", "views"):
             raise ValueError("weight_layout must be 'prepacked' or 'views'")
+        if accumulation_dtype not in ("input", "fp32", "fp32_sum"):
+            raise ValueError("accumulation_dtype must be 'input', 'fp32', or 'fp32_sum'")
 
         self.hidden_size = int(fc1.in_features)
         self.intermediate_size = int(fc1.out_features)
         self.split_k = int(split_k)
         self.weight_layout = weight_layout
         self.activation_name = activation_name
+        self.accumulation_dtype = accumulation_dtype
         self.activation_fn = activation_fn
         self.canonical_parameter_bytes = _parameter_bytes(fc1) + _parameter_bytes(fc2)
 
@@ -128,6 +134,10 @@ class HFOPTIMBPSMLP(nn.Module):
                 packed_parameter_bytes += tensor_nbytes(up_weight) + tensor_nbytes(down_weight_t)
                 if up_bias is not None:
                     packed_parameter_bytes += tensor_nbytes(up_bias)
+            down_weight_t_accum = None
+            if accumulation_dtype == "fp32" and down_weight_t.dtype != torch.float32:
+                down_weight_t_accum = down_weight_t.float().contiguous()
+                packed_parameter_bytes += tensor_nbytes(down_weight_t_accum)
             blocks.append(
                 HFOPTBlock(
                     start=start,
@@ -135,6 +145,7 @@ class HFOPTIMBPSMLP(nn.Module):
                     up_weight=up_weight,
                     up_bias=up_bias,
                     down_weight_t=down_weight_t,
+                    down_weight_t_accum=down_weight_t_accum,
                 )
             )
 
@@ -146,18 +157,36 @@ class HFOPTIMBPSMLP(nn.Module):
         if weight_layout == "prepacked" and self.down_bias is not None:
             self.down_bias = _clone_contiguous(self.down_bias)
             self.packed_parameter_bytes += tensor_nbytes(self.down_bias)
+        self.down_bias_accum = None
+        if (
+            accumulation_dtype in ("fp32", "fp32_sum")
+            and self.down_bias is not None
+            and self.down_bias.dtype != torch.float32
+        ):
+            self.down_bias_accum = self.down_bias.float().contiguous()
+            self.packed_parameter_bytes += tensor_nbytes(self.down_bias_accum)
 
         self.register_buffer("_up_workspace", None, persistent=False)
         self.register_buffer("_output_workspace", None, persistent=False)
+        self.register_buffer("_accum_up_workspace", None, persistent=False)
+        self.register_buffer("_partial_output_workspace", None, persistent=False)
+        self.register_buffer("_cast_workspace", None, persistent=False)
         self._workspace_cache: Dict[
-            Tuple[int, torch.dtype, torch.device], Tuple[torch.Tensor, torch.Tensor]
+            Tuple[int, torch.dtype, torch.device],
+            Tuple[
+                torch.Tensor,
+                torch.Tensor,
+                Optional[torch.Tensor],
+                Optional[torch.Tensor],
+                Optional[torch.Tensor],
+            ],
         ] = {}
 
     @property
     def workspace_bytes(self) -> int:
         return sum(
-            tensor_nbytes(up) + tensor_nbytes(output)
-            for up, output in self._workspace_cache.values()
+            sum(tensor_nbytes(tensor) for tensor in workspace if tensor is not None)
+            for workspace in self._workspace_cache.values()
         )
 
     def _ensure_workspace(self, rows: int, source: torch.Tensor) -> None:
@@ -167,12 +196,44 @@ class HFOPTIMBPSMLP(nn.Module):
             up = torch.empty(
                 (rows, self.max_width), dtype=source.dtype, device=source.device
             )
-            output = torch.empty(
-                (rows, self.hidden_size), dtype=source.dtype, device=source.device
+            output_dtype = (
+                torch.float32
+                if self.accumulation_dtype in ("fp32", "fp32_sum")
+                else source.dtype
             )
-            workspace = (up, output)
+            output = torch.empty(
+                (rows, self.hidden_size), dtype=output_dtype, device=source.device
+            )
+            accum_up = (
+                torch.empty(
+                    (rows, self.max_width), dtype=torch.float32, device=source.device
+                )
+                if self.accumulation_dtype == "fp32" and source.dtype != torch.float32
+                else None
+            )
+            partial_output = (
+                torch.empty(
+                    (rows, self.hidden_size), dtype=source.dtype, device=source.device
+                )
+                if self.accumulation_dtype == "fp32_sum" and source.dtype != torch.float32
+                else None
+            )
+            cast = (
+                torch.empty(
+                    (rows, self.hidden_size), dtype=source.dtype, device=source.device
+                )
+                if output_dtype != source.dtype
+                else None
+            )
+            workspace = (up, output, accum_up, partial_output, cast)
             self._workspace_cache[key] = workspace
-        self._up_workspace, self._output_workspace = workspace
+        (
+            self._up_workspace,
+            self._output_workspace,
+            self._accum_up_workspace,
+            self._partial_output_workspace,
+            self._cast_workspace,
+        ) = workspace
 
     def _activate_in_place(self, tensor: torch.Tensor) -> None:
         name = self.activation_name.lower()
@@ -195,11 +256,20 @@ class HFOPTIMBPSMLP(nn.Module):
         for block in self.blocks:
             up = torch.nn.functional.linear(x, block.up_weight, block.up_bias)
             up = self.activation_fn(up)
-            partials.append(torch.mm(up, block.down_weight_t))
+            if self.accumulation_dtype == "fp32":
+                down = block.down_weight_t_accum
+                if down is None:
+                    down = block.down_weight_t
+                partials.append(torch.mm(up.float(), down))
+            elif self.accumulation_dtype == "fp32_sum":
+                partials.append(torch.mm(up, block.down_weight_t).float())
+            else:
+                partials.append(torch.mm(up, block.down_weight_t))
         output = torch.stack(partials, dim=0).sum(dim=0)
         if self.down_bias is not None:
-            output = output + self.down_bias
-        return output.view(*shape[:-1], self.hidden_size)
+            bias = self.down_bias_accum if self.down_bias_accum is not None else self.down_bias
+            output = output + bias
+        return output.to(dtype=hidden_states.dtype).view(*shape[:-1], self.hidden_size)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
         if hidden_states.shape[-1] != self.hidden_size:
@@ -223,9 +293,32 @@ class HFOPTIMBPSMLP(nn.Module):
             if block.up_bias is not None:
                 up.add_(block.up_bias)
             self._activate_in_place(up)
-            output.addmm_(up, block.down_weight_t)
+            if self.accumulation_dtype == "fp32":
+                accum_up = self._accum_up_workspace
+                if accum_up is None:
+                    accum_up = up
+                else:
+                    accum_up = accum_up[:, : block.width]
+                    accum_up.copy_(up)
+                down = block.down_weight_t_accum
+                if down is None:
+                    down = block.down_weight_t
+                output.addmm_(accum_up, down)
+            elif self.accumulation_dtype == "fp32_sum":
+                partial_output = self._partial_output_workspace
+                if partial_output is None:
+                    output.addmm_(up, block.down_weight_t)
+                else:
+                    torch.mm(up, block.down_weight_t, out=partial_output)
+                    output.add_(partial_output)
+            else:
+                output.addmm_(up, block.down_weight_t)
         if self.down_bias is not None:
-            output.add_(self.down_bias)
+            bias = self.down_bias_accum if self.down_bias_accum is not None else self.down_bias
+            output.add_(bias)
+        if self._cast_workspace is not None:
+            self._cast_workspace.copy_(output)
+            output = self._cast_workspace
         return output.view(*shape[:-1], self.hidden_size)
 
 
@@ -267,6 +360,7 @@ class OPTModelIMBPSPatcher:
         split_k: int,
         weight_layout: str,
         activation_name: str,
+        accumulation_dtype: str = "input",
         layer_indices: Optional[Sequence[int]] = None,
     ) -> None:
         layers = find_opt_decoder_layers(model)
@@ -288,6 +382,7 @@ class OPTModelIMBPSPatcher:
                 split_k=split_k,
                 weight_layout=weight_layout,
                 activation_name=activation_name,
+                accumulation_dtype=accumulation_dtype,
             )
             patches.append(
                 _LayerPatch(

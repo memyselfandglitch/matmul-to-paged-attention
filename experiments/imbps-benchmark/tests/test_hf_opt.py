@@ -70,6 +70,46 @@ class HFOPTMLPTests(unittest.TestCase):
             five(x)
         self.assertLess(five.workspace_bytes, one.workspace_bytes)
 
+    def test_fp32_partial_accumulation_returns_input_dtype(self):
+        fc1, fc2 = self._make_linears()
+        fc1 = fc1.to(dtype=torch.bfloat16)
+        fc2 = fc2.to(dtype=torch.bfloat16)
+        x = torch.randn(9, 11, dtype=torch.bfloat16)
+        split = HFOPTIMBPSMLP(
+            fc1,
+            nn.ReLU(),
+            fc2,
+            5,
+            "prepacked",
+            "relu",
+            accumulation_dtype="fp32",
+        )
+        with torch.inference_mode():
+            output = split(x)
+        self.assertEqual(output.dtype, x.dtype)
+        self.assertTrue(torch.isfinite(output).all())
+        self.assertTrue(any(block.down_weight_t_accum is not None for block in split.blocks))
+
+    def test_fp32_sum_preserves_bf16_gemm_weights(self):
+        fc1, fc2 = self._make_linears()
+        fc1 = fc1.to(dtype=torch.bfloat16)
+        fc2 = fc2.to(dtype=torch.bfloat16)
+        x = torch.randn(9, 11, dtype=torch.bfloat16)
+        split = HFOPTIMBPSMLP(
+            fc1,
+            nn.ReLU(),
+            fc2,
+            5,
+            "prepacked",
+            "relu",
+            accumulation_dtype="fp32_sum",
+        )
+        with torch.inference_mode():
+            output = split(x)
+        self.assertEqual(output.dtype, x.dtype)
+        self.assertTrue(torch.isfinite(output).all())
+        self.assertTrue(all(block.down_weight_t_accum is None for block in split.blocks))
+
 
 class _FakeOPTLayer(nn.Module):
     def __init__(self):

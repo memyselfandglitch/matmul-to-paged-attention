@@ -1,5 +1,8 @@
 # IMBPS CPU Benchmark
 
+The current Zen 4 claim-verification results and limitations are summarized in
+[`CLAIM_VERIFICATION_20260919.md`](CLAIM_VERIFICATION_20260919.md).
+
 This repository independently evaluates Iterative MLP Blocks with Parameter
 Splits (IMBPS). It contains both an isolated mathematical MLP microbenchmark
 and real Hugging Face OPT layer/end-to-end benchmarks.
@@ -36,7 +39,7 @@ The initial host, `mn01`, has two AMD EPYC 9654 sockets:
 - approximately 1.5 TiB RAM;
 - `perf_event_paranoid=-1`;
 - `schedutil` governor and boost enabled;
-- no AMD uProf command currently visible in `PATH`.
+- AMD uProf 5.3.521 available with non-root MSR/perf capabilities.
 
 The first controlled scope is therefore CPUs `0-7` with memory on NUMA node 0.
 Do not use the aggregate 768 MiB L3 value to choose `K`; one participating CCD
@@ -190,6 +193,13 @@ Before timing each K, the harness compares first-token logits with
 Raw observations go to `raw.csv`; medians, p95 values, and paired speedups go to
 `summary.csv`.
 
+By default, either a failed logit comparison or a generated-token mismatch
+stops the run. For a numerical audit across every requested K, set
+`ALLOW_CORRECTNESS_FAILURE=1` when using the Zen 4 script (or pass
+`--allow-correctness-failure` to the CLI). Failing values are then prominently
+warned about but retained in both CSV files; their performance measurements
+must not be treated as valid model-equivalent results.
+
 Memory columns distinguish logical activation size from implementation-owned
 storage. `logical_activation_bytes` (layer CSV) and
 `prefill_activation_bytes_per_layer` (end-to-end CSV) compare the full
@@ -292,11 +302,12 @@ python -m imbps_bench predict-k \
   --cache-fraction 1.0
 ```
 
-The command reports the continuous and ceiling values of `K`, the paper-model
-working set at every requested split, and an explicit infeasible result when the
-input term alone exceeds usable cache. Treat the answer as a hypothesis: real
-usable cache is smaller than nominal capacity and the equation omits backend
-packing, scratchpads, output residency, and competing threads.
+The command reports both the published equation and a residency-corrected lower
+bound that keeps input and output live. It emits an explicit infeasible result
+when those persistent tensors alone exceed usable cache. Treat both answers as
+capacity hypotheses: real usable cache is smaller than nominal capacity and
+the equations omit backend packing, scratchpads, conflicts, and competing
+threads. Timing, not the equation, must select the performance-optimal K.
 
 Test a paper-relevant OPT-13B layer:
 

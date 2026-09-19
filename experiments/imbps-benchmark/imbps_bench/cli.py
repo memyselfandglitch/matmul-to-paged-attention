@@ -9,7 +9,12 @@ from typing import List, Optional, Sequence
 
 import torch
 
-from imbps_bench.analytical import paper_split_prediction, paper_working_set_bytes
+from imbps_bench.analytical import (
+    paper_split_prediction,
+    paper_working_set_bytes,
+    resident_split_prediction,
+    resident_working_set_bytes,
+)
 from imbps_bench.kernels import (
     MLP_KINDS,
     imbps_forward_into,
@@ -168,9 +173,29 @@ def _predict_k(args: argparse.Namespace) -> int:
         element_size=element_size,
         cache_fraction=args.cache_fraction,
     )
+    resident_prediction = resident_split_prediction(
+        cache_bytes=cache_bytes,
+        tokens=args.tokens,
+        hidden_size=args.hidden_size,
+        intermediate_size=args.intermediate_size,
+        element_size=element_size,
+        cache_fraction=args.cache_fraction,
+    )
     working_sets = {
         str(split_k): int(
             paper_working_set_bytes(
+                args.tokens,
+                args.hidden_size,
+                args.intermediate_size,
+                element_size,
+                split_k,
+            )
+        )
+        for split_k in args.splits
+    }
+    resident_working_sets = {
+        str(split_k): int(
+            resident_working_set_bytes(
                 args.tokens,
                 args.hidden_size,
                 args.intermediate_size,
@@ -200,9 +225,20 @@ def _predict_k(args: argparse.Namespace) -> int:
                     "feasible": prediction.feasible,
                 },
                 "working_set_bytes_by_k": working_sets,
+                "resident_corrected_prediction": {
+                    "cache_bytes": resident_prediction.cache_bytes,
+                    "usable_cache_bytes": resident_prediction.usable_cache_bytes,
+                    "input_bytes": resident_prediction.input_bytes,
+                    "output_bytes": resident_prediction.input_bytes,
+                    "denominator_bytes": resident_prediction.denominator_bytes,
+                    "continuous_k": resident_prediction.continuous_k,
+                    "ceiling_k": resident_prediction.ceiling_k,
+                    "feasible": resident_prediction.feasible,
+                },
+                "resident_corrected_working_set_bytes_by_k": resident_working_sets,
                 "warning": (
-                    "K-only capacity model is infeasible; tile M as well"
-                    if not prediction.feasible
+                    "resident-corrected K-only model is infeasible; tile M as well"
+                    if not resident_prediction.feasible
                     else "Prediction is a capacity hypothesis; benchmark nearby K values"
                 ),
             },
@@ -231,6 +267,7 @@ def _hf_opt_layer(args: argparse.Namespace) -> int:
             repeats=args.repeats,
             seed=args.seed,
             weight_layout=args.weight_layout,
+            accumulation_dtype=args.accumulation_dtype,
             attn_implementation=args.attn_implementation,
             local_files_only=args.local_files_only,
             output_dir=output_dir,
@@ -258,8 +295,10 @@ def _hf_opt_e2e(args: argparse.Namespace) -> int:
             repeats=args.repeats,
             seed=args.seed,
             weight_layout=args.weight_layout,
+            accumulation_dtype=args.accumulation_dtype,
             attn_implementation=args.attn_implementation,
             local_files_only=args.local_files_only,
+            allow_correctness_failure=args.allow_correctness_failure,
             output_dir=output_dir,
         )
     )
@@ -359,6 +398,12 @@ def build_parser() -> argparse.ArgumentParser:
     hf_layer.add_argument("--repeats", type=_positive_int, default=10)
     hf_layer.add_argument("--seed", type=int, default=20250917)
     hf_layer.add_argument("--weight-layout", choices=("prepacked", "views"), default="prepacked")
+    hf_layer.add_argument(
+        "--accumulation-dtype",
+        choices=("input", "fp32", "fp32_sum"),
+        default="input",
+        help="use input-dtype sums, FP32 GEMMs+sums, or BF16 GEMMs with FP32 sums",
+    )
     hf_layer.add_argument("--attn-implementation", choices=("eager", "sdpa"), default="sdpa")
     hf_layer.add_argument("--local-files-only", action="store_true")
     hf_layer.add_argument("--output-dir", type=Path)
@@ -383,8 +428,19 @@ def build_parser() -> argparse.ArgumentParser:
     hf_e2e.add_argument("--repeats", type=_positive_int, default=5)
     hf_e2e.add_argument("--seed", type=int, default=20250917)
     hf_e2e.add_argument("--weight-layout", choices=("prepacked", "views"), default="prepacked")
+    hf_e2e.add_argument(
+        "--accumulation-dtype",
+        choices=("input", "fp32", "fp32_sum"),
+        default="input",
+        help="use input-dtype sums, FP32 GEMMs+sums, or BF16 GEMMs with FP32 sums",
+    )
     hf_e2e.add_argument("--attn-implementation", choices=("eager", "sdpa"), default="sdpa")
     hf_e2e.add_argument("--local-files-only", action="store_true")
+    hf_e2e.add_argument(
+        "--allow-correctness-failure",
+        action="store_true",
+        help="record and time failing split values instead of stopping at the first mismatch",
+    )
     hf_e2e.add_argument("--output-dir", type=Path)
     hf_e2e.set_defaults(function=_hf_opt_e2e)
     return parser

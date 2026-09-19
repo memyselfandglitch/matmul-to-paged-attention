@@ -135,6 +135,7 @@ class HFOPTLayerConfig:
     repeats: int
     seed: int
     weight_layout: str
+    accumulation_dtype: str
     attn_implementation: str
     local_files_only: bool
     output_dir: Path
@@ -249,7 +250,7 @@ LAYER_RAW_FIELDS = (
     "run_id", "timestamp_utc", "hostname", "variant", "model_name_or_path", "model_mode",
     "layer_index", "input_source", "batch_size", "sequence_length", "rows", "hidden_size",
     "intermediate_size", "activation_function", "fc1_bias", "fc2_bias", "dtype", "threads",
-    "weight_layout", "split_k", "iteration", "latency_ns", "latency_ms", "rows_per_second",
+    "weight_layout", "accumulation_dtype", "split_k", "iteration", "latency_ns", "latency_ms", "rows_per_second",
     "checksum", "packing_ms", "canonical_parameter_bytes", "packed_parameter_bytes",
     "workspace_bytes", "logical_activation_bytes", "logical_output_bytes",
     "max_abs_error", "max_rel_error", "allclose",
@@ -259,7 +260,7 @@ LAYER_RAW_FIELDS = (
 LAYER_SUMMARY_FIELDS = (
     "run_id", "variant", "model_name_or_path", "model_mode", "layer_index", "input_source",
     "batch_size", "sequence_length", "rows", "hidden_size", "intermediate_size",
-    "activation_function", "dtype", "threads", "weight_layout", "split_k", "samples",
+    "activation_function", "dtype", "threads", "weight_layout", "accumulation_dtype", "split_k", "samples",
     "latency_min_ms", "latency_mean_ms", "latency_median_ms", "latency_p95_ms",
     "latency_stdev_ms", "reference_median_ms", "speedup_vs_reference", "rows_per_second",
     "packing_ms", "canonical_parameter_bytes", "packed_parameter_bytes", "workspace_bytes",
@@ -329,6 +330,7 @@ def run_hf_opt_layer(config: HFOPTLayerConfig) -> Dict[str, Any]:
                 split_k,
                 config.weight_layout,
                 activation_name,
+                config.accumulation_dtype,
             ).eval()
             expected = reference(hidden_states).clone()
             actual = split(hidden_states).clone()
@@ -371,6 +373,7 @@ def run_hf_opt_layer(config: HFOPTLayerConfig) -> Dict[str, Any]:
                         "dtype": config.dtype_name,
                         "threads": torch.get_num_threads(),
                         "weight_layout": "native_linear" if variant == "reference" else config.weight_layout,
+                        "accumulation_dtype": "native" if variant == "reference" else config.accumulation_dtype,
                         "split_k": split_k,
                         "iteration": iteration,
                         "latency_ns": elapsed_ns,
@@ -437,8 +440,10 @@ class HFOPTE2EConfig:
     repeats: int
     seed: int
     weight_layout: str
+    accumulation_dtype: str
     attn_implementation: str
     local_files_only: bool
+    allow_correctness_failure: bool
     output_dir: Path
 
 
@@ -534,7 +539,7 @@ def _manual_greedy_generate(
 E2E_RAW_FIELDS = (
     "run_id", "timestamp_utc", "hostname", "variant", "model_name_or_path", "input_mode",
     "batch_size", "input_tokens", "output_tokens", "activation_function", "dtype", "threads",
-    "hidden_size", "intermediate_size", "attn_implementation", "weight_layout", "split_k",
+    "hidden_size", "intermediate_size", "attn_implementation", "weight_layout", "accumulation_dtype", "split_k",
     "iteration", "prefill_ms", "ttft_ms",
     "decode_ms", "total_ms", "output_tokens_per_second", "decode_tokens_per_second",
     "mean_decode_token_ms", "p95_decode_token_ms", "first_token_id_checksum", "packing_ms",
@@ -547,7 +552,7 @@ E2E_RAW_FIELDS = (
 E2E_SUMMARY_FIELDS = (
     "run_id", "variant", "model_name_or_path", "input_mode", "batch_size", "input_tokens",
     "output_tokens", "activation_function", "dtype", "threads", "attn_implementation",
-    "hidden_size", "intermediate_size", "weight_layout", "split_k", "samples",
+    "hidden_size", "intermediate_size", "weight_layout", "accumulation_dtype", "split_k", "samples",
     "prefill_median_ms", "prefill_p95_ms",
     "ttft_median_ms", "ttft_p95_ms", "decode_median_ms", "total_median_ms",
     "output_tokens_per_second_at_median", "decode_tokens_per_second_at_median",
@@ -664,6 +669,7 @@ def run_hf_opt_e2e(config: HFOPTE2EConfig) -> Dict[str, Any]:
                 split_k,
                 config.weight_layout,
                 activation_name,
+                config.accumulation_dtype,
             )
             patcher.enable_reference()
             expected = _manual_greedy_generate(
@@ -678,12 +684,17 @@ def run_hf_opt_e2e(config: HFOPTE2EConfig) -> Dict[str, Any]:
                 torch.allclose(actual.first_token_logits, expected.first_token_logits, rtol=rtol, atol=atol)
             )
             token_match = bool(torch.equal(actual.generated_ids, expected.generated_ids))
-            if not logits_allclose:
-                patcher.close()
-                raise RuntimeError(
-                    "end-to-end first-token logits failed correctness for K=%d: max_abs=%g max_rel=%g"
-                    % (split_k, max_abs, max_rel)
+            if not logits_allclose or not token_match:
+                message = (
+                    "end-to-end correctness failed for K=%d: "
+                    "first_logits_allclose=%s generated_tokens_match=%s "
+                    "max_abs=%g max_rel=%g"
+                    % (split_k, logits_allclose, token_match, max_abs, max_rel)
                 )
+                if not config.allow_correctness_failure:
+                    patcher.close()
+                    raise RuntimeError(message)
+                print("[imbps:hf-e2e] WARNING: " + message, file=sys.stderr, flush=True)
 
             for _ in range(config.warmup):
                 patcher.enable_reference()
@@ -727,6 +738,7 @@ def run_hf_opt_e2e(config: HFOPTE2EConfig) -> Dict[str, Any]:
                             "intermediate_size": int(model_config.ffn_dim),
                             "attn_implementation": config.attn_implementation,
                             "weight_layout": "native_linear" if variant == "reference" else config.weight_layout,
+                            "accumulation_dtype": "native" if variant == "reference" else config.accumulation_dtype,
                             "split_k": split_k,
                             "iteration": iteration,
                             "prefill_ms": measured.prefill_ms,

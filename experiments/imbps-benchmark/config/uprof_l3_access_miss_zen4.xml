@@ -1,0 +1,22 @@
+<?xml version="1.0" standalone="yes"?>
+
+<!--
+  Minimal AMD uProf MSR counter set for Zen 4 Family 19h Models 10h-1Fh.
+
+  AMDuProfPcm's built-in "l3" metric rotates through three L3 event groups to
+  also estimate miss latency and source locality.  That multiplexing is useful
+  for diagnosis but adds avoidable variance when the study only needs the
+  paper's L3-access and L3-miss claims.  These control values are copied from
+  AMDuProf 5.3.521 Data/Config/0x19_0x1.conf.
+-->
+<event_configuration family="19" modellow="10" modelhigh="1f" version="2">
+    <l3 subtype="l3">
+        <event ctl="0x0300C0000040FF04" name="$L3Access"> </event>
+        <event ctl="0x0300C00000400104" name="$L3Miss"> </event>
+
+        <metric name="L3 Access" expression="$L3Access"> </metric>
+        <metric name="L3 Miss" expression="$L3Miss"> </metric>
+        <metric name="L3 Miss %" expression="($L3Miss * 100) / $L3Access"> </metric>
+        <metric name="L3 Hit %" expression="(($L3Access - $L3Miss) * 100) / $L3Access"> </metric>
+    </l3>
+</event_configuration>

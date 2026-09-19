@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="yes"?>
+
+<!--
+  Minimal AMD uProf MSR counter set for Zen 4 Family 19h Models 10h-1Fh.
+
+  The five event controls are copied from AMD uProf 5.3.521
+  Data/Config/0x19_0x1.conf.  They reproduce the demand-access and total-miss
+  numerators in the built-in L2 metric while avoiding its retired-instruction
+  normalization and three-way multiplexing.  "L2 Total Miss" includes demand
+  instruction, demand data, and L2 hardware-prefetch traffic.  A total access
+  or miss-rate metric would need a sixth event (prefetch hits), exceeding the
+  available programmable core counters, so it is deliberately not estimated.
+-->
+<event_configuration family="19" modellow="10" modelhigh="1f" version="2">
+    <core subtype="l2">
+        <event ctl="0x43F960" name="$L2AccessWithoutPF"> </event>
+        <event ctl="0x431F71" name="$L2PFMissL2HitinL3"> </event>
+        <event ctl="0x431F72" name="$L2PFMissL2L3"> </event>
+        <event ctl="0x430164" name="$L2MissIC"> </event>
+        <event ctl="0x430864" name="$L2MissDC"> </event>
+
+        <metric name="L2 Demand Access" expression="$L2AccessWithoutPF"> </metric>
+        <metric name="L2 Demand Miss" expression="$L2MissIC + $L2MissDC"> </metric>
+        <metric name="L2 Prefetch Miss" expression="$L2PFMissL2HitinL3 + $L2PFMissL2L3"> </metric>
+        <metric name="L2 Total Miss" expression="$L2MissIC + $L2MissDC + $L2PFMissL2HitinL3 + $L2PFMissL2L3"> </metric>
+    </core>
+</event_configuration>

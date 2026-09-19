@@ -12,6 +12,7 @@ splits=${SPLITS:-1,2,4,5,6,7,8,16}
 threads=${THREADS:-8}
 repeats=${REPEATS:-10}
 output_dir=${OUTPUT_DIR:-results/hf-opt-layer-zen4}
+accumulation_dtype=${ACCUMULATION_DTYPE:-input}
 export HF_HOME=${HF_HOME:-$repo_dir/.cache/huggingface}
 
 export OMP_NUM_THREADS=$threads
@@ -33,5 +34,6 @@ exec numactl --physcpubind=0-7 --membind=0 \
     --warmup 3 \
     --repeats "$repeats" \
     --weight-layout prepacked \
+    --accumulation-dtype "$accumulation_dtype" \
     --attn-implementation sdpa \
     --output-dir "$output_dir"
