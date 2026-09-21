@@ -1,0 +1,21 @@
+{
+  "model_args": {
+    "model_name": "facebook/opt-125m",
+    "dtype": "bf16",
+    "llm_operators": {
+      "Norm": "NATIVE",
+      "QKVProjection": "TPP",
+      "Attention": "JIT",
+      "OutProjection": "TPP",
+      "MLP": "IMBPS",
+      "LMHead": "TPP"
+    },
+    "spec_config": null
+  },
+  "generation_args": {
+    "kv_cache_type": "BMC",
+    "max_tokens": 32,
+    "batch_size": [1],
+    "num_logprobs": 5
+  }
+}

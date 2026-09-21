@@ -3,6 +3,11 @@
 The current Zen 4 claim-verification results and limitations are summarized in
 [`CLAIM_VERIFICATION_20260919.md`](CLAIM_VERIFICATION_20260919.md).
 
+The native AMD PACE v1.0 standalone and end-to-end reproduction is summarized
+in [`PACE_REPRODUCTION_20260921.md`](PACE_REPRODUCTION_20260921.md). It includes
+the exact OPT-30B shape, one- versus two-socket placement, PACE TPP versus
+IMBPS end-to-end results, and the author-linked top-5 correctness check.
+
 This repository independently evaluates Iterative MLP Blocks with Parameter
 Splits (IMBPS). It contains both an isolated mathematical MLP microbenchmark
 and real Hugging Face OPT layer/end-to-end benchmarks.
@@ -90,6 +95,18 @@ PEP 668-managed system Python. The Zen 4 scripts also place Hugging Face model
 downloads under the ignored `.cache/huggingface` directory on the scratch
 filesystem instead of consuming the login-home quota. Override `HF_HOME` when a
 shared cluster model cache is available.
+
+For the native PACE v1.0 reproduction, use the separate environment so its
+PyTorch 2.7 requirement does not replace the original benchmark environment:
+
+```bash
+./scripts/bootstrap_pace_v1.sh
+source .venv-pace-v1/bin/activate
+```
+
+The PACE build compiles oneDNN, FBGEMM, LIBXSMM and the PACE C++ extension, so
+it takes several minutes. Set `PACE_SRC` to an existing v1.0 checkout to avoid
+another clone.
 
 ## Validation
 

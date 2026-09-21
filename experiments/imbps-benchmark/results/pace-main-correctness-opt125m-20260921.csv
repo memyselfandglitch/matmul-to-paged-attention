@@ -1,0 +1,6 @@
+variant,split_k,prompts,tokens_per_prompt,top5_pass,tolerated_token_divergences_vs_hf
+tpp,,8,32,True,2
+imbps,1,8,32,True,1
+imbps,2,8,32,True,1
+imbps,4,8,32,True,2
+imbps,8,8,32,True,2

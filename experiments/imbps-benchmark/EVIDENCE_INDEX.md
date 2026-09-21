@@ -4,6 +4,9 @@ This index maps every headline conclusion in
 [`CLAIM_VERIFICATION_20260919.md`](CLAIM_VERIFICATION_20260919.md) to the code
 that produced it and the committed raw/summary evidence.
 
+Native PACE findings are reported separately in
+[`PACE_REPRODUCTION_20260921.md`](PACE_REPRODUCTION_20260921.md).
+
 ## Shared benchmark path
 
 - Synthetic weights, split ranges, persistent packing, reference OPT/SwiGLU,
@@ -35,6 +38,9 @@ that produced it and the committed raw/summary evidence.
 | Peak RSS falls only 19-26% | `profile_mlp_kernel.py`, invoked under `/usr/bin/time -v`; each artifact retains the exact command | [`results/synthetic-opt30-table2-rss-20260919/`](results/synthetic-opt30-table2-rss-20260919/) |
 | Remote NUMA inflates apparent speedup to 2.064x | `runner.py`, launched with CPUs 0-63 and memory forced to node 1 | [`results/synthetic-opt30-table2-m30720-t64-remote-numa-20260919/`](results/synthetic-opt30-table2-m30720-t64-remote-numa-20260919/); compare with the local `t64` sibling directory |
 | Python-level 2D row tiling does not beat the full-row path | [`scripts/benchmark_2d_tiling.py`](scripts/benchmark_2d_tiling.py) | [`results/synthetic-opt30-2d-tiling-k8-20260919/summary.csv`](results/synthetic-opt30-2d-tiling-k8-20260919/summary.csv) |
+| PACE v1 exact OPT-30B: K=4 reaches 1.108x one-socket and 1.122x two-socket | [`scripts/benchmark_pace_mlp.py`](scripts/benchmark_pace_mlp.py), [`scripts/run_pace_table2_zen4.sh`](scripts/run_pace_table2_zen4.sh) | [`results/pace-v1-standalone-opt30-20260921.csv`](results/pace-v1-standalone-opt30-20260921.csv) |
+| PACE v1 OPT-125M E2E: all IMBPS K values lose to TPP | [`scripts/run_pace_e2e_opt125m_zen4.sh`](scripts/run_pace_e2e_opt125m_zen4.sh), [`config/pace_opt125m_tpp.json`](config/pace_opt125m_tpp.json), [`config/pace_opt125m_imbps.json`](config/pace_opt125m_imbps.json) | [`results/pace-v1-e2e-opt125m-20260921.csv`](results/pace-v1-e2e-opt125m-20260921.csv) |
+| PACE-main top-5 correctness passes despite 1-2 token divergences from HF | [`scripts/run_pace_correctness_opt125m_zen4.sh`](scripts/run_pace_correctness_opt125m_zen4.sh), `config/pace_correctness_opt125m_*.json` | [`results/pace-main-correctness-opt125m-20260921.csv`](results/pace-main-correctness-opt125m-20260921.csv) |
 
 ## Deliberately unverified claims
 

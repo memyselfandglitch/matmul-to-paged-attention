@@ -1,0 +1,36 @@
+{
+  "frameworks": ["pace"],
+  "model_args": {
+    "model_name": "facebook/opt-125m",
+    "dtype": "bf16",
+    "llm_operators": {
+      "Norm": "NATIVE",
+      "QKVProjection": "TPP",
+      "Attention": "JIT",
+      "OutProjection": "TPP",
+      "MLP": "IMBPS",
+      "LMHead": "TPP"
+    },
+    "spec_config": null
+  },
+  "use_real_data": false,
+  "generation_args": {
+    "input_tokens": 256,
+    "output_tokens": 16,
+    "batch_size": 1,
+    "num_beams": 1,
+    "kv_cache_type": "BMC",
+    "do_sample": false,
+    "manual_seed": 0
+  },
+  "warmup_runs": 2,
+  "num_runs": 5,
+  "visualize": false,
+  "verbose": true,
+  "output_dir": "./benchmark_results/imbps-study",
+  "token_metrics": {
+    "time_to_first_token": true,
+    "time_per_tokens": false
+  },
+  "system_metrics": false
+}

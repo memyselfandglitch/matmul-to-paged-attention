@@ -1,4 +1,6 @@
 .venv/
+.venv-pace-v1/
+.vendor/
 .cache/
 .tmp/
 *.egg-info/
