@@ -48,6 +48,13 @@ def command_output(command: list[str]) -> str | None:
     return result.stdout.strip()
 
 
+def sysfs_value(path: str) -> str | None:
+    try:
+        return Path(path).read_text(encoding="utf-8").strip()
+    except (FileNotFoundError, OSError):
+        return None
+
+
 def sampled_percentile(
     values: torch.Tensor, q: float, max_samples: int = 1_000_000
 ) -> tuple[float, int]:
@@ -309,8 +316,27 @@ def main() -> None:
         "system": {
             "lscpu": command_output(["lscpu"]),
             "lscpu_cache": command_output(["lscpu", "-C"]),
+            "lscpu_topology": command_output(
+                ["lscpu", "-e=CPU,NODE,SOCKET,CACHE,ONLINE"]
+            ),
             "numactl_hardware": command_output(["numactl", "--hardware"]),
             "numactl_show": command_output(["numactl", "--show"]),
+            "cpupower_frequency_info": command_output(["cpupower", "frequency-info"]),
+            "smt_active": sysfs_value("/sys/devices/system/cpu/smt/active"),
+            "cpu0_scaling_governor": sysfs_value(
+                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
+            ),
+            "cpu_boost": sysfs_value("/sys/devices/system/cpu/cpufreq/boost"),
+            "transparent_hugepage_enabled": sysfs_value(
+                "/sys/kernel/mm/transparent_hugepage/enabled"
+            ),
+            "transparent_hugepage_defrag": sysfs_value(
+                "/sys/kernel/mm/transparent_hugepage/defrag"
+            ),
+            "numa_balancing": sysfs_value("/proc/sys/kernel/numa_balancing"),
+            "perf_event_paranoid": sysfs_value(
+                "/proc/sys/kernel/perf_event_paranoid"
+            ),
             "git_commit": command_output(["git", "rev-parse", "HEAD"]),
             "pace_git_commit": os.environ.get("PACE_GIT_COMMIT"),
         },

@@ -108,6 +108,22 @@ The PACE build compiles oneDNN, FBGEMM, LIBXSMM and the PACE C++ extension, so
 it takes several minutes. Set `PACE_SRC` to an existing v1.0 checkout to avoid
 another clone.
 
+### Held-out PACE K validation
+
+Run the expanded native-PACE sweep on both socket placements with 30 paired,
+randomly ordered observations per K:
+
+```bash
+./scripts/run_pace_k_validation_zen4.sh
+```
+
+The sweep uses `K=1,2,3,4,5,6,7,8,12,14,16,23`. The empirical
+`c + a/K + bK` surrogate is fitted only on `K=1,2,4,8,16`; all other K values
+are held out. Each placement directory receives `validation.csv` with bootstrap
+median intervals and paired differences, plus `validation.json` with held-out
+prediction error and selector agreement. This curve is treated as an empirical
+selector candidate, not as a derivation of the cache-capacity model.
+
 ## Validation
 
 Run the unit tests and FP32/BF16 kernel checks:
