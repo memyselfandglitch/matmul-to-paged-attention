@@ -68,6 +68,28 @@ fi
 
 readonly UPROF_BIN="${UPROF_CANDIDATES[0]}"
 echo "selected_uprof_binary=${UPROF_BIN}" >> "${RESULT_DIR}/environment.txt"
+{
+  ls -l "${UPROF_BIN}"
+  if command -v getcap >/dev/null 2>&1; then
+    getcap "${UPROF_BIN}" || true
+  fi
+} >> "${RESULT_DIR}/environment.txt" 2>&1
+
+readonly UPROF_ACCESS_MODE="${UPROF_ACCESS_MODE:-perf}"
+declare -a UPROF_MODE_ARGS=()
+case "${UPROF_ACCESS_MODE}" in
+  perf)
+    UPROF_MODE_ARGS=(-X)
+    ;;
+  msr)
+    UPROF_MODE_ARGS=(--msr)
+    ;;
+  *)
+    echo "UPROF_ACCESS_MODE must be perf or msr" >&2
+    exit 2
+    ;;
+esac
+echo "uprof_access_mode=${UPROF_ACCESS_MODE}" >> "${RESULT_DIR}/environment.txt"
 
 "${UPROF_BIN}" -v > "${RESULT_DIR}/uprof-version.txt" 2>&1 || true
 "${UPROF_BIN}" -h > "${RESULT_DIR}/uprof-help.txt" 2>&1 || true
@@ -75,7 +97,7 @@ echo "selected_uprof_binary=${UPROF_BIN}" >> "${RESULT_DIR}/environment.txt"
 perf list > "${RESULT_DIR}/perf-list.txt" 2>&1 || true
 
 set +e
-"${UPROF_BIN}" --msr -m ipc,l2,l3,memory -a -C \
+"${UPROF_BIN}" "${UPROF_MODE_ARGS[@]}" -m ipc,l2,l3,memory -a -C \
   -o "${RESULT_DIR}/permission-probe.csv" -- /bin/sleep 2 \
   > "${RESULT_DIR}/permission-probe.log" 2>&1
 readonly PROBE_STATUS=$?
