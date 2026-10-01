@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "captured_at_utc": "2026-10-01T12:42:00.686426+00:00",
+  "case": {
+    "backend": "tpp",
+    "batch": 1,
+    "sequence": 64,
+    "rows": 64,
+    "hidden": 768,
+    "intermediate": 3072,
+    "splits": 1,
+    "dtype": "bf16",
+    "activation": "relu",
+    "bias": true,
+    "seed": 0
+  },
+  "run": {
+    "warmups": 2,
+    "iterations": 5,
+    "durations_ms": [
+      0.624474,
+      1.558457,
+      0.62202,
+      0.613779,
+      0.609723
+    ],
+    "median_ms": 0.62202,
+    "mean_ms": 0.8056905999999999,
+    "stdev_ms": 0.42085180314844794,
+    "q1_ms": 0.613779,
+    "q3_ms": 0.624474,
+    "iqr_ms": 0.01069500000000001,
+    "coefficient_of_variation": 0.52234915381717,
+    "setup_seconds": 0.04112934399745427,
+    "measurement_wall_seconds": 0.004034753976156935
+  },
+  "output": {
+    "shape": [
+      64,
+      768
+    ],
+    "dtype": "torch.bfloat16",
+    "sum_fp32": -94.27395629882812,
+    "max_abs_fp32": 0.036865234375
+  },
+  "environment": {
+    "hostname": "mn01",
+    "pid": 332722,
+    "affinity": [
+      0
+    ],
+    "torch_version": "2.7.0+cpu",
+    "pace_version": "1.0.0",
+    "torch_threads": 16,
+    "torch_interop_threads": 1,
+    "omp_num_threads": "16",
+    "omp_proc_bind": "close",
+    "omp_places": "cores",
+    "gomp_cpu_affinity": null,
+    "imbps_block_size": "1",
+    "libxsmm_block_size": "32",
+    "max_rss_kib": 417792
+  }
+}

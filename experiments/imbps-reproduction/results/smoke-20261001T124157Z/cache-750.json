@@ -1,0 +1,31 @@
+{
+  "inputs": {
+    "batch": 16,
+    "sequence": 1920,
+    "hidden": 7168,
+    "intermediate": 28672,
+    "expansion": 4.0,
+    "bytes_per_element": 2,
+    "cache_bytes": 786432000,
+    "cache_mib": 750.0,
+    "evaluated_splits": 4
+  },
+  "equation_12": {
+    "input_bytes": 440401920,
+    "split_activation_bytes": 440401920,
+    "split_weight_bytes": 102760448,
+    "total_bytes": 983564288,
+    "input_mib": 420.0,
+    "split_activation_mib": 420.0,
+    "split_weight_mib": 98.0,
+    "total_mib": 938.0,
+    "fits": false
+  },
+  "equation_13": {
+    "strict_lower_bound": 6.278787878787878,
+    "finite": true,
+    "strict_integer_candidate": 7,
+    "paper_nearest_integer_candidate": 6,
+    "author_next_power_of_two_candidate": 8
+  }
+}

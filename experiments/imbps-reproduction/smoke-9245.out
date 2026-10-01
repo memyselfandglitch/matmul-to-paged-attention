@@ -1,0 +1,4 @@
+{"output": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/smoke-20261001T124157Z/opt125m-tpp.json", "median_ms": 0.62202}
+{"output": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/smoke-20261001T124157Z/opt125m-imbps-k4.json", "median_ms": 3.138187}
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/smoke-20261001T124157Z/opt125m-numerics.json
+Smoke results: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/smoke-20261001T124157Z
