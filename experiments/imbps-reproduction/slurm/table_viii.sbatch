@@ -5,7 +5,6 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=96
-#SBATCH --hint=nomultithread
 #SBATCH --mem=128G
 #SBATCH --time=08:00:00
 #SBATCH --exclusive
@@ -28,7 +27,5 @@ export EXPECTED_PHYSICAL_CORES="${SLURM_CPUS_PER_TASK}"
 export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
 
-srun --cpus-per-task="${SLURM_CPUS_PER_TASK}" \
-  numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
-srun --cpus-per-task="${SLURM_CPUS_PER_TASK}" \
-  numactl --cpunodebind=0 --membind=0 ./scripts/run_table_viii.sh
+numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
+numactl --cpunodebind=0 --membind=0 ./scripts/run_table_viii.sh

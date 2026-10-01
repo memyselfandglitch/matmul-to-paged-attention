@@ -71,7 +71,15 @@ Use the actual SSH alias and scratch path configured for your account.
 
 ## Stage 0 - preflight
 
-First verify the hardware-independent harness locally or on the remote host:
+The IISc AMD cluster policy requires every workload to run through Slurm.
+Never execute benchmark, installation, or profiling workloads directly on a
+login shell. The checked-in launchers follow the site's documented pattern:
+submit with `sbatch`, then run the command directly inside the batch script.
+They intentionally avoid nested `srun` steps because this cluster reports that
+CPU binding is unsupported for those steps.
+
+First verify the hardware-independent harness on the local workstation before
+syncing it to the cluster:
 
 ```bash
 ./scripts/verify_harness.sh
@@ -90,10 +98,8 @@ the `mn01` node. Benchmark steps are additionally bound to NUMA node 0, matching
 the machine configuration recorded in the project email thread. Do not remove
 those constraints for the primary reproduction stratum.
 
-On a dedicated host, `./scripts/preflight.sh` is sufficient only if the shell's
-CPU affinity already covers exactly the intended socket. Inspect the generated
-`results/preflight-*/environment.json` before installing or benchmarking.
-Confirm at least:
+Inspect the generated `results/preflight-*/environment.json` before installing
+or benchmarking. Confirm at least:
 
 - CPU model is EPYC 9654;
 - the selected CPU set includes every physical core from exactly one socket and
@@ -124,16 +130,8 @@ not pool allocator-on and allocator-off results.
 
 ## Stage 2 - check the analytical model
 
-```bash
-source .venv/bin/activate
-python src/cache_model.py \
-  --batch 16 --sequence 1920 --hidden 7168 --intermediate 28672 \
-  --bytes-per-element 2 --cache-mib 512 --splits 4
-
-python src/cache_model.py \
-  --batch 16 --sequence 1920 --hidden 7168 --intermediate 28672 \
-  --bytes-per-element 2 --cache-mib 750 --splits 4
-```
+The two analytical-model checks are the first steps in
+`slurm/smoke.sbatch`; do not run them separately from the login shell.
 
 Expected diagnostics:
 
@@ -143,38 +141,10 @@ Expected diagnostics:
 
 ## Stage 3 - smoke test
 
-On Slurm, run the packaged smoke job:
+Run the packaged smoke job:
 
 ```bash
 sbatch slurm/smoke.sbatch
-```
-
-For a direct launch on an allocated compute node, use the following equivalent
-commands.
-
-For this small smoke test, using a subset of cores is fine. Replace node/core
-choices after reading preflight output:
-
-```bash
-source .venv/bin/activate
-export OMP_NUM_THREADS=48
-export OMP_PROC_BIND=close
-export OMP_PLACES=cores
-numactl --cpunodebind=0 --membind=0 \
-  python src/pace_mlp_bench.py \
-    --backend imbps --batch 1 --sequence 64 \
-    --hidden 768 --intermediate 3072 --splits 4 \
-    --warmups 2 --iterations 5 --output results/smoke.json
-```
-
-Then run the numerical check:
-
-```bash
-numactl --cpunodebind=0 --membind=0 \
-  python src/check_numerics.py \
-    --hidden 768 --intermediate 3072 --rows 128 \
-    --splits 1,2,4,8,16 --dtype bf16 --activation relu \
-    --output results/numerics-opt125m.json
 ```
 
 The BF16 split result is not expected to be bit-identical. Report maximum and
@@ -213,20 +183,6 @@ empirical selection of K=4 is tested, not assumed:
 
 ```bash
 sbatch slurm/table_ii.sbatch
-```
-
-For a direct launch, substitute the exact CPU list and every NUMA node belonging
-to that socket, as reported by `lscpu` and `numactl`:
-
-```bash
-source .venv/bin/activate
-export OMP_NUM_THREADS=96
-export OMP_PROC_BIND=close
-export OMP_PLACES=cores
-export LIBXSMM_BLOCK_SIZE=32
-numactl --physcpubind="CPU_LIST" --membind="NUMA_NODE_LIST" \
-  python src/run_standalone_matrix.py \
-    --claim table_ii --rounds 5 --warmups 3 --iterations 7
 ```
 
 The runner alternates a TPP baseline and IMBPS cases in deterministic shuffled
