@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=imbps-build
+#SBATCH --partition=jobmn01
+#SBATCH --nodelist=mn01
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=96

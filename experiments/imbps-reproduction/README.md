@@ -85,6 +85,11 @@ submit:
 sbatch slurm/preflight.sbatch
 ```
 
+The checked-in Slurm launchers are pinned to the IISc `jobmn01` partition and
+the `mn01` node. Benchmark steps are additionally bound to NUMA node 0, matching
+the machine configuration recorded in the project email thread. Do not remove
+those constraints for the primary reproduction stratum.
+
 On a dedicated host, `./scripts/preflight.sh` is sufficient only if the shell's
 CPU affinity already covers exactly the intended socket. Inspect the generated
 `results/preflight-*/environment.json` before installing or benchmarking.

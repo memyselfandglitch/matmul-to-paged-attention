@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=imbps-preflight
+#SBATCH --partition=jobmn01
+#SBATCH --nodelist=mn01
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=96
@@ -17,4 +19,4 @@ cd "${PROJECT_ROOT}"
 export EXPECTED_PHYSICAL_CORES="${SLURM_CPUS_PER_TASK}"
 export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
-srun --cpu-bind=cores ./scripts/preflight.sh
+srun --cpu-bind=cores numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
