@@ -48,6 +48,13 @@ def main() -> None:
     if args.threads is not None:
         torch.set_num_threads(args.threads)
     torch.set_num_interop_threads(1)
+    affinity = set(os.sched_getaffinity(0))
+    if len(affinity) < torch.get_num_threads():
+        raise RuntimeError(
+            "OpenMP oversubscription: "
+            f"torch has {torch.get_num_threads()} threads but process affinity "
+            f"contains only {len(affinity)} CPUs ({sorted(affinity)})"
+        )
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float32
     torch.manual_seed(args.seed)
 

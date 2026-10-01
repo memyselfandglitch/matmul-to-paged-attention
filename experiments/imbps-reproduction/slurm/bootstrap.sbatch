@@ -17,4 +17,5 @@ set -euo pipefail
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
 cd "${PROJECT_ROOT}"
 
-srun --cpu-bind=cores ./scripts/bootstrap_pace_v1.sh
+srun --cpus-per-task="${SLURM_CPUS_PER_TASK}" \
+  numactl --cpunodebind=0 --membind=0 ./scripts/bootstrap_pace_v1.sh

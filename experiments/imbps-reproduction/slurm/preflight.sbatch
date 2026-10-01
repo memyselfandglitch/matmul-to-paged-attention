@@ -19,4 +19,5 @@ cd "${PROJECT_ROOT}"
 export EXPECTED_PHYSICAL_CORES="${SLURM_CPUS_PER_TASK}"
 export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
-srun --cpu-bind=cores numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
+srun --cpus-per-task="${SLURM_CPUS_PER_TASK}" \
+  numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
