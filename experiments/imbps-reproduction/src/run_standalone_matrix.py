@@ -40,6 +40,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--case-timeout-seconds", type=float, default=7200)
     parser.add_argument("--result-dir", type=Path, default=None)
+    parser.add_argument(
+        "--finalize-existing",
+        type=Path,
+        default=None,
+        help="rebuild summary files from a completed result directory without rerunning cases",
+    )
     args = parser.parse_args()
     if min(args.rounds, args.iterations) <= 0 or args.warmups < 0:
         parser.error("rounds/iterations must be positive and warmups nonnegative")
@@ -141,6 +147,8 @@ def summarize(
     per_round: dict[tuple[str, int, str, str, int, int], float] = {}
     for record in records:
         case = record["case"]
+        if "split" not in case:
+            case["split"] = case["splits"]
         key = (
             case["model"],
             case["batch"],
@@ -246,9 +254,65 @@ def summarize(
     return summaries
 
 
+def write_summary(
+    result_dir: Path,
+    records: list[dict[str, Any]],
+    claim_name: str,
+    claim: dict[str, Any],
+) -> None:
+    summary = summarize(records, claim_name, claim)
+    if not summary:
+        raise ValueError("cannot summarize an empty result set")
+    fieldnames = list(summary[0])
+    with (result_dir / "summary.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as destination:
+        writer = csv.DictWriter(destination, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(summary)
+    (result_dir / "summary.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
+    )
+
+
+def finalize_existing(
+    result_dir: Path,
+    claim_name: str,
+    claim: dict[str, Any],
+) -> None:
+    result_dir = result_dir.resolve()
+    manifest_path = result_dir / "manifest.json"
+    raw_dir = result_dir / "raw"
+    if not manifest_path.is_file() or not raw_dir.is_dir():
+        raise ValueError(f"not a matrix result directory: {result_dir}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest.get("claim") != claim_name:
+        raise ValueError(
+            f"claim mismatch: requested {claim_name}, manifest has {manifest.get('claim')}"
+        )
+    raw_paths = sorted(raw_dir.glob("*.json"))
+    expected = manifest["runner"]["rounds"] * len(manifest["cases_per_round"])
+    if len(raw_paths) != expected:
+        raise ValueError(
+            f"incomplete result set: expected {expected} raw records, found {len(raw_paths)}"
+        )
+    records = [json.loads(path.read_text(encoding="utf-8")) for path in raw_paths]
+    observed_slots = {
+        (record["matrix"]["round"], record["matrix"]["order"])
+        for record in records
+    }
+    if len(observed_slots) != expected:
+        raise ValueError("duplicate round/order slots in raw records")
+    write_summary(result_dir, records, claim_name, claim)
+    print(f"Finalized existing results: {result_dir}")
+
+
 def main() -> None:
     args = parse_args()
     registry, claim = load_claim(args)
+    if args.finalize_existing is not None:
+        finalize_existing(args.finalize_existing, args.claim, claim)
+        return
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     result_dir = args.result_dir or PROJECT_ROOT / "results" / f"{args.claim}-{timestamp}"
     raw_dir = result_dir / "raw"
@@ -336,6 +400,7 @@ def main() -> None:
                 )
             record = json.loads(output_path.read_text(encoding="utf-8"))
             record["case"]["model"] = case["model"]
+            record["case"]["split"] = case["split"]
             record["matrix"] = {"round": round_index, "order": order_index}
             output_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
             records.append(record)
@@ -346,15 +411,7 @@ def main() -> None:
                 flush=True,
             )
 
-    summary = summarize(records, args.claim, claim)
-    fieldnames = list(summary[0])
-    with (result_dir / "summary.csv").open("w", newline="", encoding="utf-8") as destination:
-        writer = csv.DictWriter(destination, fieldnames=fieldnames, lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(summary)
-    (result_dir / "summary.json").write_text(
-        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
-    )
+    write_summary(result_dir, records, args.claim, claim)
     print(f"Results: {result_dir}")
 
 

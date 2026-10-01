@@ -43,6 +43,19 @@ class MatrixAnalysisTests(unittest.TestCase):
     def test_single_value_bootstrap_is_degenerate(self) -> None:
         self.assertEqual(bootstrap_median_ci([1.25]), (1.25, 1.25))
 
+    def test_worker_splits_field_is_normalized(self) -> None:
+        baseline = record("tpp", 1, 1, 12.0)
+        candidate = record("imbps", 4, 1, 10.0)
+        candidate["case"]["splits"] = candidate["case"].pop("split")
+        claim = {
+            "sequence": 1920,
+            "targets": {"16": {"speedup": 1.2, "split": 4}},
+        }
+        rows = summarize([baseline, candidate], "table_ii", claim)
+        imbps = next(row for row in rows if row["backend"] == "imbps")
+        self.assertEqual(imbps["split"], 4)
+        self.assertAlmostEqual(imbps["speedup"], 1.2)
+
 
 if __name__ == "__main__":
     unittest.main()
