@@ -105,8 +105,7 @@ PACE v1.0 builds oneDNN and libXSMM from source and requires network access,
 GCC 12+, substantial RAM, and time:
 
 ```bash
-./scripts/bootstrap_pace_v1.sh
-source .venv/bin/activate
+sbatch slurm/bootstrap.sbatch
 ```
 
 The script refuses a PACE checkout whose resolved commit does not match the
@@ -138,6 +137,15 @@ Expected diagnostics:
 - 384 MiB: no finite K because the input term is already about 420 MiB.
 
 ## Stage 3 - smoke test
+
+On Slurm, run the packaged smoke job:
+
+```bash
+sbatch slurm/smoke.sbatch
+```
+
+For a direct launch on an allocated compute node, use the following equivalent
+commands.
 
 For this small smoke test, using a subset of cores is fine. Replace node/core
 choices after reading preflight output:
