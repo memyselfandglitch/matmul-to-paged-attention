@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "started_at_utc": "2026-10-01T13:14:23.033654+00:00",
+  "claim": "table_ii",
+  "paper": {
+    "title": "IMBPS - Iterative MLP Blocks with Parameter Splits for Improving LLM Inference",
+    "doi": "10.1109/HiPC66333.2025.00027",
+    "pdf_sha256": "d847c2bac09643f633241c34b45cad8786154bd367e4d9d4c2aafddd9a852b19"
+  },
+  "pace": {
+    "repository": "https://github.com/amd/AMD-PACE.git",
+    "ref": "v1.0",
+    "commit": "cfbe8b551cca18c686b771144c18129242796ea1",
+    "version": "1.0.0"
+  },
+  "runner": {
+    "python": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/.venv/bin/python",
+    "rounds": 5,
+    "warmups": 3,
+    "iterations": 7,
+    "shuffle_seed": 20251001,
+    "threads": null,
+    "case_timeout_seconds": 7200,
+    "retry_policy": "none"
+  },
+  "cases_per_round": [
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 16,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 16,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 16,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 16,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 32,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 32,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 32,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 32,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 64,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 64,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 64,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 64,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16"
+    }
+  ]
+}
