@@ -4,10 +4,32 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
+
+
+def collect_thread_affinity() -> tuple[dict[int, list[int]], list[int]]:
+    masks: dict[int, list[int]] = {}
+    for task_path in Path("/proc/self/task").iterdir():
+        try:
+            tid = int(task_path.name)
+            masks[tid] = sorted(os.sched_getaffinity(tid))
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+    union = sorted({cpu for cpus in masks.values() for cpu in cpus})
+    return masks, union
+
+
+def summarize_thread_affinity(masks: dict[int, list[int]]) -> list[dict[str, Any]]:
+    counts = Counter(tuple(cpus) for cpus in masks.values())
+    return [
+        {"cpus": list(cpus), "thread_count": count}
+        for cpus, count in sorted(counts.items())
+    ]
 
 
 def comma_ints(value: str) -> list[int]:
@@ -48,13 +70,6 @@ def main() -> None:
     if args.threads is not None:
         torch.set_num_threads(args.threads)
     torch.set_num_interop_threads(1)
-    affinity = set(os.sched_getaffinity(0))
-    if len(affinity) < torch.get_num_threads():
-        raise RuntimeError(
-            "OpenMP oversubscription: "
-            f"torch has {torch.get_num_threads()} threads but process affinity "
-            f"contains only {len(affinity)} CPUs ({sorted(affinity)})"
-        )
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float32
     torch.manual_seed(args.seed)
 
@@ -93,6 +108,14 @@ def main() -> None:
     with torch.inference_mode():
         baseline = baseline_model(source).float()
     del baseline_model
+    thread_affinities, affinity_union = collect_thread_affinity()
+    if len(affinity_union) < torch.get_num_threads():
+        raise RuntimeError(
+            "OpenMP oversubscription after baseline inference: "
+            f"torch has {torch.get_num_threads()} threads but the union of all "
+            f"{len(thread_affinities)} thread masks contains only "
+            f"{len(affinity_union)} CPUs ({affinity_union})"
+        )
 
     baseline_argmax = baseline.argmax(dim=-1)
     rows = []
@@ -134,6 +157,12 @@ def main() -> None:
             "activation": args.activation,
             "seed": args.seed,
             "threads": torch.get_num_threads(),
+        },
+        "environment": {
+            "affinity": affinity_union,
+            "main_thread_affinity": sorted(os.sched_getaffinity(0)),
+            "process_thread_count": len(thread_affinities),
+            "thread_affinity_masks": summarize_thread_affinity(thread_affinities),
         },
         "comparisons": rows,
     }
