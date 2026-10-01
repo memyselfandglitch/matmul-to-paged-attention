@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=imbps-table2
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=96
+#SBATCH --hint=nomultithread
+#SBATCH --mem=96G
+#SBATCH --time=06:00:00
+#SBATCH --exclusive
+#SBATCH --output=table2-%j.out
+#SBATCH --error=table2-%j.err
+
+set -euo pipefail
+
+readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
+cd "${PROJECT_ROOT}"
+source .venv/bin/activate
+
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
+export OMP_WAIT_POLICY=passive
+export LIBXSMM_BLOCK_SIZE=32
+export EXPECTED_PHYSICAL_CORES="${SLURM_CPUS_PER_TASK}"
+export REQUIRE_SINGLE_SOCKET=1
+export REJECT_SMT=1
+
+srun --cpu-bind=cores ./scripts/preflight.sh
+srun --cpu-bind=cores ./scripts/run_table_ii.sh

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "paper": {
+    "title": "IMBPS - Iterative MLP Blocks with Parameter Splits for Improving LLM Inference",
+    "doi": "10.1109/HiPC66333.2025.00027",
+    "pdf_sha256": "d847c2bac09643f633241c34b45cad8786154bd367e4d9d4c2aafddd9a852b19"
+  },
+  "pace": {
+    "repository": "https://github.com/amd/AMD-PACE.git",
+    "ref": "v1.0",
+    "commit": "cfbe8b551cca18c686b771144c18129242796ea1",
+    "version": "1.0.0"
+  },
+  "models": {
+    "opt125m": {"hf_id": "facebook/opt-125m", "hidden": 768, "intermediate": 3072, "activation": "relu"},
+    "opt6.7b": {"hf_id": "facebook/opt-6.7b", "hidden": 4096, "intermediate": 16384, "activation": "relu"},
+    "opt13b": {"hf_id": "facebook/opt-13b", "hidden": 5120, "intermediate": 20480, "activation": "relu"},
+    "opt30b": {"hf_id": "facebook/opt-30b", "hidden": 7168, "intermediate": 28672, "activation": "relu"},
+    "llama3.1-8b": {"hf_id": "meta-llama/Llama-3.1-8B", "hidden": 4096, "intermediate": 14336, "activation": "silu"}
+  },
+  "standalone": {
+    "table_ii": {
+      "dtype": "bf16",
+      "sequence": 1920,
+      "models": ["opt30b"],
+      "batches": [16, 32, 64],
+      "splits": [4, 8, 16],
+      "targets": {
+        "16": {"speedup": 1.21, "l3_miss_reduction_factor": 2.53, "split": 4},
+        "32": {"speedup": 1.25, "l3_miss_reduction_factor": 3.32, "split": 4},
+        "64": {"speedup": 1.23, "l3_miss_reduction_factor": 4.09, "split": 4}
+      }
+    },
+    "table_viii": {
+      "dtype": "bf16",
+      "sequence": 256,
+      "models": ["opt13b", "opt30b"],
+      "batches": [512],
+      "splits": [2, 4, 8, 16, 32, 64],
+      "reported_timing_optimum": {"opt13b": 4, "opt30b": 8},
+      "targets": {
+        "opt13b": {
+          "1": {"relative_time": 1.000, "l3_misses_billions": 44.5},
+          "2": {"relative_time": 0.838, "l3_misses_billions": 18.7},
+          "4": {"relative_time": 0.815, "l3_misses_billions": 15.9},
+          "8": {"relative_time": 0.820, "l3_misses_billions": 17.7},
+          "16": {"relative_time": 0.881, "l3_misses_billions": 19.8},
+          "32": {"relative_time": 0.944, "l3_misses_billions": 31.7},
+          "64": {"relative_time": 1.248, "l3_misses_billions": 54.2}
+        },
+        "opt30b": {
+          "1": {"relative_time": 1.000, "l3_misses_billions": 396.3},
+          "2": {"relative_time": 0.936, "l3_misses_billions": 272.5},
+          "4": {"relative_time": 0.861, "l3_misses_billions": 116.9},
+          "8": {"relative_time": 0.811, "l3_misses_billions": 120.4},
+          "16": {"relative_time": 0.815, "l3_misses_billions": 121.3},
+          "32": {"relative_time": 0.890, "l3_misses_billions": 168.9},
+          "64": {"relative_time": 0.904, "l3_misses_billions": 275.5}
+        }
+      }
+    },
+    "decode_exploratory": {
+      "dtype": "bf16",
+      "sequence": 1,
+      "models": ["opt125m", "opt6.7b", "opt13b", "opt30b"],
+      "batches": [1, 8, 32, 128, 512],
+      "splits": [2, 4, 8],
+      "targets": {}
+    }
+  },
+  "e2e": {
+    "table_iii": {
+      "dtype": "fp32",
+      "sequence": 256,
+      "models": {
+        "opt6.7b": {"32": [32.27, 4], "64": [31.03, 4], "128": [32.93, 8], "256": [33.60, 7]},
+        "opt30b": {"32": [34.19, 8], "64": [33.38, 4], "128": [33.77, 6], "256": [29.28, 8]}
+      }
+    },
+    "table_vi": {
+      "dtype": "bf16",
+      "sequence": 256,
+      "model": "llama3.1-8b",
+      "split": 2,
+      "targets": {"128": 5.02, "256": 5.39, "512": 6.40, "1024": 6.62}
+    }
+  },
+  "mmlu": {
+    "splits": [1, 2, 4, 8, 16],
+    "assumed_num_fewshot": 5,
+    "targets": {
+      "opt125m": {"1": 0.262, "2": 0.261, "4": 0.261, "8": 0.262, "16": 0.262},
+      "opt30b": {"1": 0.247, "2": 0.245, "4": 0.249, "8": 0.245, "16": 0.248}
+    }
+  }
+}
