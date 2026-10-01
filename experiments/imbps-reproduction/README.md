@@ -211,25 +211,17 @@ uses the IMBPS fused operator.
 
 ## Stage 6 - hardware counters
 
-First inventory events:
+First inventory the installed AMD uProf version, supported metrics, and MSR
+access through Slurm:
 
 ```bash
-perf list | grep -Ei 'amd_l3|l3|llc|cache-miss'
-cat /proc/sys/kernel/perf_event_paranoid
+sbatch slurm/uprof_inventory.sbatch
 ```
 
-Then profile the same cases after warmup:
-
-```bash
-source .venv/bin/activate
-export OMP_NUM_THREADS=96
-export OMP_PROC_BIND=close
-export OMP_PLACES=cores
-numactl --physcpubind="CPU_LIST" --membind="NUMA_NODE_LIST" \
-  python src/run_perf_matrix.py \
-    --claim table_ii --iterations 20 \
-    --events cycles,instructions,cache-references,cache-misses
-```
+Use `CACHE_MECHANISM_PLAN.md` as the preregistered analysis contract. Timing and
+profiling are separate exclusive jobs: never run uProf concurrently with the
+confirmatory timing matrix. Build the uProf command from the inventory output
+so the installed version's exact metric names and scope are preserved.
 
 `run_perf_matrix.py` warms up first, discovers all worker TIDs, attaches
 `perf stat` to those threads, and only then releases the measured loop. Generic
