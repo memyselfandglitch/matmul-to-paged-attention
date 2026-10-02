@@ -1,0 +1,484 @@
+{
+  "schema_version": 1,
+  "started_at_utc": "2026-10-02T12:19:00.891552+00:00",
+  "claim": "cache_fit_opt30b",
+  "paper": {
+    "title": "IMBPS - Iterative MLP Blocks with Parameter Splits for Improving LLM Inference",
+    "doi": "10.1109/HiPC66333.2025.00027",
+    "pdf_sha256": "d847c2bac09643f633241c34b45cad8786154bd367e4d9d4c2aafddd9a852b19"
+  },
+  "pace": {
+    "repository": "https://github.com/amd/AMD-PACE.git",
+    "ref": "v1.0",
+    "commit": "cfbe8b551cca18c686b771144c18129242796ea1",
+    "version": "1.0.0"
+  },
+  "runner": {
+    "python": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/.venv/bin/python",
+    "rounds": 5,
+    "warmups": 3,
+    "iterations": 7,
+    "shuffle_seed": 20251001,
+    "threads": null,
+    "case_timeout_seconds": 7200,
+    "retry_policy": "none"
+  },
+  "cases_per_round": [
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 1,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 26.25,
+        "split_activation_mib": 105.0,
+        "split_weight_mib": 392.0,
+        "working_set_mib": 523.25,
+        "fits_strict": false
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 2,
+      "batch": 1,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 26.25,
+        "split_activation_mib": 52.5,
+        "split_weight_mib": 196.0,
+        "working_set_mib": 274.75,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 1,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 26.25,
+        "split_activation_mib": 26.25,
+        "split_weight_mib": 98.0,
+        "working_set_mib": 150.5,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 1,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 26.25,
+        "split_activation_mib": 13.125,
+        "split_weight_mib": 49.0,
+        "working_set_mib": 88.375,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 1,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 26.25,
+        "split_activation_mib": 6.5625,
+        "split_weight_mib": 24.5,
+        "working_set_mib": 57.3125,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 32,
+      "batch": 1,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 26.25,
+        "split_activation_mib": 3.28125,
+        "split_weight_mib": 12.25,
+        "working_set_mib": 41.78125,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 2,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 52.5,
+        "split_activation_mib": 210.0,
+        "split_weight_mib": 392.0,
+        "working_set_mib": 654.5,
+        "fits_strict": false
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 2,
+      "batch": 2,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 52.5,
+        "split_activation_mib": 105.0,
+        "split_weight_mib": 196.0,
+        "working_set_mib": 353.5,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 2,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 52.5,
+        "split_activation_mib": 52.5,
+        "split_weight_mib": 98.0,
+        "working_set_mib": 203.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 2,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 52.5,
+        "split_activation_mib": 26.25,
+        "split_weight_mib": 49.0,
+        "working_set_mib": 127.75,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 2,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 52.5,
+        "split_activation_mib": 13.125,
+        "split_weight_mib": 24.5,
+        "working_set_mib": 90.125,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 32,
+      "batch": 2,
+      "sequence": 1920,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 52.5,
+        "split_activation_mib": 6.5625,
+        "split_weight_mib": 12.25,
+        "working_set_mib": 71.3125,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 16,
+      "sequence": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 28.0,
+        "split_activation_mib": 112.0,
+        "split_weight_mib": 392.0,
+        "working_set_mib": 532.0,
+        "fits_strict": false
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 2,
+      "batch": 16,
+      "sequence": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 28.0,
+        "split_activation_mib": 56.0,
+        "split_weight_mib": 196.0,
+        "working_set_mib": 280.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 16,
+      "sequence": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 28.0,
+        "split_activation_mib": 28.0,
+        "split_weight_mib": 98.0,
+        "working_set_mib": 154.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 16,
+      "sequence": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 28.0,
+        "split_activation_mib": 14.0,
+        "split_weight_mib": 49.0,
+        "working_set_mib": 91.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 16,
+      "sequence": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 28.0,
+        "split_activation_mib": 7.0,
+        "split_weight_mib": 24.5,
+        "working_set_mib": 59.5,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 32,
+      "batch": 16,
+      "sequence": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 28.0,
+        "split_activation_mib": 3.5,
+        "split_weight_mib": 12.25,
+        "working_set_mib": 43.75,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "tpp",
+      "split": 1,
+      "batch": 16,
+      "sequence": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 56.0,
+        "split_activation_mib": 224.0,
+        "split_weight_mib": 392.0,
+        "working_set_mib": 672.0,
+        "fits_strict": false
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 2,
+      "batch": 16,
+      "sequence": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 56.0,
+        "split_activation_mib": 112.0,
+        "split_weight_mib": 196.0,
+        "working_set_mib": 364.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 4,
+      "batch": 16,
+      "sequence": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 56.0,
+        "split_activation_mib": 56.0,
+        "split_weight_mib": 98.0,
+        "working_set_mib": 210.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 8,
+      "batch": 16,
+      "sequence": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 56.0,
+        "split_activation_mib": 28.0,
+        "split_weight_mib": 49.0,
+        "working_set_mib": 133.0,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 16,
+      "batch": 16,
+      "sequence": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 56.0,
+        "split_activation_mib": 14.0,
+        "split_weight_mib": 24.5,
+        "working_set_mib": 94.5,
+        "fits_strict": true
+      }
+    },
+    {
+      "model": "opt30b",
+      "backend": "imbps",
+      "split": 32,
+      "batch": 16,
+      "sequence": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "activation": "relu",
+      "dtype": "bf16",
+      "cache_model": {
+        "cache_mib": 384,
+        "input_mib": 56.0,
+        "split_activation_mib": 7.0,
+        "split_weight_mib": 12.25,
+        "working_set_mib": 75.25,
+        "fits_strict": true
+      }
+    }
+  ]
+}
