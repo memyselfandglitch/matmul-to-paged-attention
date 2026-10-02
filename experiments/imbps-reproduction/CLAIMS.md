@@ -48,6 +48,19 @@ For OPT-30B, B=16, C=1920, H=7168, f=4, BF16:
 At K=4, Equation 12 gives approximately 938 MiB: 420 MiB input, 420 MiB
 split activation, and 98 MiB split weights.
 
+### Cache-fit controls on mn01
+
+For the 384 MiB one-socket allocation, the OPT-30B split-resident timing
+stratum uses `(B, SL)` values `(1, 1920)`, `(2, 1920)`, `(16, 128)`, and
+`(16, 256)`. Equation 12 predicts all tested IMBPS variants at K>=2 fit. The
+TPP K=1 baseline cannot fit for any positive batch or sequence because the
+OPT-30B BF16 weight term is already 392 MiB.
+
+A separate fully resident control uses OPT-6.7B at `B=16, SL=128/256/384` and
+OPT-13B at `B=16, SL=128/192/224`. For those shapes, Equation 12 predicts both
+the TPP baseline and IMBPS K=2/4/8/16 fit. This control studies mechanism; it is
+not a Table II reproduction target.
+
 ### Table II - standalone OPT-30B
 
 BF16, sequence length 1920, primary Turin platform:

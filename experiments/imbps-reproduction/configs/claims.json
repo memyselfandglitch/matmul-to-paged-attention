@@ -66,6 +66,38 @@
       "batches": [1, 8, 32, 128, 512],
       "splits": [2, 4, 8],
       "targets": {}
+    },
+    "cache_fit_opt30b": {
+      "dtype": "bf16",
+      "cache_mib": 384,
+      "fit_requirement": "imbps",
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1920},
+        {"model": "opt30b", "batch": 2, "sequence": 1920},
+        {"model": "opt30b", "batch": 16, "sequence": 128},
+        {"model": "opt30b", "batch": 16, "sequence": 256}
+      ],
+      "splits": [2, 4, 8, 16, 32],
+      "targets": {},
+      "design_note": "Every IMBPS case fits Equation 12 at K>=2; the TPP K=1 baseline cannot fit because the OPT-30B BF16 weight term alone is 392 MiB."
+    },
+    "cache_resident_control": {
+      "dtype": "bf16",
+      "cache_mib": 384,
+      "fit_requirement": "all",
+      "models": ["opt6.7b", "opt13b"],
+      "cases": [
+        {"model": "opt6.7b", "batch": 16, "sequence": 128},
+        {"model": "opt6.7b", "batch": 16, "sequence": 256},
+        {"model": "opt6.7b", "batch": 16, "sequence": 384},
+        {"model": "opt13b", "batch": 16, "sequence": 128},
+        {"model": "opt13b", "batch": 16, "sequence": 192},
+        {"model": "opt13b", "batch": 16, "sequence": 224}
+      ],
+      "splits": [2, 4, 8, 16],
+      "targets": {},
+      "design_note": "Equation 12 predicts that both the TPP K=1 baseline and every IMBPS candidate fit within 384 MiB."
     }
   },
   "e2e": {

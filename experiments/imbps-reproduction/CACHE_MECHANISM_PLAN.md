@@ -45,6 +45,24 @@ both hits and misses.
 - **Secondary outcomes:** L3 accesses, derived L3 miss ratio and hit ratio, L2
   accesses/misses, IPC, achieved bandwidth, GFLOP/s, and arithmetic intensity.
 
+## Cache-resident timing strata
+
+Before counter access is restored, run two timing controls against the 384 MiB
+one-socket Equation 12 model:
+
+1. **OPT-30B split-resident stratum:** `(B, SL)` in `{(1, 1920), (2, 1920),
+   (16, 128), (16, 256)}` and IMBPS `K` in `{2, 4, 8, 16, 32}`. Every IMBPS
+   case fits the modeled cache at K>=2. The TPP K=1 baseline intentionally does
+   not fit; its BF16 MLP weight term alone is 392 MiB.
+2. **Fully resident control:** OPT-6.7B at `B=16, SL in {128, 256, 384}` and
+   OPT-13B at `B=16, SL in {128, 192, 224}`, with TPP K=1 and IMBPS
+   `K in {2, 4, 8, 16}`. Equation 12 predicts every baseline and candidate fits.
+
+The first stratum preserves OPT-30B and tests the intended transition from a
+non-resident baseline to resident split blocks. The second tests whether IMBPS
+still helps once cache-capacity pressure is removed from both implementations.
+It is a mechanism control, not a reproduction of Table II.
+
 ## Measurement design
 
 1. Keep timing and counter collection in separate exclusive jobs.
@@ -120,4 +138,3 @@ more important than the selected cache metric.
 - **Profiling timeout:** 8 hours per counter pass.
 - **Monitor files:** Slurm output/error plus timestamped result directories.
 - **Retry policy:** no automatic retry; preserve and diagnose failed cases.
-

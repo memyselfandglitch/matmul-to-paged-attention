@@ -38,6 +38,26 @@ class CacheModelTests(unittest.TestCase):
         bound = equation13_lower_bound(16, 1920, 7168, 28672, 2, 384 * MIB)
         self.assertTrue(math.isinf(bound))
 
+    def test_opt30b_cache_fit_shapes_fit_from_k2(self) -> None:
+        for batch, sequence in ((1, 1920), (2, 1920), (16, 128), (16, 256)):
+            result = working_set_bytes(batch, sequence, 7168, 28672, 2, 2)
+            self.assertLess(result.total_bytes, 384 * MIB)
+
+    def test_cache_resident_controls_fit_unsplit(self) -> None:
+        shapes = (
+            (16, 128, 4096, 16384),
+            (16, 256, 4096, 16384),
+            (16, 384, 4096, 16384),
+            (16, 128, 5120, 20480),
+            (16, 192, 5120, 20480),
+            (16, 224, 5120, 20480),
+        )
+        for batch, sequence, hidden, intermediate in shapes:
+            result = working_set_bytes(
+                batch, sequence, hidden, intermediate, 1, 2
+            )
+            self.assertLess(result.total_bytes, 384 * MIB)
+
     def test_parse_cpu_list(self) -> None:
         self.assertEqual(parse_cpu_list("0-3,8,10-11"), {0, 1, 2, 3, 8, 10, 11})
 

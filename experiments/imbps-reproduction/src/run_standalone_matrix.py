@@ -15,6 +15,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from .cache_model import MIB, working_set_bytes
+except ImportError:  # Direct execution: python src/run_standalone_matrix.py
+    from cache_model import MIB, working_set_bytes
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CLAIMS_PATH = PROJECT_ROOT / "configs" / "claims.json"
@@ -29,7 +34,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--claim",
-        choices=("table_ii", "table_viii", "decode_exploratory"),
+        choices=(
+            "table_ii",
+            "table_viii",
+            "decode_exploratory",
+            "cache_fit_opt30b",
+            "cache_resident_control",
+        ),
         required=True,
     )
     parser.add_argument("--models", type=comma_strings, default=None)
@@ -66,36 +77,79 @@ def load_claim(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any]
 
 def build_cases(registry: dict[str, Any], claim: dict[str, Any]) -> list[dict[str, Any]]:
     cases = []
-    for model_name in claim["models"]:
+    if "cases" in claim:
+        shapes = [
+            shape for shape in claim["cases"] if shape["model"] in claim["models"]
+        ]
+    else:
+        shapes = [
+            {"model": model_name, "batch": batch, "sequence": claim["sequence"]}
+            for model_name in claim["models"]
+            for batch in claim["batches"]
+        ]
+    for shape in shapes:
+        model_name = shape["model"]
         model = registry["models"][model_name]
-        for batch in claim["batches"]:
-            cases.append(
-                {
-                    "model": model_name,
-                    "backend": "tpp",
-                    "split": 1,
-                    "batch": batch,
-                    "sequence": claim["sequence"],
-                    "hidden": model["hidden"],
-                    "intermediate": model["intermediate"],
-                    "activation": model["activation"],
-                    "dtype": claim["dtype"],
-                }
-            )
-            for split in claim["splits"]:
-                cases.append(
-                    {
-                        "model": model_name,
-                        "backend": "imbps",
-                        "split": split,
-                        "batch": batch,
-                        "sequence": claim["sequence"],
-                        "hidden": model["hidden"],
-                        "intermediate": model["intermediate"],
-                        "activation": model["activation"],
-                        "dtype": claim["dtype"],
-                    }
+        batch = shape["batch"]
+        sequence = shape["sequence"]
+        variants = [("tpp", 1)] + [
+            ("imbps", split) for split in claim["splits"]
+        ]
+        for backend, split in variants:
+            case = {
+                "model": model_name,
+                "backend": backend,
+                "split": split,
+                "batch": batch,
+                "sequence": sequence,
+                "hidden": model["hidden"],
+                "intermediate": model["intermediate"],
+                "activation": model["activation"],
+                "dtype": claim["dtype"],
+            }
+            if "cache_mib" in claim:
+                bytes_per_element = 2 if claim["dtype"] == "bf16" else 4
+                working_set = working_set_bytes(
+                    batch,
+                    sequence,
+                    model["hidden"],
+                    model["intermediate"],
+                    split,
+                    bytes_per_element,
                 )
+                cache_bytes = round(claim["cache_mib"] * MIB)
+                case["cache_model"] = {
+                    "cache_mib": claim["cache_mib"],
+                    "input_mib": working_set.input_bytes / MIB,
+                    "split_activation_mib": working_set.split_activation_bytes / MIB,
+                    "split_weight_mib": working_set.split_weight_bytes / MIB,
+                    "working_set_mib": working_set.total_bytes / MIB,
+                    "fits_strict": working_set.total_bytes < cache_bytes,
+                }
+            cases.append(case)
+    fit_requirement = claim.get("fit_requirement")
+    if fit_requirement is not None:
+        if fit_requirement not in {"all", "imbps"}:
+            raise ValueError(f"unsupported fit_requirement: {fit_requirement}")
+        required_cases = (
+            cases
+            if fit_requirement == "all"
+            else [case for case in cases if case["backend"] == "imbps"]
+        )
+        violations = [
+            case
+            for case in required_cases
+            if not case.get("cache_model", {}).get("fits_strict", False)
+        ]
+        if violations:
+            descriptions = ", ".join(
+                f"{case['model']} B={case['batch']} SL={case['sequence']} "
+                f"{case['backend']} K={case['split']}"
+                for case in violations
+            )
+            raise ValueError(
+                f"cache-fit claim contains non-fitting required cases: {descriptions}"
+            )
     return cases
 
 
@@ -143,8 +197,9 @@ def target_for(
 def summarize(
     records: list[dict[str, Any]], claim_name: str, claim: dict[str, Any]
 ) -> list[dict[str, Any]]:
-    grouped: dict[tuple[str, int, str, str, int], list[float]] = defaultdict(list)
-    per_round: dict[tuple[str, int, str, str, int, int], float] = {}
+    grouped: dict[tuple[str, int, int, str, str, int], list[float]] = defaultdict(list)
+    per_round: dict[tuple[str, int, int, str, str, int, int], float] = {}
+    cache_models: dict[tuple[str, int, int, str, str, int], dict[str, Any]] = {}
     for record in records:
         case = record["case"]
         if "split" not in case:
@@ -152,18 +207,21 @@ def summarize(
         key = (
             case["model"],
             case["batch"],
+            case["sequence"],
             case["activation"],
             case["backend"],
             case["split"],
         )
         grouped[key].append(record["run"]["median_ms"])
         per_round[(*key, record["matrix"]["round"])] = record["run"]["median_ms"]
+        if "cache_model" in record:
+            cache_models[key] = record["cache_model"]
 
     summaries = []
     for key in sorted(grouped):
-        model, batch, activation, backend, split = key
+        model, batch, sequence, activation, backend, split = key
         values = grouped[key]
-        baseline_values = grouped[(model, batch, activation, "tpp", 1)]
+        baseline_values = grouped[(model, batch, sequence, activation, "tpp", 1)]
         baseline_median = statistics.median(baseline_values)
         case_median = statistics.median(values)
         paired_speedups = []
@@ -173,15 +231,16 @@ def summarize(
             for record in records
             if record["case"]["model"] == model
             and record["case"]["batch"] == batch
+            and record["case"]["sequence"] == sequence
             and record["case"]["activation"] == activation
             and record["case"]["backend"] == backend
             and record["case"]["split"] == split
         ):
             baseline_round = per_round[
-                (model, batch, activation, "tpp", 1, round_index)
+                (model, batch, sequence, activation, "tpp", 1, round_index)
             ]
             case_round = per_round[
-                (model, batch, activation, backend, split, round_index)
+                (model, batch, sequence, activation, backend, split, round_index)
             ]
             paired_speedups.append(baseline_round / case_round)
             paired_relative_times.append(case_round / baseline_round)
@@ -195,7 +254,7 @@ def summarize(
                 "claim": claim_name,
                 "model": model,
                 "batch": batch,
-                "sequence": claim["sequence"],
+                "sequence": sequence,
                 "activation": activation,
                 "backend": backend,
                 "split": split,
@@ -225,6 +284,11 @@ def summarize(
                 ),
                 "paper_l3_miss_reduction_factor": target.get("l3_miss_reduction_factor"),
                 "paper_l3_misses_billions": target.get("l3_misses_billions"),
+                "cache_mib": cache_models.get(key, {}).get("cache_mib"),
+                "equation12_working_set_mib": cache_models.get(key, {}).get(
+                    "working_set_mib"
+                ),
+                "equation12_fits": cache_models.get(key, {}).get("fits_strict"),
             }
         )
     for row in summaries:
@@ -233,6 +297,7 @@ def summarize(
             for candidate in summaries
             if candidate["model"] == row["model"]
             and candidate["batch"] == row["batch"]
+            and candidate["sequence"] == row["sequence"]
             and candidate["activation"] == row["activation"]
             and candidate["backend"] == "imbps"
         ]
@@ -350,7 +415,7 @@ def main() -> None:
         for order_index, case in enumerate(cases, start=1):
             case_id = (
                 f"r{round_index:02d}-o{order_index:02d}-{case['model']}-"
-                f"b{case['batch']}-{case['backend']}-k{case['split']}"
+                f"b{case['batch']}-s{case['sequence']}-{case['backend']}-k{case['split']}"
             )
             output_path = raw_dir / f"{case_id}.json"
             log_path = log_dir / f"{case_id}.log"
@@ -401,12 +466,15 @@ def main() -> None:
             record = json.loads(output_path.read_text(encoding="utf-8"))
             record["case"]["model"] = case["model"]
             record["case"]["split"] = case["split"]
+            if "cache_model" in case:
+                record["cache_model"] = case["cache_model"]
             record["matrix"] = {"round": round_index, "order": order_index}
             output_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
             records.append(record)
             print(
                 f"round={round_index} order={order_index} model={case['model']} "
-                f"batch={case['batch']} backend={case['backend']} K={case['split']} "
+                f"batch={case['batch']} sequence={case['sequence']} "
+                f"backend={case['backend']} K={case['split']} "
                 f"median_ms={record['run']['median_ms']:.3f}",
                 flush=True,
             )

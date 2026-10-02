@@ -197,6 +197,37 @@ iterations only after checking job time and thermal stability. A fresh process
 per case prevents packed weights and oneDNN primitive state from leaking
 between variants.
 
+### Cache-fit timing controls
+
+Equation 12 cannot make the OPT-30B TPP baseline fully resident in mn01's
+384 MiB L3: the BF16 MLP weight term alone is 392 MiB. The cache-fit suite
+therefore has two preregistered strata:
+
+- `cache_fit_opt30b`: preserves OPT-30B while making every tested IMBPS K>=2
+  working set fit;
+- `cache_resident_control`: uses OPT-6.7B and OPT-13B shapes for which both TPP
+  and every IMBPS candidate fit.
+
+Submit the OPT-30B stratum, then make the fully resident control depend on it:
+
+```bash
+fit_id=$(sbatch --parsable \
+  --export=ALL,CACHE_FIT_CLAIM=cache_fit_opt30b \
+  slurm/cache_fit.sbatch)
+
+control_id=$(sbatch --parsable \
+  --dependency="afterok:${fit_id}" \
+  --export=ALL,CACHE_FIT_CLAIM=cache_resident_control \
+  slurm/cache_fit.sbatch)
+
+echo "OPT-30B fit job: ${fit_id}"
+echo "Fully resident control: ${control_id}"
+```
+
+Each summary records `cache_mib`, `equation12_working_set_mib`, and
+`equation12_fits`. These are analytical classifications, not measured cache
+occupancy; uProf counters remain necessary for the mechanism claim.
+
 ## Stage 5 - Table VIII split sensitivity
 
 Start with one model, because the full matrix is expensive:
