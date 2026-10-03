@@ -86,7 +86,7 @@ def build_worker_command(
 
 
 def build_gate_command(
-    start: Path, done: Path, timeout_seconds: float
+    start: Path, done: Path, timing: Path, timeout_seconds: float
 ) -> list[str]:
     return [
         sys.executable,
@@ -95,6 +95,8 @@ def build_gate_command(
         str(start),
         "--done-file",
         str(done),
+        "--timing-file",
+        str(timing),
         "--timeout-seconds",
         str(timeout_seconds),
     ]
@@ -169,9 +171,10 @@ def main() -> None:
     csv_path = result_dir / "uprof.csv"
     uprof_log_path = result_dir / "uprof.log"
     worker_log_path = result_dir / "worker.log"
+    gate_timing_path = result_dir / "gate-timing.json"
     worker_command = build_worker_command(args, ready, start, benchmark_path)
     gate_command = build_gate_command(
-        start, benchmark_path, args.measurement_timeout_seconds
+        start, benchmark_path, gate_timing_path, args.measurement_timeout_seconds
     )
     profiler_command = build_profiler_command(args, gate_command, csv_path)
     manifest = {
@@ -281,7 +284,10 @@ def main() -> None:
         raise RuntimeError(f"worker result is missing: {benchmark_path}")
     if not csv_path.is_file() or csv_path.stat().st_size == 0:
         raise RuntimeError(f"uProf CSV is missing or empty: {csv_path}")
+    if not gate_timing_path.is_file():
+        raise RuntimeError(f"gate timing is missing: {gate_timing_path}")
 
+    gate_timing = json.loads(gate_timing_path.read_text(encoding="utf-8"))
     manifest["status"] = "complete"
     manifest["profiler"]["returncode"] = profiler_returncode
     manifest["outputs"] = {
@@ -289,7 +295,11 @@ def main() -> None:
         "uprof_csv": str(csv_path),
         "uprof_log": str(uprof_log_path),
         "worker_log": str(worker_log_path),
+        "gate_timing": str(gate_timing_path),
     }
+    manifest["measurement"]["counter_active_seconds"] = gate_timing[
+        "active_seconds"
+    ]
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     benchmark = json.loads(benchmark_path.read_text(encoding="utf-8"))
     print(
@@ -298,6 +308,7 @@ def main() -> None:
                 "result_dir": str(result_dir),
                 "median_ms": benchmark["run"]["median_ms"],
                 "measurement_wall_seconds": benchmark["run"]["measurement_wall_seconds"],
+                "counter_active_seconds": gate_timing["active_seconds"],
                 "uprof_csv_bytes": csv_path.stat().st_size,
             }
         ),

@@ -228,6 +228,34 @@ Each summary records `cache_mib`, `equation12_working_set_mib`, and
 `equation12_fits`. These are analytical classifications, not measured cache
 occupancy; uProf counters remain necessary for the mechanism claim.
 
+### uProf cache-mechanism matrix
+
+After the one-round counter pilot succeeds, run the five-round Table-II matrix.
+The two array elements are serialized and collect separate cache and DRAM
+traffic passes; this avoids simultaneous package-wide counter sessions. A
+dependent summary job starts only after both passes complete:
+
+```bash
+uprof_matrix_id=$(sbatch --parsable slurm/uprof_table_ii.sbatch)
+
+uprof_summary_id=$(sbatch --parsable \
+  --dependency="afterok:${uprof_matrix_id}" \
+  --export="ALL,UPROF_ARRAY_JOB_ID=${uprof_matrix_id}" \
+  slurm/uprof_summarize.sbatch)
+
+echo "uProf matrix array: ${uprof_matrix_id}"
+echo "uProf summary job: ${uprof_summary_id}"
+```
+
+Each pass contains five deterministically randomized rounds over TPP K=1 and
+IMBPS K=4/8/16 for batches 16/32/64. Every case warms up before uProf starts.
+The raw native CSV and exact profiler command are retained per case. The
+analysis reports bootstrap intervals and separately identifies the K with the
+lowest profiled time, lowest L3 misses, highest L3 hit rate, lowest DRAM bytes,
+and highest measured DRAM arithmetic intensity. Raw L3 hit count is retained
+but is not used as the locality endpoint because reducing total accesses can
+reduce hits and misses together.
+
 ### Topology-aware autotuning pilot
 
 The improvement study is deliberately staged. First compare active/passive

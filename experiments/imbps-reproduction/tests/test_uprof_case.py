@@ -47,9 +47,12 @@ class UprofCommandTests(unittest.TestCase):
         self.assertNotIn("-a", command)
 
     def test_gate_releases_worker_and_waits_for_output(self) -> None:
-        command = build_gate_command(Path("start"), Path("done"), 60)
+        command = build_gate_command(
+            Path("start"), Path("done"), Path("timing.json"), 60
+        )
         self.assertIn("--start-file", command)
         self.assertIn("--done-file", command)
+        self.assertIn("--timing-file", command)
         self.assertIn("60", command)
 
     def test_worker_is_pinned_and_has_readiness_gate(self) -> None:
