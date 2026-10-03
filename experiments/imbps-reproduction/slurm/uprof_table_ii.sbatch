@@ -15,9 +15,11 @@
 set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
+readonly CLAIM="${UPROF_CLAIM:-table_ii}"
+readonly RESULT_LABEL="${UPROF_RESULT_LABEL:-table-ii}"
 readonly PASS_NAMES=(cache traffic)
 readonly PASS_NAME="${PASS_NAMES[SLURM_ARRAY_TASK_ID]}"
-readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-table-ii-${SLURM_ARRAY_JOB_ID}-${PASS_NAME}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${SLURM_ARRAY_JOB_ID}-${PASS_NAME}"
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 
@@ -76,6 +78,7 @@ if (( PROBE_STATUS != 0 )); then
 fi
 
 python src/run_uprof_matrix.py \
+  --claim "${CLAIM}" \
   --pass-name "${PASS_NAME}" \
   --uprof-bin "${UPROF_BIN}" \
   --package 0 \
@@ -87,4 +90,4 @@ python src/run_uprof_matrix.py \
   --seed 20261003 \
   --result-dir "${RESULT_ROOT}/matrix"
 
-echo "uProf Table-II ${PASS_NAME}: ${RESULT_ROOT}/matrix"
+echo "uProf ${CLAIM} ${PASS_NAME}: ${RESULT_ROOT}/matrix"

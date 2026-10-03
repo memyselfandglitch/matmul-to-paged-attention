@@ -80,20 +80,24 @@ def paired_ratios(
 
 
 def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, Any]]:
-    grouped: dict[tuple[int, str, int], list[dict[str, Any]]] = defaultdict(list)
-    by_batch: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    grouped: dict[tuple[str, int, int, str, int], list[dict[str, Any]]] = defaultdict(
+        list
+    )
+    by_shape: dict[tuple[str, int, int], list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         if row["pass"] != pass_name:
             raise ValueError(f"expected {pass_name} row, got {row['pass']}")
-        key = (int(row["batch"]), row["backend"], int(row["split"]))
+        shape = (row["model"], int(row["batch"]), int(row["sequence"]))
+        key = (*shape, row["backend"], int(row["split"]))
         grouped[key].append(row)
-        by_batch[int(row["batch"])].append(row)
+        by_shape[shape].append(row)
 
     summaries: list[dict[str, Any]] = []
     for key in sorted(grouped):
-        batch, backend, split = key
+        model, batch, sequence, backend, split = key
         case_rows = grouped[key]
-        expected_rounds = sorted({int(row["round"]) for row in by_batch[batch]})
+        shape = (model, batch, sequence)
+        expected_rounds = sorted({int(row["round"]) for row in by_shape[shape]})
         actual_rounds = sorted(int(row["round"]) for row in case_rows)
         if actual_rounds != expected_rounds:
             raise ValueError(
@@ -103,10 +107,18 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
         seed = 20261003 + batch * 100 + split
         summary: dict[str, Any] = {
             "pass": pass_name,
+            "model": model,
             "batch": batch,
+            "sequence": sequence,
+            "rows": batch * sequence,
             "backend": backend,
             "split": split,
             "rounds": len(case_rows),
+            "cache_mib": case_rows[0]["cache_mib"],
+            "equation12_working_set_mib": case_rows[0][
+                "equation12_working_set_mib"
+            ],
+            "equation12_fits": case_rows[0]["equation12_fits"],
         }
         metric_names = ["median_ms"]
         if pass_name == "cache":
@@ -143,7 +155,7 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
         if backend != "tpp":
             batch_rows = [
                 row
-                for row in by_batch[batch]
+                for row in by_shape[shape]
                 if row["backend"] == "tpp"
                 or (row["backend"] == backend and int(row["split"]) == split)
             ]
@@ -216,17 +228,28 @@ def mechanism_checks(
         return int(best["split"]), sorted(ties)
 
     checks = []
-    batches = sorted({int(row["batch"]) for row in cache_summary})
-    for batch in batches:
+    shapes = sorted(
+        {
+            (row["model"], int(row["batch"]), int(row["sequence"]))
+            for row in cache_summary
+        }
+    )
+    for model, batch, sequence in shapes:
         cache_candidates = [
             row
             for row in cache_summary
-            if row["batch"] == batch and row["backend"] == "imbps"
+            if row["model"] == model
+            and row["batch"] == batch
+            and row["sequence"] == sequence
+            and row["backend"] == "imbps"
         ]
         traffic_candidates = [
             row
             for row in traffic_summary
-            if row["batch"] == batch and row["backend"] == "imbps"
+            if row["model"] == model
+            and row["batch"] == batch
+            and row["sequence"] == sequence
+            and row["backend"] == "imbps"
         ]
         fastest_cache, fastest_cache_ties = tied_splits(
             cache_candidates, "median_ms", minimize=True
@@ -254,7 +277,10 @@ def mechanism_checks(
         )
         checks.append(
             {
+                "model": model,
                 "batch": batch,
+                "sequence": sequence,
+                "rows": batch * sequence,
                 "fastest_k_cache_pass": fastest_cache,
                 "fastest_k_cache_pass_ties": fastest_cache_ties,
                 "fastest_k_traffic_pass": fastest_traffic,
@@ -287,11 +313,20 @@ def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, 
         ]
     )
     comparisons = []
-    for batch in sorted({int(row["batch"]) for row in rows}):
+    shapes = sorted(
+        {
+            (row["model"], int(row["batch"]), int(row["sequence"]))
+            for row in rows
+        }
+    )
+    for model, batch, sequence in shapes:
         candidates = {
             (int(row["round"]), int(row["split"])): row
             for row in rows
-            if int(row["batch"]) == batch and row["backend"] == "imbps"
+            if row["model"] == model
+            and int(row["batch"]) == batch
+            and int(row["sequence"]) == sequence
+            and row["backend"] == "imbps"
         }
         rounds = sorted(
             round_number
@@ -310,7 +345,10 @@ def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, 
             comparisons.append(
                 {
                     "pass": pass_name,
+                    "model": model,
                     "batch": batch,
+                    "sequence": sequence,
+                    "rows": batch * sequence,
                     "metric": metric,
                     "definition": "K4 minus K8",
                     "rounds": len(rounds),

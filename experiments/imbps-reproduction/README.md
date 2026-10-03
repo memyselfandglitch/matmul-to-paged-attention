@@ -256,6 +256,37 @@ and highest measured DRAM arithmetic intensity. Raw L3 hit count is retained
 but is not used as the locality endpoint because reducing total accesses can
 reduce hits and misses together.
 
+Run the cache-fit mechanism control after the Table-II counter matrix. It uses
+the same two-pass profiler protocol but adds K=2 and K=32 and changes the
+OPT-30B activation shapes so every IMBPS candidate is below mn01's 384 MiB
+Equation-12 capacity:
+
+| B | sequence | flattened rows | K=1 | K=2 | K=4 | K=8 | K=16 | K=32 |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 1920 | 1920 | 523.25 | 274.75 | 150.50 | 88.38 | 57.31 | 41.78 |
+| 2 | 1920 | 3840 | 654.50 | 353.50 | 203.00 | 127.75 | 90.13 | 71.31 |
+| 16 | 128 | 2048 | 532.00 | 280.00 | 154.00 | 91.00 | 59.50 | 43.75 |
+| 16 | 256 | 4096 | 672.00 | 364.00 | 210.00 | 133.00 | 94.50 | 75.25 |
+
+Working-set entries are MiB. K=1 intentionally remains non-resident because
+the unsplit OPT-30B weights alone are 392 MiB. Submit and summarize the
+cache-fit control with:
+
+```bash
+fit_matrix_id=$(sbatch --parsable \
+  --dependency="afterok:${uprof_matrix_id}" \
+  --export=ALL,UPROF_CLAIM=cache_fit_opt30b,UPROF_RESULT_LABEL=cache-fit-opt30b \
+  slurm/uprof_table_ii.sbatch)
+
+fit_summary_id=$(sbatch --parsable \
+  --dependency="afterok:${fit_matrix_id}" \
+  --export="ALL,UPROF_ARRAY_JOB_ID=${fit_matrix_id},UPROF_RESULT_LABEL=cache-fit-opt30b" \
+  slurm/uprof_summarize.sbatch)
+
+echo "Cache-fit matrix: ${fit_matrix_id}"
+echo "Cache-fit summary: ${fit_summary_id}"
+```
+
 ### Topology-aware autotuning pilot
 
 The improvement study is deliberately staged. First compare active/passive

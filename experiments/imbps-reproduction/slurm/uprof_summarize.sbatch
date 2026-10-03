@@ -21,9 +21,10 @@ if [[ -z "${UPROF_ARRAY_JOB_ID:-}" ]]; then
   exit 2
 fi
 
-readonly CACHE_DIR="${PROJECT_ROOT}/results/uprof-table-ii-${UPROF_ARRAY_JOB_ID}-cache/matrix"
-readonly TRAFFIC_DIR="${PROJECT_ROOT}/results/uprof-table-ii-${UPROF_ARRAY_JOB_ID}-traffic/matrix"
-readonly OUTPUT_DIR="${PROJECT_ROOT}/results/uprof-table-ii-${UPROF_ARRAY_JOB_ID}-analysis-${SLURM_JOB_ID}"
+readonly RESULT_LABEL="${UPROF_RESULT_LABEL:-table-ii}"
+readonly CACHE_DIR="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${UPROF_ARRAY_JOB_ID}-cache/matrix"
+readonly TRAFFIC_DIR="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${UPROF_ARRAY_JOB_ID}-traffic/matrix"
+readonly OUTPUT_DIR="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${UPROF_ARRAY_JOB_ID}-analysis-${SLURM_JOB_ID}"
 
 python src/summarize_uprof_matrix.py \
   --cache-dir "${CACHE_DIR}" \

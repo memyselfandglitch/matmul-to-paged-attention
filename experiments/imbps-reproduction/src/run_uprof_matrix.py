@@ -14,8 +14,10 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from .cache_model import MIB, working_set_bytes
     from .uprof_report import parse_uprof_report, require_metric
 except ImportError:  # Direct execution: python src/run_uprof_matrix.py
+    from cache_model import MIB, working_set_bytes
     from uprof_report import parse_uprof_report, require_metric
 
 
@@ -26,6 +28,9 @@ CASE_RUNNER = PROJECT_ROOT / "src" / "run_uprof_case.py"
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--claim", choices=("table_ii", "cache_fit_opt30b"), default="table_ii"
+    )
     parser.add_argument("--pass-name", choices=("cache", "traffic"), required=True)
     parser.add_argument("--uprof-bin", type=Path, required=True)
     parser.add_argument("--package", type=int, default=0)
@@ -39,27 +44,52 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def table_ii_cases() -> list[dict[str, Any]]:
+def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
     registry = json.loads(CLAIMS_PATH.read_text(encoding="utf-8"))
-    claim = registry["standalone"]["table_ii"]
-    model_name = claim["models"][0]
-    model = registry["models"][model_name]
+    claim = registry["standalone"][claim_name]
     variants = [("tpp", 1), *(("imbps", split) for split in claim["splits"])]
-    return [
-        {
-            "model": model_name,
-            "batch": batch,
-            "sequence": claim["sequence"],
-            "hidden": model["hidden"],
-            "intermediate": model["intermediate"],
-            "activation": model["activation"],
-            "dtype": claim["dtype"],
-            "backend": backend,
-            "split": split,
-        }
-        for batch in claim["batches"]
-        for backend, split in variants
-    ]
+    shapes = (
+        [
+            {
+                "model": claim["models"][0],
+                "batch": batch,
+                "sequence": claim["sequence"],
+            }
+            for batch in claim["batches"]
+        ]
+        if claim_name == "table_ii"
+        else claim["cases"]
+    )
+    cases = []
+    for shape in shapes:
+        model = registry["models"][shape["model"]]
+        for backend, split in variants:
+            working_set = working_set_bytes(
+                shape["batch"],
+                shape["sequence"],
+                model["hidden"],
+                model["intermediate"],
+                split,
+                2 if claim["dtype"] == "bf16" else 4,
+            )
+            cache_mib = float(claim.get("cache_mib", 384))
+            cases.append(
+                {
+                    "model": shape["model"],
+                    "batch": shape["batch"],
+                    "sequence": shape["sequence"],
+                    "hidden": model["hidden"],
+                    "intermediate": model["intermediate"],
+                    "activation": model["activation"],
+                    "dtype": claim["dtype"],
+                    "backend": backend,
+                    "split": split,
+                    "cache_mib": cache_mib,
+                    "equation12_working_set_mib": working_set.total_bytes / MIB,
+                    "equation12_fits": working_set.total_bytes < cache_mib * MIB,
+                }
+            )
+    return cases
 
 
 def write_records(result_dir: Path, rows: list[dict[str, Any]]) -> None:
@@ -108,6 +138,9 @@ def normalized_record(
         "measurement_wall_seconds": benchmark["run"]["measurement_wall_seconds"],
         "counter_active_seconds": active_seconds,
         "algorithmic_flops_per_invocation": algorithmic_flops,
+        "cache_mib": case["cache_mib"],
+        "equation12_working_set_mib": case["equation12_working_set_mib"],
+        "equation12_fits": case["equation12_fits"],
         "case_dir": str(case_dir),
     }
     if pass_name == "cache":
@@ -157,10 +190,11 @@ def main() -> None:
     result_dir = args.result_dir.resolve()
     cases_dir = result_dir / "cases"
     cases_dir.mkdir(parents=True, exist_ok=False)
-    cases = table_ii_cases()
+    cases = experiment_cases(args.claim)
     manifest = {
         "schema_version": 1,
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
+        "claim": args.claim,
         "pass": args.pass_name,
         "metrics": metrics.split(","),
         "rounds": args.rounds,
@@ -242,7 +276,7 @@ def main() -> None:
     manifest["completed_at_utc"] = datetime.now(timezone.utc).isoformat()
     manifest["record_count"] = len(records)
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(f"uProf Table-II {args.pass_name}: {result_dir}")
+    print(f"uProf {args.claim} {args.pass_name}: {result_dir}")
 
 
 if __name__ == "__main__":

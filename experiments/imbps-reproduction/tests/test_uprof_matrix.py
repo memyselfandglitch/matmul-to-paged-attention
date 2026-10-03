@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.run_uprof_matrix import normalized_record
+from src.run_uprof_matrix import experiment_cases, normalized_record
 from src.summarize_uprof_matrix import compare_k4_k8, mechanism_checks, summarize_pass
 
 
@@ -19,6 +19,9 @@ class UprofMatrixTests(unittest.TestCase):
             "intermediate": 28672,
             "backend": "imbps",
             "split": 4,
+            "cache_mib": 384,
+            "equation12_working_set_mib": 938,
+            "equation12_fits": False,
         }
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)
@@ -70,10 +73,15 @@ Ave L3 Miss Latency (ns),124
                 row: dict[str, object] = {
                     "pass": pass_name,
                     "round": round_number,
+                    "model": "opt30b",
                     "batch": 16,
+                    "sequence": 1920,
                     "backend": backend,
                     "split": split,
                     "median_ms": time_ms,
+                    "cache_mib": 384,
+                    "equation12_working_set_mib": 100,
+                    "equation12_fits": backend == "imbps",
                 }
                 if pass_name == "cache":
                     row.update(
@@ -114,6 +122,20 @@ Ave L3 Miss Latency (ns),124
         self.assertEqual(checks[0]["maximum_measured_dram_ai_k"], 8)
         self.assertTrue(checks[0]["cache_pass_rank_agreement"])
         self.assertTrue(checks[0]["traffic_pass_rank_agreement"])
+
+    def test_cache_fit_claim_has_only_resident_imbps_cases(self) -> None:
+        cases = experiment_cases("cache_fit_opt30b")
+        self.assertEqual(len(cases), 24)
+        self.assertTrue(
+            all(case["equation12_fits"] for case in cases if case["backend"] == "imbps")
+        )
+        self.assertTrue(
+            all(
+                not case["equation12_fits"]
+                for case in cases
+                if case["backend"] == "tpp"
+            )
+        )
 
     def test_k4_k8_comparison_is_paired_by_round(self) -> None:
         comparisons = compare_k4_k8(self.rows("cache"), "cache")
