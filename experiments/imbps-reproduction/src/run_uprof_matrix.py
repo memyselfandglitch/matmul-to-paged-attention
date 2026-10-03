@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import random
 import subprocess
 import sys
@@ -14,10 +15,22 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .cache_model import MIB, working_set_bytes
+    from .cache_model import (
+        MIB,
+        equation13_lower_bound,
+        next_power_of_two_candidate,
+        strict_integer_candidate,
+        working_set_bytes,
+    )
     from .uprof_report import parse_uprof_report, require_metric
 except ImportError:  # Direct execution: python src/run_uprof_matrix.py
-    from cache_model import MIB, working_set_bytes
+    from cache_model import (
+        MIB,
+        equation13_lower_bound,
+        next_power_of_two_candidate,
+        strict_integer_candidate,
+        working_set_bytes,
+    )
     from uprof_report import parse_uprof_report, require_metric
 
 
@@ -29,7 +42,9 @@ CASE_RUNNER = PROJECT_ROOT / "src" / "run_uprof_case.py"
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--claim", choices=("table_ii", "cache_fit_opt30b"), default="table_ii"
+        "--claim",
+        choices=("table_ii", "cache_fit_opt30b", "server_equation_opt30b"),
+        default="table_ii",
     )
     parser.add_argument("--pass-name", choices=("cache", "traffic"), required=True)
     parser.add_argument("--uprof-bin", type=Path, required=True)
@@ -47,7 +62,6 @@ def parse_args() -> argparse.Namespace:
 def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
     registry = json.loads(CLAIMS_PATH.read_text(encoding="utf-8"))
     claim = registry["standalone"][claim_name]
-    variants = [("tpp", 1), *(("imbps", split) for split in claim["splits"])]
     shapes = (
         [
             {
@@ -63,6 +77,19 @@ def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
     cases = []
     for shape in shapes:
         model = registry["models"][shape["model"]]
+        variants = [
+            ("tpp", 1),
+            *(("imbps", split) for split in shape.get("splits", claim["splits"])),
+        ]
+        cache_mib = float(claim.get("cache_mib", 384))
+        lower_bound = equation13_lower_bound(
+            shape["batch"],
+            shape["sequence"],
+            model["hidden"],
+            model["intermediate"],
+            2 if claim["dtype"] == "bf16" else 4,
+            round(cache_mib * MIB),
+        )
         for backend, split in variants:
             working_set = working_set_bytes(
                 shape["batch"],
@@ -72,7 +99,6 @@ def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
                 split,
                 2 if claim["dtype"] == "bf16" else 4,
             )
-            cache_mib = float(claim.get("cache_mib", 384))
             cases.append(
                 {
                     "model": shape["model"],
@@ -87,6 +113,15 @@ def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
                     "cache_mib": cache_mib,
                     "equation12_working_set_mib": working_set.total_bytes / MIB,
                     "equation12_fits": working_set.total_bytes < cache_mib * MIB,
+                    "equation13_strict_lower_bound": (
+                        lower_bound if math.isfinite(lower_bound) else None
+                    ),
+                    "equation13_strict_integer_candidate": strict_integer_candidate(
+                        lower_bound
+                    ),
+                    "equation13_author_power_of_two_candidate": (
+                        next_power_of_two_candidate(lower_bound)
+                    ),
                 }
             )
     return cases
@@ -141,6 +176,13 @@ def normalized_record(
         "cache_mib": case["cache_mib"],
         "equation12_working_set_mib": case["equation12_working_set_mib"],
         "equation12_fits": case["equation12_fits"],
+        "equation13_strict_lower_bound": case["equation13_strict_lower_bound"],
+        "equation13_strict_integer_candidate": case[
+            "equation13_strict_integer_candidate"
+        ],
+        "equation13_author_power_of_two_candidate": case[
+            "equation13_author_power_of_two_candidate"
+        ],
         "case_dir": str(case_dir),
     }
     if pass_name == "cache":

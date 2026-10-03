@@ -82,6 +82,23 @@
       "targets": {},
       "design_note": "Every IMBPS case fits Equation 12 at K>=2; the TPP K=1 baseline cannot fit because the OPT-30B BF16 weight term alone is 392 MiB."
     },
+    "server_equation_opt30b": {
+      "dtype": "bf16",
+      "cache_mib": 384,
+      "fit_requirement": "imbps",
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 16, "sequence": 256, "splits": [2, 4, 8, 16, 32, 64], "expected_power_of_two_k": 2},
+        {"model": "opt30b", "batch": 16, "sequence": 384, "splits": [4, 8, 16, 32, 64], "expected_power_of_two_k": 4},
+        {"model": "opt30b", "batch": 16, "sequence": 768, "splits": [8, 16, 32, 64], "expected_power_of_two_k": 8},
+        {"model": "opt30b", "batch": 16, "sequence": 1024, "splits": [16, 32, 64], "expected_power_of_two_k": 16},
+        {"model": "opt30b", "batch": 16, "sequence": 1408, "splits": [32, 64], "expected_power_of_two_k": 32},
+        {"model": "opt30b", "batch": 16, "sequence": 1536, "splits": [64], "expected_power_of_two_k": 64}
+      ],
+      "splits": [2, 4, 8, 16, 32, 64],
+      "targets": {},
+      "design_note": "Server-native Equation 13 boundary sweep. At 384 MiB, the listed sequence lengths yield author-policy power-of-two candidates K=2,4,8,16,32,64. Only the candidate and larger splits are profiled, so every IMBPS case satisfies Equation 12; TPP K=1 is retained as a non-resident control."
+    },
     "cache_resident_control": {
       "dtype": "bf16",
       "cache_mib": 384,

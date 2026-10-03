@@ -256,7 +256,7 @@ and highest measured DRAM arithmetic intensity. Raw L3 hit count is retained
 but is not used as the locality endpoint because reducing total accesses can
 reduce hits and misses together.
 
-Run the cache-fit mechanism control after the Table-II counter matrix. It uses
+The compact cache-fit mechanism control uses
 the same two-pass profiler protocol but adds K=2 and K=32 and changes the
 OPT-30B activation shapes so every IMBPS candidate is below mn01's 384 MiB
 Equation-12 capacity:
@@ -285,6 +285,39 @@ fit_summary_id=$(sbatch --parsable \
 
 echo "Cache-fit matrix: ${fit_matrix_id}"
 echo "Cache-fit summary: ${fit_summary_id}"
+```
+
+For the primary server-specific Equation-13 test, vary sequence length at a
+fixed B=16 so the equation traverses each legal power-of-two split on mn01.
+Only the predicted K and larger splits are included, hence every IMBPS case
+fits Equation 12. K=1 remains the non-resident TPP control.
+
+| B | sequence | rows | Equation-13 lower bound | strict integer | tested starting K | working set at starting K (MiB) |
+|---:|---:|---:|---:|---:|---:|---:|
+| 16 | 256 | 4096 | 1.878 | 2 | 2 | 364.000 |
+| 16 | 384 | 6144 | 2.427 | 3 | 4 | 266.000 |
+| 16 | 768 | 12288 | 4.926 | 5 | 8 | 301.000 |
+| 16 | 1024 | 16384 | 8.050 | 9 | 16 | 304.500 |
+| 16 | 1408 | 22528 | 21.368 | 22 | 32 | 358.750 |
+| 16 | 1536 | 24576 | 36.167 | 37 | 64 | 363.125 |
+
+The strict integers 3, 5, 9, 22, and 37 do not divide OPT-30B's intermediate
+dimension of 28,672. The tested starting K therefore follows the authors'
+reported next-power-of-two policy. Run this primary control after Table II:
+
+```bash
+equation_matrix_id=$(sbatch --parsable \
+  --dependency="afterok:${uprof_matrix_id}" \
+  --export=ALL,UPROF_CLAIM=server_equation_opt30b,UPROF_RESULT_LABEL=server-equation-opt30b \
+  slurm/uprof_table_ii.sbatch)
+
+equation_summary_id=$(sbatch --parsable \
+  --dependency="afterok:${equation_matrix_id}" \
+  --export="ALL,UPROF_ARRAY_JOB_ID=${equation_matrix_id},UPROF_RESULT_LABEL=server-equation-opt30b" \
+  slurm/uprof_summarize.sbatch)
+
+echo "Server-equation matrix: ${equation_matrix_id}"
+echo "Server-equation summary: ${equation_summary_id}"
 ```
 
 ### Topology-aware autotuning pilot

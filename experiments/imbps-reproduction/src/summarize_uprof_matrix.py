@@ -119,6 +119,15 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
                 "equation12_working_set_mib"
             ],
             "equation12_fits": case_rows[0]["equation12_fits"],
+            "equation13_strict_lower_bound": case_rows[0][
+                "equation13_strict_lower_bound"
+            ],
+            "equation13_strict_integer_candidate": case_rows[0][
+                "equation13_strict_integer_candidate"
+            ],
+            "equation13_author_power_of_two_candidate": case_rows[0][
+                "equation13_author_power_of_two_candidate"
+            ],
         }
         metric_names = ["median_ms"]
         if pass_name == "cache":
@@ -281,6 +290,9 @@ def mechanism_checks(
                 "batch": batch,
                 "sequence": sequence,
                 "rows": batch * sequence,
+                "equation13_author_power_of_two_candidate": cache_candidates[0][
+                    "equation13_author_power_of_two_candidate"
+                ],
                 "fastest_k_cache_pass": fastest_cache,
                 "fastest_k_cache_pass_ties": fastest_cache_ties,
                 "fastest_k_traffic_pass": fastest_traffic,
@@ -297,6 +309,14 @@ def mechanism_checks(
                 "traffic_pass_common_best_k": traffic_common,
                 "cache_pass_rank_agreement": bool(cache_common),
                 "traffic_pass_rank_agreement": bool(traffic_common),
+                "equation_candidate_is_cache_fastest_or_tied": cache_candidates[0][
+                    "equation13_author_power_of_two_candidate"
+                ]
+                in fastest_cache_ties,
+                "equation_candidate_is_traffic_fastest_or_tied": traffic_candidates[
+                    0
+                ]["equation13_author_power_of_two_candidate"]
+                in fastest_traffic_ties,
             }
         )
     return checks
@@ -328,6 +348,9 @@ def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, 
             and int(row["sequence"]) == sequence
             and row["backend"] == "imbps"
         }
+        available_splits = {split for _, split in candidates}
+        if not {4, 8}.issubset(available_splits):
+            continue
         rounds = sorted(
             round_number
             for round_number, split in candidates

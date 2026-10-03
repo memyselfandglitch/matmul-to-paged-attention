@@ -22,6 +22,9 @@ class UprofMatrixTests(unittest.TestCase):
             "cache_mib": 384,
             "equation12_working_set_mib": 938,
             "equation12_fits": False,
+            "equation13_strict_lower_bound": 22.5,
+            "equation13_strict_integer_candidate": 23,
+            "equation13_author_power_of_two_candidate": 32,
         }
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)
@@ -82,6 +85,9 @@ Ave L3 Miss Latency (ns),124
                     "cache_mib": 384,
                     "equation12_working_set_mib": 100,
                     "equation12_fits": backend == "imbps",
+                    "equation13_strict_lower_bound": 6.2,
+                    "equation13_strict_integer_candidate": 7,
+                    "equation13_author_power_of_two_candidate": 8,
                 }
                 if pass_name == "cache":
                     row.update(
@@ -129,6 +135,22 @@ Ave L3 Miss Latency (ns),124
         self.assertTrue(
             all(case["equation12_fits"] for case in cases if case["backend"] == "imbps")
         )
+
+    def test_server_equation_sweep_covers_power_of_two_candidates(self) -> None:
+        cases = experiment_cases("server_equation_opt30b")
+        imbps = [case for case in cases if case["backend"] == "imbps"]
+        self.assertEqual(len(cases), 27)
+        self.assertTrue(all(case["equation12_fits"] for case in imbps))
+        candidates = {
+            case["equation13_author_power_of_two_candidate"] for case in imbps
+        }
+        self.assertEqual(candidates, {2, 4, 8, 16, 32, 64})
+        for sequence in {case["sequence"] for case in imbps}:
+            shape = [case for case in imbps if case["sequence"] == sequence]
+            self.assertEqual(
+                min(case["split"] for case in shape),
+                shape[0]["equation13_author_power_of_two_candidate"],
+            )
         self.assertTrue(
             all(
                 not case["equation12_fits"]
