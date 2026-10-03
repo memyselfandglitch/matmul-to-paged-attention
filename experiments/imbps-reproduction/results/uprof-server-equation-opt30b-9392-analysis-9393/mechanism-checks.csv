@@ -1,0 +1,7 @@
+model,batch,sequence,rows,equation13_author_power_of_two_candidate,fastest_k_cache_pass,fastest_k_cache_pass_ties,fastest_k_traffic_pass,fastest_k_traffic_pass_ties,minimum_l3_miss_k,minimum_l3_miss_k_ties,maximum_l3_hit_rate_k,maximum_l3_hit_rate_k_ties,minimum_dram_byte_k,minimum_dram_byte_k_ties,maximum_measured_dram_ai_k,maximum_measured_dram_ai_k_ties,cache_pass_common_best_k,traffic_pass_common_best_k,cache_pass_rank_agreement,traffic_pass_rank_agreement,equation_candidate_is_cache_fastest_or_tied,equation_candidate_is_traffic_fastest_or_tied
+opt30b,16,256,4096,2,8,"[2, 4, 8, 16]",8,[8],4,"[2, 4]",4,[4],16,"[2, 4, 16]",16,"[2, 4, 16]",[4],[],True,False,True,False
+opt30b,16,384,6144,4,4,"[4, 8, 16]",4,"[4, 8, 16, 32]",4,"[4, 8]",4,"[4, 8]",4,"[4, 8, 16]",4,"[4, 8, 16]","[4, 8]","[4, 8, 16]",True,True,True,True
+opt30b,16,768,12288,8,8,"[8, 16, 32]",8,"[8, 16, 32]",8,[8],8,[8],8,[8],8,[8],[8],[8],True,True,True,True
+opt30b,16,1024,16384,16,32,"[16, 32, 64]",32,[32],16,[16],16,[16],16,[16],16,[16],[16],[],True,False,True,False
+opt30b,16,1408,22528,32,64,"[32, 64]",64,[64],32,[32],32,[32],32,[32],32,[32],[32],[],True,False,True,False
+opt30b,16,1536,24576,64,64,[64],64,[64],64,[64],64,[64],64,[64],64,[64],[64],[64],True,True,True,True

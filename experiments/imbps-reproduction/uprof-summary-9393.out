@@ -1,0 +1,272 @@
+[
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 256,
+    "rows": 4096,
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 8,
+    "fastest_k_cache_pass_ties": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "fastest_k_traffic_pass": 8,
+    "fastest_k_traffic_pass_ties": [
+      8
+    ],
+    "minimum_l3_miss_k": 4,
+    "minimum_l3_miss_k_ties": [
+      2,
+      4
+    ],
+    "maximum_l3_hit_rate_k": 4,
+    "maximum_l3_hit_rate_k_ties": [
+      4
+    ],
+    "minimum_dram_byte_k": 16,
+    "minimum_dram_byte_k_ties": [
+      2,
+      4,
+      16
+    ],
+    "maximum_measured_dram_ai_k": 16,
+    "maximum_measured_dram_ai_k_ties": [
+      2,
+      4,
+      16
+    ],
+    "cache_pass_common_best_k": [
+      4
+    ],
+    "traffic_pass_common_best_k": [],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": false,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 384,
+    "rows": 6144,
+    "equation13_author_power_of_two_candidate": 4,
+    "fastest_k_cache_pass": 4,
+    "fastest_k_cache_pass_ties": [
+      4,
+      8,
+      16
+    ],
+    "fastest_k_traffic_pass": 4,
+    "fastest_k_traffic_pass_ties": [
+      4,
+      8,
+      16,
+      32
+    ],
+    "minimum_l3_miss_k": 4,
+    "minimum_l3_miss_k_ties": [
+      4,
+      8
+    ],
+    "maximum_l3_hit_rate_k": 4,
+    "maximum_l3_hit_rate_k_ties": [
+      4,
+      8
+    ],
+    "minimum_dram_byte_k": 4,
+    "minimum_dram_byte_k_ties": [
+      4,
+      8,
+      16
+    ],
+    "maximum_measured_dram_ai_k": 4,
+    "maximum_measured_dram_ai_k_ties": [
+      4,
+      8,
+      16
+    ],
+    "cache_pass_common_best_k": [
+      4,
+      8
+    ],
+    "traffic_pass_common_best_k": [
+      4,
+      8,
+      16
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 768,
+    "rows": 12288,
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_k_cache_pass": 8,
+    "fastest_k_cache_pass_ties": [
+      8,
+      16,
+      32
+    ],
+    "fastest_k_traffic_pass": 8,
+    "fastest_k_traffic_pass_ties": [
+      8,
+      16,
+      32
+    ],
+    "minimum_l3_miss_k": 8,
+    "minimum_l3_miss_k_ties": [
+      8
+    ],
+    "maximum_l3_hit_rate_k": 8,
+    "maximum_l3_hit_rate_k_ties": [
+      8
+    ],
+    "minimum_dram_byte_k": 8,
+    "minimum_dram_byte_k_ties": [
+      8
+    ],
+    "maximum_measured_dram_ai_k": 8,
+    "maximum_measured_dram_ai_k_ties": [
+      8
+    ],
+    "cache_pass_common_best_k": [
+      8
+    ],
+    "traffic_pass_common_best_k": [
+      8
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 1024,
+    "rows": 16384,
+    "equation13_author_power_of_two_candidate": 16,
+    "fastest_k_cache_pass": 32,
+    "fastest_k_cache_pass_ties": [
+      16,
+      32,
+      64
+    ],
+    "fastest_k_traffic_pass": 32,
+    "fastest_k_traffic_pass_ties": [
+      32
+    ],
+    "minimum_l3_miss_k": 16,
+    "minimum_l3_miss_k_ties": [
+      16
+    ],
+    "maximum_l3_hit_rate_k": 16,
+    "maximum_l3_hit_rate_k_ties": [
+      16
+    ],
+    "minimum_dram_byte_k": 16,
+    "minimum_dram_byte_k_ties": [
+      16
+    ],
+    "maximum_measured_dram_ai_k": 16,
+    "maximum_measured_dram_ai_k_ties": [
+      16
+    ],
+    "cache_pass_common_best_k": [
+      16
+    ],
+    "traffic_pass_common_best_k": [],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": false,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 1408,
+    "rows": 22528,
+    "equation13_author_power_of_two_candidate": 32,
+    "fastest_k_cache_pass": 64,
+    "fastest_k_cache_pass_ties": [
+      32,
+      64
+    ],
+    "fastest_k_traffic_pass": 64,
+    "fastest_k_traffic_pass_ties": [
+      64
+    ],
+    "minimum_l3_miss_k": 32,
+    "minimum_l3_miss_k_ties": [
+      32
+    ],
+    "maximum_l3_hit_rate_k": 32,
+    "maximum_l3_hit_rate_k_ties": [
+      32
+    ],
+    "minimum_dram_byte_k": 32,
+    "minimum_dram_byte_k_ties": [
+      32
+    ],
+    "maximum_measured_dram_ai_k": 32,
+    "maximum_measured_dram_ai_k_ties": [
+      32
+    ],
+    "cache_pass_common_best_k": [
+      32
+    ],
+    "traffic_pass_common_best_k": [],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": false,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 1536,
+    "rows": 24576,
+    "equation13_author_power_of_two_candidate": 64,
+    "fastest_k_cache_pass": 64,
+    "fastest_k_cache_pass_ties": [
+      64
+    ],
+    "fastest_k_traffic_pass": 64,
+    "fastest_k_traffic_pass_ties": [
+      64
+    ],
+    "minimum_l3_miss_k": 64,
+    "minimum_l3_miss_k_ties": [
+      64
+    ],
+    "maximum_l3_hit_rate_k": 64,
+    "maximum_l3_hit_rate_k_ties": [
+      64
+    ],
+    "minimum_dram_byte_k": 64,
+    "minimum_dram_byte_k_ties": [
+      64
+    ],
+    "maximum_measured_dram_ai_k": 64,
+    "maximum_measured_dram_ai_k_ties": [
+      64
+    ],
+    "cache_pass_common_best_k": [
+      64
+    ],
+    "traffic_pass_common_best_k": [
+      64
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true
+  }
+]
+uProf mechanism analysis: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-server-equation-opt30b-9392-analysis-9393

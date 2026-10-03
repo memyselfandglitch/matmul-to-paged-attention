@@ -1,0 +1,129 @@
+[
+  {
+    "model": "opt30b",
+    "batch": 16,
+    "sequence": 1920,
+    "rows": 30720,
+    "equation13_author_power_of_two_candidate": null,
+    "fastest_k_cache_pass": 4,
+    "fastest_k_cache_pass_ties": [
+      4,
+      8
+    ],
+    "fastest_k_traffic_pass": 4,
+    "fastest_k_traffic_pass_ties": [
+      4,
+      8
+    ],
+    "minimum_l3_miss_k": 8,
+    "minimum_l3_miss_k_ties": [
+      8,
+      16
+    ],
+    "maximum_l3_hit_rate_k": 8,
+    "maximum_l3_hit_rate_k_ties": [
+      8
+    ],
+    "minimum_dram_byte_k": 8,
+    "minimum_dram_byte_k_ties": [
+      8
+    ],
+    "maximum_measured_dram_ai_k": 8,
+    "maximum_measured_dram_ai_k_ties": [
+      8
+    ],
+    "cache_pass_common_best_k": [
+      8
+    ],
+    "traffic_pass_common_best_k": [
+      8
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": false,
+    "equation_candidate_is_traffic_fastest_or_tied": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 32,
+    "sequence": 1920,
+    "rows": 61440,
+    "equation13_author_power_of_two_candidate": null,
+    "fastest_k_cache_pass": 8,
+    "fastest_k_cache_pass_ties": [
+      8
+    ],
+    "fastest_k_traffic_pass": 8,
+    "fastest_k_traffic_pass_ties": [
+      8
+    ],
+    "minimum_l3_miss_k": 8,
+    "minimum_l3_miss_k_ties": [
+      8
+    ],
+    "maximum_l3_hit_rate_k": 8,
+    "maximum_l3_hit_rate_k_ties": [
+      8
+    ],
+    "minimum_dram_byte_k": 8,
+    "minimum_dram_byte_k_ties": [
+      8
+    ],
+    "maximum_measured_dram_ai_k": 8,
+    "maximum_measured_dram_ai_k_ties": [
+      8
+    ],
+    "cache_pass_common_best_k": [
+      8
+    ],
+    "traffic_pass_common_best_k": [
+      8
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": false,
+    "equation_candidate_is_traffic_fastest_or_tied": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 64,
+    "sequence": 1920,
+    "rows": 122880,
+    "equation13_author_power_of_two_candidate": null,
+    "fastest_k_cache_pass": 8,
+    "fastest_k_cache_pass_ties": [
+      8
+    ],
+    "fastest_k_traffic_pass": 8,
+    "fastest_k_traffic_pass_ties": [
+      8
+    ],
+    "minimum_l3_miss_k": 8,
+    "minimum_l3_miss_k_ties": [
+      8
+    ],
+    "maximum_l3_hit_rate_k": 8,
+    "maximum_l3_hit_rate_k_ties": [
+      8
+    ],
+    "minimum_dram_byte_k": 8,
+    "minimum_dram_byte_k_ties": [
+      8
+    ],
+    "maximum_measured_dram_ai_k": 8,
+    "maximum_measured_dram_ai_k_ties": [
+      8
+    ],
+    "cache_pass_common_best_k": [
+      8
+    ],
+    "traffic_pass_common_best_k": [
+      8
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": false,
+    "equation_candidate_is_traffic_fastest_or_tied": false
+  }
+]
+uProf mechanism analysis: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-table-ii-9390-analysis-9391
