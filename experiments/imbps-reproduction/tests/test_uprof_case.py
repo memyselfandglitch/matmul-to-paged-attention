@@ -4,7 +4,11 @@ import argparse
 import unittest
 from pathlib import Path
 
-from src.run_uprof_case import build_profiler_command, build_worker_command
+from src.run_uprof_case import (
+    build_gate_command,
+    build_profiler_command,
+    build_worker_command,
+)
 
 
 class UprofCommandTests(unittest.TestCase):
@@ -28,16 +32,25 @@ class UprofCommandTests(unittest.TestCase):
             iterations=3,
             setup_timeout_seconds=1800,
             profiler_start_timeout_seconds=30,
+            measurement_timeout_seconds=7200,
         )
 
-    def test_profiler_uses_only_pid_compatible_scope_options(self) -> None:
-        command = build_profiler_command(self.args, 1234, Path("out.csv"))
-        self.assertIn("-p", command)
-        self.assertIn("1234", command)
-        self.assertNotIn("--wait-for-signal", command)
-        self.assertNotIn("-c", command)
+    def test_profiler_wraps_gate_with_package_scoped_counters(self) -> None:
+        gate = ["python", "gate.py"]
+        command = build_profiler_command(self.args, gate, Path("out.csv"))
+        self.assertIn("-c", command)
+        self.assertIn("package=0", command)
+        self.assertIn("--", command)
+        self.assertEqual(command[-2:], gate)
+        self.assertNotIn("-p", command)
         self.assertNotIn("-A", command)
         self.assertNotIn("-a", command)
+
+    def test_gate_releases_worker_and_waits_for_output(self) -> None:
+        command = build_gate_command(Path("start"), Path("done"), 60)
+        self.assertIn("--start-file", command)
+        self.assertIn("--done-file", command)
+        self.assertIn("60", command)
 
     def test_worker_is_pinned_and_has_readiness_gate(self) -> None:
         command = build_worker_command(

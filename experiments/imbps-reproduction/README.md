@@ -326,15 +326,14 @@ echo "uProf counter pilot: ${pilot_id}"
 
 The pilot profiles Table-II `B=16, SL=1920` for TPP K=1 and IMBPS K=4 in
 separate cache (`ipc,l2,l3`) and traffic (`memory`) passes. It scopes uProf to
-its PID-compatible native component granularity, excludes preprocessing and
-three warmups with perf-mode PID attachment after the worker's readiness
-barrier, and preserves all component rows. Analysis maps socket-0 components as
-primary and socket-1 components as a background control. The pilot measures
-three MLP invocations and preserves the raw CSV, logs, benchmark JSON, exact
-command, and environment. Do not launch the full counter matrix until the raw
-scope is mapped and neither pass is multiplexed.
-Before allocating the model, the job validates both exact PID-attach metric
-commands against a five-second process and preserves those option-probe logs.
+package 0 and excludes preprocessing and three warmups by holding the worker at
+a readiness barrier. uProf profiles a small gate application that releases the
+pre-warmed worker and waits for its measured output. This is required because
+the installed uProf supports only core metrics with `-p`; L3 and DF counters
+must use package-scoped application mode. The pilot measures three MLP
+invocations and preserves the raw CSV, logs, benchmark JSON, exact command, and
+environment. Before allocating the model, it validates both exact profiling
+commands against a two-second application and preserves those probe logs.
 
 `run_perf_matrix.py` warms up first, discovers all worker TIDs, attaches
 `perf stat` to those threads, and only then releases the measured loop. Generic

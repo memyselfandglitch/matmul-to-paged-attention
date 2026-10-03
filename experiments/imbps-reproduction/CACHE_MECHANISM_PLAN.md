@@ -68,12 +68,13 @@ It is a mechanism control, not a reproduction of Table II.
 
 1. Keep timing and counter collection in separate exclusive jobs.
 2. Warm up and preprocess weights before enabling counters.
-3. Profile only the measured loop. In perf mode, attach uProf by PID after the
-   worker's warmup/readiness barrier, then release the measured loop.
-4. The installed uProf rejects `-p` with either `-c` or `-A`. Use perf-mode PID
-   attachment without collection-scope or aggregation flags, preserve uProf's
-   native per-component rows, and map only socket-0 components during analysis.
-   Preserve socket-1 components as a background-contamination control.
+3. Profile only the measured loop. Pre-warm the worker behind a readiness
+   barrier, then launch uProf in package-scoped application mode around a small
+   gate process. The gate releases the worker and remains alive until the
+   measured output is complete.
+4. Use `-c package=0` without `-a` or aggregation flags. The installed uProf
+   supports only core metrics with PID attachment, so `-p` cannot be used for
+   the L3/DF mechanism study.
 5. Use separate counter passes if uProf reports multiplexing or incompatible
    metric groups:
    - cache pass: `ipc,l2,l3`;
