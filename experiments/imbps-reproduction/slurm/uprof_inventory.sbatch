@@ -31,6 +31,12 @@ cd "${PROJECT_ROOT}"
   command -v perf || true
   cat /proc/sys/kernel/perf_event_paranoid 2>/dev/null || true
   ls -l /dev/cpu/0/msr 2>/dev/null || true
+  test -r /dev/cpu/0/msr && echo "msr_readable=yes" || echo "msr_readable=no"
+  test -w /dev/cpu/0/msr && echo "msr_writable=yes" || echo "msr_writable=no"
+  grep -E '^(amd_uncore|msr) ' /proc/modules || true
+  find /sys/bus/event_source/devices -maxdepth 1 -type l \
+    \( -name 'amd_l3' -o -name 'amd_df' -o -name 'cpu' \) \
+    -printf '%f -> %l\n' 2>/dev/null | sort
 } > "${RESULT_DIR}/environment.txt" 2>&1
 
 declare -a UPROF_CANDIDATES=()

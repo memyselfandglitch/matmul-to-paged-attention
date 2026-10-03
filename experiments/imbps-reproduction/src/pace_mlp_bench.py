@@ -226,6 +226,8 @@ def main() -> None:
             "omp_num_threads": os.environ.get("OMP_NUM_THREADS"),
             "omp_proc_bind": os.environ.get("OMP_PROC_BIND"),
             "omp_places": os.environ.get("OMP_PLACES"),
+            "omp_wait_policy": os.environ.get("OMP_WAIT_POLICY"),
+            "omp_dynamic": os.environ.get("OMP_DYNAMIC"),
             "gomp_cpu_affinity": os.environ.get("GOMP_CPU_AFFINITY"),
             "imbps_block_size": os.environ.get("IMBPS_BLOCK_SIZE"),
             "libxsmm_block_size": os.environ.get("LIBXSMM_BLOCK_SIZE"),

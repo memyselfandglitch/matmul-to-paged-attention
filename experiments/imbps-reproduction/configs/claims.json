@@ -98,6 +98,52 @@
       "splits": [2, 4, 8, 16],
       "targets": {},
       "design_note": "Equation 12 predicts that both the TPP K=1 baseline and every IMBPS candidate fit within 384 MiB."
+    },
+    "autotune_thread_wait": {
+      "dtype": "bf16",
+      "cache_mib": 384,
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1920},
+        {"model": "opt30b", "batch": 1, "sequence": 2048},
+        {"model": "opt30b", "batch": 1, "sequence": 3840},
+        {"model": "opt30b", "batch": 1, "sequence": 4096}
+      ],
+      "splits": [2, 4, 8, 16],
+      "targets": {},
+      "design_note": "Stage-A pilot around the observed M=1920-4096 performance discontinuity. Slurm arrays vary OpenMP wait policy and complete-CCD thread counts while every worker sees the same flattened M x H input shape."
+    },
+    "autotune_split_width": {
+      "dtype": "bf16",
+      "cache_mib": 384,
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1792},
+        {"model": "opt30b", "batch": 1, "sequence": 1920},
+        {"model": "opt30b", "batch": 1, "sequence": 2048},
+        {"model": "opt30b", "batch": 1, "sequence": 2304},
+        {"model": "opt30b", "batch": 1, "sequence": 3584},
+        {"model": "opt30b", "batch": 1, "sequence": 3840},
+        {"model": "opt30b", "batch": 1, "sequence": 4096},
+        {"model": "opt30b", "batch": 1, "sequence": 4352}
+      ],
+      "splits": [2, 4, 7, 8, 14, 16, 28, 32],
+      "targets": {},
+      "design_note": "Stage-B dense row-count and aligned split-width sweep. K=7/14/28 create intermediate blocks of 4096/2048/1024, respectively, while all listed splits divide OPT-30B I=28672 exactly."
+    },
+    "autotune_equal_rows": {
+      "dtype": "bf16",
+      "cache_mib": 384,
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 4096},
+        {"model": "opt30b", "batch": 2, "sequence": 2048},
+        {"model": "opt30b", "batch": 4, "sequence": 1024},
+        {"model": "opt30b", "batch": 16, "sequence": 256}
+      ],
+      "splits": [2, 4, 7, 8],
+      "targets": {},
+      "design_note": "Shape-invariance control: all cases flatten to M=4096 and should be equivalent to the standalone PACE operator."
     }
   },
   "e2e": {

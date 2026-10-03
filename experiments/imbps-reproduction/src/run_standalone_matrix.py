@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import random
 import statistics
 import subprocess
@@ -40,6 +41,9 @@ def parse_args() -> argparse.Namespace:
             "decode_exploratory",
             "cache_fit_opt30b",
             "cache_resident_control",
+            "autotune_thread_wait",
+            "autotune_split_width",
+            "autotune_equal_rows",
         ),
         required=True,
     )
@@ -96,6 +100,11 @@ def build_cases(registry: dict[str, Any], claim: dict[str, Any]) -> list[dict[st
             ("imbps", split) for split in claim["splits"]
         ]
         for backend, split in variants:
+            if model["intermediate"] % split != 0:
+                raise ValueError(
+                    f"{model_name} intermediate={model['intermediate']} is not "
+                    f"divisible by K={split}"
+                )
             case = {
                 "model": model_name,
                 "backend": backend,
@@ -401,6 +410,18 @@ def main() -> None:
             "threads": args.threads,
             "case_timeout_seconds": args.case_timeout_seconds,
             "retry_policy": "none",
+        },
+        "environment": {
+            "omp_num_threads": os.environ.get("OMP_NUM_THREADS"),
+            "omp_proc_bind": os.environ.get("OMP_PROC_BIND"),
+            "omp_places": os.environ.get("OMP_PLACES"),
+            "omp_dynamic": os.environ.get("OMP_DYNAMIC"),
+            "omp_wait_policy": os.environ.get("OMP_WAIT_POLICY"),
+            "gomp_cpu_affinity": os.environ.get("GOMP_CPU_AFFINITY"),
+            "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+            "slurm_array_job_id": os.environ.get("SLURM_ARRAY_JOB_ID"),
+            "slurm_array_task_id": os.environ.get("SLURM_ARRAY_TASK_ID"),
+            "process_affinity": sorted(os.sched_getaffinity(0)),
         },
         "cases_per_round": base_cases,
     }

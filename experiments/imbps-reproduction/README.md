@@ -228,6 +228,56 @@ Each summary records `cache_mib`, `equation12_working_set_mib`, and
 `equation12_fits`. These are analytical classifications, not measured cache
 occupancy; uProf counters remain necessary for the mechanism claim.
 
+### Topology-aware autotuning pilot
+
+The improvement study is deliberately staged. First compare active/passive
+OpenMP waiting at 96 cores, then sweep thread counts in complete eight-core L3
+groups. Each array is serialized (`%1`) because every element requests the node
+exclusively. Submit only the wait-policy stage first:
+
+```bash
+wait_id=$(sbatch --parsable slurm/autotune_wait.sbatch)
+echo "Wait-policy array: ${wait_id}"
+```
+
+The wait-policy array compares `ACTIVE` and `PASSIVE` at 96 threads. The thread
+array tests 8/16/24/32/48/64/96 threads. Every thread count is formed from
+complete sysfs-discovered LLC-sharing groups; the scripts fail rather than
+splitting a CCD. After both wait-policy tasks finish, summarize them and submit
+the thread array with the winning policy explicitly:
+
+```bash
+python src/summarize_autotune.py results/autotune-wait-*
+
+threads_id=$(sbatch --parsable \
+  --export=ALL,AUTOTUNE_WAIT_POLICY=SELECTED_WAIT_POLICY \
+  slurm/autotune_threads.sbatch)
+echo "Thread-count array: ${threads_id}"
+```
+
+After both arrays complete, combine their summaries:
+
+```bash
+python src/summarize_autotune.py \
+  results/autotune-wait-* \
+  results/autotune-threads-*
+```
+
+Use the selected complete-CCD thread count for the dense row-count and aligned
+split-width sweep. This tests K=7/14/28 as well as the power-of-two candidates,
+then runs an equal-row control where four `(B, SL)` pairs all flatten to
+`M=4096`:
+
+```bash
+split_id=$(sbatch --parsable \
+  --export=ALL,AUTOTUNE_THREADS=SELECTED_THREADS,AUTOTUNE_WAIT_POLICY=ACTIVE \
+  slurm/autotune_split_width.sbatch)
+echo "Split-width job: ${split_id}"
+```
+
+Do not submit the split-width job until the pilot chooses `SELECTED_THREADS`.
+The default is 96 only as an explicit fallback.
+
 ## Stage 5 - Table VIII split sensitivity
 
 Start with one model, because the full matrix is expensive:
@@ -242,11 +292,23 @@ uses the IMBPS fused operator.
 
 ## Stage 6 - hardware counters
 
-First inventory the installed AMD uProf version, supported metrics, and MSR
-access through Slurm:
+First inventory the installed AMD uProf version, supported metrics, loaded PMU
+modules, and access through Slurm. After an administrator changes the setup,
+run both access modes; perf mode is preferred when `amd_l3` and `amd_df` are
+available:
 
 ```bash
-sbatch slurm/uprof_inventory.sbatch
+uprof_perf_id=$(sbatch --parsable \
+  --export=ALL,UPROF_ACCESS_MODE=perf \
+  slurm/uprof_inventory.sbatch)
+
+uprof_msr_id=$(sbatch --parsable \
+  --dependency="afterany:${uprof_perf_id}" \
+  --export=ALL,UPROF_ACCESS_MODE=msr \
+  slurm/uprof_inventory.sbatch)
+
+echo "uProf perf probe: ${uprof_perf_id}"
+echo "uProf MSR probe: ${uprof_msr_id}"
 ```
 
 Use `CACHE_MECHANISM_PLAN.md` as the preregistered analysis contract. Timing and
