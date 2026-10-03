@@ -316,6 +316,22 @@ profiling are separate exclusive jobs: never run uProf concurrently with the
 confirmatory timing matrix. Build the uProf command from the inventory output
 so the installed version's exact metric names and scope are preserved.
 
+After both inventory probes succeed, run the counter pilot before the full
+matrix:
+
+```bash
+pilot_id=$(sbatch --parsable slurm/uprof_counter_pilot.sbatch)
+echo "uProf counter pilot: ${pilot_id}"
+```
+
+The pilot profiles Table-II `B=16, SL=1920` for TPP K=1 and IMBPS K=4 in
+separate cache (`ipc,l2,l3`) and traffic (`memory`) passes. It scopes uProf to
+`package=0`, excludes preprocessing and three warmups with
+perf-mode PID attachment after the worker's readiness barrier, measures three
+MLP invocations, and preserves the raw CSV, logs, benchmark JSON, exact command,
+and environment. Do not launch the full counter matrix until the pilot confirms
+that only package 0 is reported and that neither pass is multiplexed.
+
 `run_perf_matrix.py` warms up first, discovers all worker TIDs, attaches
 `perf stat` to those threads, and only then releases the measured loop. Generic
 `cache-misses` is **not automatically labeled L3**. Add an AMD event only after
