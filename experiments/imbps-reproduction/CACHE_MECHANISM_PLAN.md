@@ -27,7 +27,8 @@ both hits and misses.
 ## Setup
 
 - **Framework:** Python 3.11.4, PyTorch 2.7.0+cpu, PACE 1.0.0.
-- **Hardware:** `mn01`, one EPYC 9654 socket, NUMA node 0, 96 physical cores.
+- **Hardware:** `mn01`, dual-socket EPYC 9654 host; the Slurm allocation is
+  restricted to package/socket 0, NUMA node 0, and 96 physical cores.
 - **Scheduler:** `jobmn01`, exclusive Slurm allocation; no nested `srun`.
 - **Profiler:** AMD uProf PCM using the installed version and metric names
   captured by `slurm/uprof_inventory.sbatch`.
@@ -69,14 +70,16 @@ It is a mechanism control, not a reproduction of Table II.
 2. Warm up and preprocess weights before enabling counters.
 3. Profile only the measured loop. Use a barrier/controller when AMD MSR mode
    cannot attach to an existing process.
-4. Use separate counter passes if uProf reports multiplexing or incompatible
+4. Scope AMD uProf explicitly with `-c package=0`; never use `-a` on this
+   dual-socket host. Preserve package-level aggregation in the raw CSV.
+5. Use separate counter passes if uProf reports multiplexing or incompatible
    metric groups:
    - cache pass: `ipc,l2,l3`;
    - traffic/compute pass: `fp,memory` or AMD roofline.
-5. Run at least five randomized paired rounds with a fresh process per case.
-6. Preserve raw profiler output, exact command, tool version, metric scope,
+6. Run at least five randomized paired rounds with a fresh process per case.
+7. Preserve raw profiler output, exact command, tool version, metric scope,
    aggregation level, and measurement duration.
-7. Normalize cumulative counters per measured MLP invocation. Never compare raw
+8. Normalize cumulative counters per measured MLP invocation. Never compare raw
    counts from runs with different iteration counts.
 
 ## Arithmetic-intensity definitions
