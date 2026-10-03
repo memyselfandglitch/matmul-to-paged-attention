@@ -326,11 +326,13 @@ echo "uProf counter pilot: ${pilot_id}"
 
 The pilot profiles Table-II `B=16, SL=1920` for TPP K=1 and IMBPS K=4 in
 separate cache (`ipc,l2,l3`) and traffic (`memory`) passes. It scopes uProf to
-`package=0`, excludes preprocessing and three warmups with
-perf-mode PID attachment after the worker's readiness barrier, measures three
-MLP invocations, and preserves the raw CSV, logs, benchmark JSON, exact command,
-and environment. Do not launch the full counter matrix until the pilot confirms
-that only package 0 is reported and that neither pass is multiplexed.
+package-level aggregation, excludes preprocessing and three warmups with
+perf-mode PID attachment after the worker's readiness barrier, and treats
+package 0 as primary while retaining package 1 as a background control. It
+measures three MLP invocations and preserves the raw CSV, logs, benchmark JSON,
+exact command, and environment. Do not launch the full counter matrix until the
+pilot confirms that package 0 dominates package 1 and neither pass is
+multiplexed.
 
 `run_perf_matrix.py` warms up first, discovers all worker TIDs, attaches
 `perf stat` to those threads, and only then releases the measured loop. Generic

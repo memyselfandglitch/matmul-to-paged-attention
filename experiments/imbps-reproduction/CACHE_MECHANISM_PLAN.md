@@ -70,8 +70,10 @@ It is a mechanism control, not a reproduction of Table II.
 2. Warm up and preprocess weights before enabling counters.
 3. Profile only the measured loop. In perf mode, attach uProf by PID after the
    worker's warmup/readiness barrier, then release the measured loop.
-4. Scope AMD uProf explicitly with `-c package=0`; never use `-a` on this
-   dual-socket host. Preserve package-level aggregation in the raw CSV.
+4. The installed uProf rejects `-p` together with `-c`. Use perf-mode PID
+   attachment with package-level aggregation, treat package 0 as the primary
+   measurement, and preserve package 1 as a background-contamination control.
+   Never use system-level aggregation on this dual-socket host.
 5. Use separate counter passes if uProf reports multiplexing or incompatible
    metric groups:
    - cache pass: `ipc,l2,l3`;

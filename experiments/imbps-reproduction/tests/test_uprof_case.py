@@ -30,12 +30,13 @@ class UprofCommandTests(unittest.TestCase):
             profiler_start_timeout_seconds=30,
         )
 
-    def test_profiler_is_package_scoped_and_pid_attached(self) -> None:
+    def test_profiler_is_package_aggregated_and_pid_attached(self) -> None:
         command = build_profiler_command(self.args, 1234, Path("out.csv"))
-        self.assertIn("package=0", command)
+        self.assertIn("package", command)
         self.assertIn("-p", command)
         self.assertIn("1234", command)
         self.assertNotIn("--wait-for-signal", command)
+        self.assertNotIn("-c", command)
         self.assertNotIn("-a", command)
 
     def test_worker_is_pinned_and_has_readiness_gate(self) -> None:

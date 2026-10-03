@@ -44,6 +44,8 @@ export OMP_PROC_BIND=close
 export OMP_PLACES=cores
 export OMP_DYNAMIC=false
 export OMP_WAIT_POLICY=ACTIVE
+export NUMEXPR_MAX_THREADS="${THREADS}"
+export NUMEXPR_NUM_THREADS="${THREADS}"
 export LIBXSMM_BLOCK_SIZE=32
 export EXPECTED_PHYSICAL_CORES="${SLURM_CPUS_PER_TASK}"
 export REQUIRE_SINGLE_SOCKET=1
@@ -53,7 +55,7 @@ numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
 mkdir -p "${RESULT_ROOT}"
 {
   echo "uprof_binary=${UPROF_BIN}"
-  echo "counter_scope=package=0"
+  echo "counter_scope=PID attach with package aggregation; package 0 is primary"
   echo "cpu_list=${CPU_LIST}"
   echo "slurm_job_id=${SLURM_JOB_ID}"
 } > "${RESULT_ROOT}/pilot-environment.txt"
