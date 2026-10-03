@@ -55,10 +55,33 @@ numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
 mkdir -p "${RESULT_ROOT}"
 {
   echo "uprof_binary=${UPROF_BIN}"
-  echo "counter_scope=PID attach with package aggregation; package 0 is primary"
+  echo "counter_scope=PID attach with native uProf component granularity"
   echo "cpu_list=${CPU_LIST}"
   echo "slurm_job_id=${SLURM_JOB_ID}"
 } > "${RESULT_ROOT}/pilot-environment.txt"
+
+validate_pid_attach() {
+  local label="$1"
+  local metrics="$2"
+  local probe_csv="${RESULT_ROOT}/option-probe-${label}.csv"
+  local probe_log="${RESULT_ROOT}/option-probe-${label}.log"
+  /bin/sleep 5 &
+  local target_pid=$!
+  set +e
+  "${UPROF_BIN}" -X -m "${metrics}" -C -p "${target_pid}" \
+    -o "${probe_csv}" > "${probe_log}" 2>&1
+  local status=$?
+  set -e
+  wait "${target_pid}" 2>/dev/null || true
+  if (( status != 0 )); then
+    cat "${probe_log}" >&2
+    echo "uProf PID-attach option probe failed for ${metrics}" >&2
+    exit "${status}"
+  fi
+}
+
+validate_pid_attach cache ipc,l2,l3
+validate_pid_attach traffic memory
 
 for pass in cache traffic; do
   if [[ "${pass}" == cache ]]; then
