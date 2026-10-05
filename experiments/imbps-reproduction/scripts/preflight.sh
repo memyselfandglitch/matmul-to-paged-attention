@@ -27,7 +27,7 @@ if command -v perf >/dev/null 2>&1; then
 fi
 
 if command -v env >/dev/null 2>&1; then
-  env | grep -E '^(OMP_|GOMP_|KMP_|IMBPS_|LIBXSMM_|DNNL_|MALLOC_CONF|SLURM_)' \
+  env | grep -E '^(OMP_|GOMP_|KMP_|IMBPS_|LIBXSMM_|DNNL_|MALLOC_CONF|LD_PRELOAD|TCMALLOC_|REQUIRE_TCMALLOC|SLURM_)' \
     | sort > "${RESULT_DIR}/benchmark-environment.txt" || true
 fi
 

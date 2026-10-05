@@ -67,6 +67,43 @@
       "splits": [2, 4, 8],
       "targets": {}
     },
+    "decode_l2_opt30b": {
+      "dtype": "bf16",
+      "cache_level": "l2",
+      "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+      "cache_mib": 96,
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1},
+        {"model": "opt30b", "batch": 2, "sequence": 1},
+        {"model": "opt30b", "batch": 4, "sequence": 1},
+        {"model": "opt30b", "batch": 8, "sequence": 1},
+        {"model": "opt30b", "batch": 16, "sequence": 1},
+        {"model": "opt30b", "batch": 32, "sequence": 1},
+        {"model": "opt30b", "batch": 64, "sequence": 1},
+        {"model": "opt30b", "batch": 128, "sequence": 1},
+        {"model": "opt30b", "batch": 256, "sequence": 1},
+        {"model": "opt30b", "batch": 512, "sequence": 1},
+        {"model": "opt30b", "batch": 1024, "sequence": 1}
+      ],
+      "splits": [2, 4, 7, 8, 14, 16, 28, 32],
+      "uprof_cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1},
+        {"model": "opt30b", "batch": 8, "sequence": 1},
+        {"model": "opt30b", "batch": 32, "sequence": 1},
+        {"model": "opt30b", "batch": 128, "sequence": 1},
+        {"model": "opt30b", "batch": 512, "sequence": 1},
+        {"model": "opt30b", "batch": 1024, "sequence": 1}
+      ],
+      "uprof_splits": [4, 7, 8, 14, 16],
+      "semantic_mappings": {
+        "normal_decode": "active_rows equals live batch size",
+        "speculative_verification": "active_rows equals live batch size times verified draft-token count",
+        "draft_token_counts": [2, 4, 8]
+      },
+      "targets": {},
+      "design_note": "Standalone OPT-30B MLP threshold study for normal decode and speculative-verification work. Equation 13 is evaluated with mn01's aggregate 96 MiB of private L2 only as an author-hinted placement hypothesis. K=7 is the smallest aligned legal split above the bound for these rows; K=8 is the next-power-of-two policy. Timing covers every unique active-row count once because the standalone MLP sees only M=B*gamma, not the B/gamma decomposition."
+    },
     "cache_fit_opt30b": {
       "dtype": "bf16",
       "cache_mib": 384,

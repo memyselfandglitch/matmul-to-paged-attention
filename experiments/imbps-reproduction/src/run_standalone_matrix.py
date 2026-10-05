@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import os
 import random
 import statistics
@@ -17,9 +18,21 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from .cache_model import MIB, working_set_bytes
+    from .cache_model import (
+        MIB,
+        equation13_lower_bound,
+        next_power_of_two_candidate,
+        strict_integer_candidate,
+        working_set_bytes,
+    )
 except ImportError:  # Direct execution: python src/run_standalone_matrix.py
-    from cache_model import MIB, working_set_bytes
+    from cache_model import (
+        MIB,
+        equation13_lower_bound,
+        next_power_of_two_candidate,
+        strict_integer_candidate,
+        working_set_bytes,
+    )
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -39,6 +52,7 @@ def parse_args() -> argparse.Namespace:
             "table_ii",
             "table_viii",
             "decode_exploratory",
+            "decode_l2_opt30b",
             "cache_fit_opt30b",
             "cache_resident_control",
             "autotune_thread_wait",
@@ -51,6 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--iterations", type=int, default=7)
+    parser.add_argument("--min-measurement-seconds", type=float, default=0.0)
     parser.add_argument("--seed", type=int, default=20251001)
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--case-timeout-seconds", type=float, default=7200)
@@ -62,7 +77,11 @@ def parse_args() -> argparse.Namespace:
         help="rebuild summary files from a completed result directory without rerunning cases",
     )
     args = parser.parse_args()
-    if min(args.rounds, args.iterations) <= 0 or args.warmups < 0:
+    if (
+        min(args.rounds, args.iterations) <= 0
+        or args.warmups < 0
+        or args.min_measurement_seconds < 0
+    ):
         parser.error("rounds/iterations must be positive and warmups nonnegative")
     return args
 
@@ -127,13 +146,32 @@ def build_cases(registry: dict[str, Any], claim: dict[str, Any]) -> list[dict[st
                     bytes_per_element,
                 )
                 cache_bytes = round(claim["cache_mib"] * MIB)
+                lower_bound = equation13_lower_bound(
+                    batch,
+                    sequence,
+                    model["hidden"],
+                    model["intermediate"],
+                    bytes_per_element,
+                    cache_bytes,
+                )
                 case["cache_model"] = {
+                    "cache_level": claim.get("cache_level", "l3"),
+                    "cache_scope": claim.get("cache_scope", "aggregate_shared_cache"),
                     "cache_mib": claim["cache_mib"],
                     "input_mib": working_set.input_bytes / MIB,
                     "split_activation_mib": working_set.split_activation_bytes / MIB,
                     "split_weight_mib": working_set.split_weight_bytes / MIB,
                     "working_set_mib": working_set.total_bytes / MIB,
                     "fits_strict": working_set.total_bytes < cache_bytes,
+                    "equation13_strict_lower_bound": (
+                        lower_bound if math.isfinite(lower_bound) else None
+                    ),
+                    "equation13_strict_integer_candidate": (
+                        strict_integer_candidate(lower_bound)
+                    ),
+                    "equation13_author_power_of_two_candidate": (
+                        next_power_of_two_candidate(lower_bound)
+                    ),
                 }
             cases.append(case)
     fit_requirement = claim.get("fit_requirement")
@@ -268,6 +306,9 @@ def summarize(
                 "backend": backend,
                 "split": split,
                 "rounds": len(values),
+                "active_rows": batch * sequence,
+                "milliseconds_per_active_row": case_median / (batch * sequence),
+                "active_rows_per_second": 1000 * batch * sequence / case_median,
                 "median_ms": case_median,
                 "q1_ms": quantile(values, 0.25),
                 "q3_ms": quantile(values, 0.75),
@@ -277,6 +318,10 @@ def summarize(
                 "paired_speedup_median": statistics.median(paired_speedups),
                 "paired_speedup_ci95_low": speedup_ci_low,
                 "paired_speedup_ci95_high": speedup_ci_high,
+                "paired_speedup_ci95_excludes_one": (
+                    speedup_ci_low > 1 or speedup_ci_high < 1
+                ),
+                "paired_speedup_supports_faster": speedup_ci_low > 1,
                 "paired_relative_time_median": statistics.median(paired_relative_times),
                 "paired_relative_time_ci95_low": relative_ci_low,
                 "paired_relative_time_ci95_high": relative_ci_high,
@@ -294,12 +339,35 @@ def summarize(
                 "paper_l3_miss_reduction_factor": target.get("l3_miss_reduction_factor"),
                 "paper_l3_misses_billions": target.get("l3_misses_billions"),
                 "cache_mib": cache_models.get(key, {}).get("cache_mib"),
+                "cache_level": cache_models.get(key, {}).get("cache_level"),
+                "cache_scope": cache_models.get(key, {}).get("cache_scope"),
                 "equation12_working_set_mib": cache_models.get(key, {}).get(
                     "working_set_mib"
                 ),
                 "equation12_fits": cache_models.get(key, {}).get("fits_strict"),
+                "equation13_strict_lower_bound": cache_models.get(key, {}).get(
+                    "equation13_strict_lower_bound"
+                ),
+                "equation13_strict_integer_candidate": cache_models.get(key, {}).get(
+                    "equation13_strict_integer_candidate"
+                ),
+                "equation13_author_power_of_two_candidate": cache_models.get(
+                    key, {}
+                ).get("equation13_author_power_of_two_candidate"),
             }
         )
+    draft_token_counts = claim.get("semantic_mappings", {}).get(
+        "draft_token_counts", []
+    )
+    for row in summaries:
+        row["normal_decode_batch_equivalent"] = row["active_rows"]
+        for draft_tokens in draft_token_counts:
+            field = f"speculative_batch_equivalent_gamma{draft_tokens}"
+            row[field] = (
+                row["active_rows"] // draft_tokens
+                if row["active_rows"] % draft_tokens == 0
+                else None
+            )
     for row in summaries:
         candidates = [
             candidate
@@ -320,6 +388,11 @@ def summarize(
         row["empirical_best_imbps_split"] = best["split"]
         row["is_empirical_best_imbps"] = (
             row["backend"] == "imbps" and row["split"] == best["split"]
+        )
+        row["equation_candidate_is_empirical_best"] = (
+            best["split"] == row["equation13_author_power_of_two_candidate"]
+            if row["equation13_author_power_of_two_candidate"] is not None
+            else None
         )
         row["paper_reported_best_split"] = paper_best
         row["paper_best_split_reproduced"] = (
@@ -406,6 +479,7 @@ def main() -> None:
             "rounds": args.rounds,
             "warmups": args.warmups,
             "iterations": args.iterations,
+            "min_measurement_seconds": args.min_measurement_seconds,
             "shuffle_seed": args.seed,
             "threads": args.threads,
             "case_timeout_seconds": args.case_timeout_seconds,
@@ -418,6 +492,8 @@ def main() -> None:
             "omp_dynamic": os.environ.get("OMP_DYNAMIC"),
             "omp_wait_policy": os.environ.get("OMP_WAIT_POLICY"),
             "gomp_cpu_affinity": os.environ.get("GOMP_CPU_AFFINITY"),
+            "ld_preload": os.environ.get("LD_PRELOAD"),
+            "tcmalloc_prefix": os.environ.get("TCMALLOC_PREFIX"),
             "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
             "slurm_array_job_id": os.environ.get("SLURM_ARRAY_JOB_ID"),
             "slurm_array_task_id": os.environ.get("SLURM_ARRAY_TASK_ID"),
@@ -463,6 +539,8 @@ def main() -> None:
                 str(args.warmups),
                 "--iterations",
                 str(args.iterations),
+                "--min-measurement-seconds",
+                str(args.min_measurement_seconds),
                 "--seed",
                 "0",
                 "--output",

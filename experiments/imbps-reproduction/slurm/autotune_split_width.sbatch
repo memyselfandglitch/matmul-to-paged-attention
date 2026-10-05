@@ -19,7 +19,7 @@ source .venv/bin/activate
 
 readonly THREADS="${AUTOTUNE_THREADS:-96}"
 readonly WAIT_POLICY="${AUTOTUNE_WAIT_POLICY:-ACTIVE}"
-readonly CPU_LIST="$(python src/select_llc_cpus.py --threads "${THREADS}")"
+readonly CPU_LIST="$(python3 src/select_llc_cpus.py --threads "${THREADS}")"
 readonly RESULT_PREFIX="${PROJECT_ROOT}/results/autotune-splits-${SLURM_JOB_ID}-${WAIT_POLICY}-t${THREADS}"
 
 export OMP_NUM_THREADS="${THREADS}"
@@ -33,11 +33,11 @@ export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
 
 numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
-python src/select_llc_cpus.py --threads "${THREADS}" --json \
+python3 src/select_llc_cpus.py --threads "${THREADS}" --json \
   > "${PROJECT_ROOT}/results/cpu-selection-splits-${SLURM_JOB_ID}.json"
 
 numactl --physcpubind="${CPU_LIST}" --membind=0 \
-  python src/run_standalone_matrix.py \
+  python3 src/run_standalone_matrix.py \
     --claim autotune_split_width \
     --rounds "${ROUNDS:-3}" \
     --warmups "${WARMUPS:-3}" \
@@ -46,7 +46,7 @@ numactl --physcpubind="${CPU_LIST}" --membind=0 \
     --result-dir "${RESULT_PREFIX}-thresholds"
 
 numactl --physcpubind="${CPU_LIST}" --membind=0 \
-  python src/run_standalone_matrix.py \
+  python3 src/run_standalone_matrix.py \
     --claim autotune_equal_rows \
     --rounds "${EQUAL_ROWS_ROUNDS:-3}" \
     --warmups "${WARMUPS:-3}" \

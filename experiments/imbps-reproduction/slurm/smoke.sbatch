@@ -28,27 +28,27 @@ export LIBXSMM_BLOCK_SIZE=32
 
 mkdir -p "${RESULT_DIR}"
 
-numactl --cpunodebind=0 --membind=0 python src/cache_model.py \
+numactl --cpunodebind=0 --membind=0 python3 src/cache_model.py \
   --batch 16 --sequence 1920 --hidden 7168 --intermediate 28672 \
   --bytes-per-element 2 --cache-mib 512 --splits 4 \
   --json > "${RESULT_DIR}/cache-512.json"
 
-numactl --cpunodebind=0 --membind=0 python src/cache_model.py \
+numactl --cpunodebind=0 --membind=0 python3 src/cache_model.py \
   --batch 16 --sequence 1920 --hidden 7168 --intermediate 28672 \
   --bytes-per-element 2 --cache-mib 750 --splits 4 \
   --json > "${RESULT_DIR}/cache-750.json"
 
-numactl --cpunodebind=0 --membind=0 python src/pace_mlp_bench.py \
+numactl --cpunodebind=0 --membind=0 python3 src/pace_mlp_bench.py \
   --backend tpp --batch 1 --sequence 64 \
   --hidden 768 --intermediate 3072 --splits 1 --activation relu \
   --warmups 2 --iterations 5 --output "${RESULT_DIR}/opt125m-tpp.json"
 
-numactl --cpunodebind=0 --membind=0 python src/pace_mlp_bench.py \
+numactl --cpunodebind=0 --membind=0 python3 src/pace_mlp_bench.py \
   --backend imbps --batch 1 --sequence 64 \
   --hidden 768 --intermediate 3072 --splits 4 --activation relu \
   --warmups 2 --iterations 5 --output "${RESULT_DIR}/opt125m-imbps-k4.json"
 
-numactl --cpunodebind=0 --membind=0 python src/check_numerics.py \
+numactl --cpunodebind=0 --membind=0 python3 src/check_numerics.py \
   --hidden 768 --intermediate 3072 --rows 128 \
   --splits 1,2,4,8,16 --dtype bf16 --activation relu \
   --output "${RESULT_DIR}/opt125m-numerics.json"

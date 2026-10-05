@@ -122,11 +122,20 @@ sbatch slurm/bootstrap.sbatch
 The script refuses a PACE checkout whose resolved commit does not match the
 pinned v1.0 commit. It does not install or change system packages.
 
-PACE's performance guide recommends `tcmalloc`, but the paper does not report
-its allocator. Check whether `libtcmalloc.so` is already installed with
-`ldconfig -p | grep tcmalloc`. If you use it, set `LD_PRELOAD` to the exact
-library path before preflight and keep all paired cases under that setting. Do
-not pool allocator-on and allocator-off results.
+The decode extension uses a pinned user-space tcmalloc because mn01 does not
+provide it system-wide. Install gperftools 2.18.1 from the checksum-verified
+official release tarball in an exclusive Slurm job:
+
+```bash
+tcmalloc_id=$(sbatch --parsable slurm/bootstrap_tcmalloc.sbatch)
+echo "tcmalloc build: ${tcmalloc_id}"
+```
+
+The install prefix defaults to
+`/data/scratch/$USER/tools/gperftools-2.18.1`. Measurement launchers source
+`scripts/enable_tcmalloc.sh`, set the exact `LD_PRELOAD` path, and fail unless
+the worker's process map proves that tcmalloc is loaded. Do not pool tcmalloc
+and default-allocator results.
 
 ## Stage 2 - check the analytical model
 
@@ -155,17 +164,17 @@ For the author-described selected-logit check, dump identical first-token
 inputs from separate clean model loads and compare them:
 
 ```bash
-python src/dump_first_token.py \
+python3 src/dump_first_token.py \
   --model facebook/opt-125m --backend tpp --splits 1 \
   --samples 100 --sequence 32 --batch-size 4 \
   --output results/opt125m-tpp-k1.npz
 
-python src/dump_first_token.py \
+python3 src/dump_first_token.py \
   --model facebook/opt-125m --backend imbps --splits 4 \
   --samples 100 --sequence 32 --batch-size 4 \
   --output results/opt125m-imbps-k4.npz
 
-python src/compare_first_token.py \
+python3 src/compare_first_token.py \
   --baseline results/opt125m-tpp-k1.npz \
   --candidate results/opt125m-imbps-k4.npz \
   --output results/opt125m-k4-first-token-comparison.json
@@ -339,7 +348,7 @@ splitting a CCD. After both wait-policy tasks finish, summarize them and submit
 the thread array with the winning policy explicitly:
 
 ```bash
-python src/summarize_autotune.py results/autotune-wait-*
+python3 src/summarize_autotune.py results/autotune-wait-*
 
 threads_id=$(sbatch --parsable \
   --export=ALL,AUTOTUNE_WAIT_POLICY=SELECTED_WAIT_POLICY \
@@ -350,7 +359,7 @@ echo "Thread-count array: ${threads_id}"
 After both arrays complete, combine their summaries:
 
 ```bash
-python src/summarize_autotune.py \
+python3 src/summarize_autotune.py \
   results/autotune-wait-* \
   results/autotune-threads-*
 ```
@@ -444,9 +453,9 @@ Generate explicit configs rather than editing PACE files in place:
 
 ```bash
 source .venv/bin/activate
-python src/generate_pace_configs.py --suite table_iii --output-dir generated/table_iii
-python src/generate_pace_configs.py --suite table_vi --output-dir generated/table_vi
-python src/generate_pace_configs.py --suite mmlu --output-dir generated/mmlu
+python3 src/generate_pace_configs.py --suite table_iii --output-dir generated/table_iii
+python3 src/generate_pace_configs.py --suite table_vi --output-dir generated/table_vi
+python3 src/generate_pace_configs.py --suite mmlu --output-dir generated/mmlu
 ```
 
 Run a generated performance config from the PACE checkout:
@@ -454,7 +463,7 @@ Run a generated performance config from the PACE checkout:
 ```bash
 export PACE_ROOT="$PWD/vendor/AMD-PACE"
 export IMBPS_BLOCK_SIZE=4   # omit for a TPP baseline config
-python src/run_pace_entrypoint.py \
+python3 src/run_pace_entrypoint.py \
   --entrypoint "$PACE_ROOT/benchmarks/llm/performance/benchmark_llm_offline.py" \
   --config "$PWD/generated/table_iii/FILE.json" --seed 0
 ```
@@ -462,7 +471,7 @@ python src/run_pace_entrypoint.py \
 Run an accuracy config:
 
 ```bash
-python src/run_pace_entrypoint.py \
+python3 src/run_pace_entrypoint.py \
   --entrypoint "$PACE_ROOT/benchmarks/llm/accuracy/evaluation.py" \
   --config "$PWD/generated/mmlu/FILE.json" --seed 0
 ```
@@ -471,7 +480,7 @@ Or execute every generated case with commit verification and no automatic
 retry:
 
 ```bash
-python src/run_generated_suite.py \
+python3 src/run_generated_suite.py \
   --manifest generated/table_iii/run-manifest.json \
   --pace-root vendor/AMD-PACE
 ```
@@ -479,15 +488,15 @@ python src/run_generated_suite.py \
 Summarize completed suites against the paper tables:
 
 ```bash
-python src/summarize_performance.py \
+python3 src/summarize_performance.py \
   --suite table_iii --suite-dir generated/table_iii \
   --output generated/table_iii/comparison.csv
 
-python src/summarize_performance.py \
+python3 src/summarize_performance.py \
   --suite table_vi --suite-dir generated/table_vi \
   --output generated/table_vi/comparison.csv
 
-python src/summarize_mmlu.py \
+python3 src/summarize_mmlu.py \
   --suite-dir generated/mmlu \
   --output generated/mmlu/comparison.csv
 ```
@@ -500,22 +509,37 @@ otherwise leaves Python's RNG unseeded. Each manifest records the seed and the
 other assumptions beside the JSON files. Change those inputs only as a declared
 sensitivity analysis or after author clarification.
 
-## Stage 8 - decode threshold study
+## Stage 8 - L2-aware decode and speculative-verification study
 
-The paper gives no decode table, batch sizes, or active-row threshold. Start
-with OPT-125M, then repeat on progressively larger models only if the small
-pilot is stable:
+The prospective protocol is in `DECODE_L2_PLAN.md`. It tests the OPT-30B MLP
+at unique active-row counts `M=1..1024`. Normal decode maps `M` to batch size;
+speculative verification maps `M=B*gamma`. Identical `M` values are measured
+once because the standalone operator cannot observe the decomposition.
+
+THP must read `[always]` before submission. Build tcmalloc, run primary timing,
+then run the two serialized uProf passes and their analysis:
 
 ```bash
-source .venv/bin/activate
-python src/run_standalone_matrix.py \
-  --claim decode_exploratory --models opt125m \
-  --rounds 5 --warmups 5 --iterations 20
+tcmalloc_id=$(sbatch --parsable slurm/bootstrap_tcmalloc.sbatch)
+
+decode_id=$(sbatch --parsable \
+  --dependency="afterok:${tcmalloc_id}" \
+  slurm/decode_l2.sbatch)
+
+uprof_id=$(sbatch --parsable \
+  --dependency="afterok:${decode_id}" \
+  slurm/uprof_decode_l2.sbatch)
+
+summary_id=$(sbatch --parsable \
+  --dependency="afterok:${uprof_id}" \
+  --export="ALL,UPROF_ARRAY_JOB_ID=${uprof_id},UPROF_RESULT_LABEL=decode-l2" \
+  slurm/uprof_summarize.sbatch)
+
+echo "tcmalloc=${tcmalloc_id} timing=${decode_id} uprof=${uprof_id} summary=${summary_id}"
 ```
 
-This sweeps active batches 1/8/32/128/512 and K=2/4/8 against TPP at sequence
-length 1. Report crossover points and L2 counters; do not describe a slowdown
-at batch 1 as contradicting a claim for which the paper supplied no shape.
+All measurement jobs are exclusive. The summary job only reads completed JSON
+and CSV files, so it is deliberately not an exclusive measurement allocation.
 
 ## Decision rules
 

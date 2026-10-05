@@ -29,6 +29,8 @@ SAFE_ENV_KEYS = (
     "DNNL_VERBOSE",
     "MALLOC_CONF",
     "LD_PRELOAD",
+    "TCMALLOC_PREFIX",
+    "REQUIRE_TCMALLOC",
     "SLURM_JOB_ID",
     "SLURM_JOB_NODELIST",
     "SLURM_CPUS_PER_TASK",
@@ -110,8 +112,32 @@ def cache_inventory(affinity: set[int] | None = None) -> dict[str, Any]:
         if affinity is not None
         else []
     )
+    levels = sorted({item["level"] for item in unique})
+    aggregate_by_level_mib = {
+        str(level): sum(
+            item["size_bytes"] for item in unique if item["level"] == level
+        )
+        / 1024**2
+        for level in levels
+    }
+    affinity_by_level_mib = (
+        {
+            str(level): sum(
+                item["size_bytes"]
+                for item in unique
+                if item["level"] == level
+                and parse_cpu_list(item["shared_cpu_list"]) & affinity
+            )
+            / 1024**2
+            for level in levels
+        }
+        if affinity is not None
+        else None
+    )
     return {
         "unique_entries": unique,
+        "aggregate_unique_by_level_mib": aggregate_by_level_mib,
+        "affinity_unique_by_level_mib": affinity_by_level_mib,
         "unique_l3_count": len(l3),
         "aggregate_unique_l3_bytes": sum(item["size_bytes"] for item in l3),
         "aggregate_unique_l3_mib": sum(item["size_bytes"] for item in l3) / 1024**2,

@@ -30,6 +30,7 @@ class UprofCommandTests(unittest.TestCase):
             threads=96,
             warmups=3,
             iterations=3,
+            min_measurement_seconds=5.0,
             setup_timeout_seconds=1800,
             profiler_start_timeout_seconds=30,
             measurement_timeout_seconds=7200,
@@ -57,11 +58,16 @@ class UprofCommandTests(unittest.TestCase):
 
     def test_worker_is_pinned_and_has_readiness_gate(self) -> None:
         command = build_worker_command(
-            self.args, Path("ready"), Path("start"), Path("result.json")
+            self.args,
+            Path("ready"),
+            Path("start"),
+            Path("done"),
+            Path("result.json"),
         )
         self.assertIn("--physcpubind=0-95", command)
         self.assertIn("--ready-file", command)
         self.assertIn("--start-file", command)
+        self.assertIn("--done-file", command)
         self.assertIn("--warmups", command)
 
 

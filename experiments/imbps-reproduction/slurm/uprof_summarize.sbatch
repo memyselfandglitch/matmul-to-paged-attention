@@ -26,7 +26,7 @@ readonly CACHE_DIR="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${UPROF_ARRAY_
 readonly TRAFFIC_DIR="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${UPROF_ARRAY_JOB_ID}-traffic/matrix"
 readonly OUTPUT_DIR="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${UPROF_ARRAY_JOB_ID}-analysis-${SLURM_JOB_ID}"
 
-python src/summarize_uprof_matrix.py \
+python3 src/summarize_uprof_matrix.py \
   --cache-dir "${CACHE_DIR}" \
   --traffic-dir "${TRAFFIC_DIR}" \
   --output-dir "${OUTPUT_DIR}"

@@ -21,7 +21,7 @@ source .venv/bin/activate
 readonly WAIT_POLICIES=(ACTIVE PASSIVE)
 readonly WAIT_POLICY="${WAIT_POLICIES[${SLURM_ARRAY_TASK_ID}]}"
 readonly THREADS=96
-readonly CPU_LIST="$(python src/select_llc_cpus.py --threads "${THREADS}")"
+readonly CPU_LIST="$(python3 src/select_llc_cpus.py --threads "${THREADS}")"
 readonly RESULT_DIR="${PROJECT_ROOT}/results/autotune-wait-${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}-${WAIT_POLICY}-t${THREADS}"
 
 export OMP_NUM_THREADS="${THREADS}"
@@ -35,11 +35,11 @@ export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
 
 numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
-python src/select_llc_cpus.py --threads "${THREADS}" --json \
+python3 src/select_llc_cpus.py --threads "${THREADS}" --json \
   > "${PROJECT_ROOT}/results/cpu-selection-wait-${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}.json"
 
 numactl --physcpubind="${CPU_LIST}" --membind=0 \
-  python src/run_standalone_matrix.py \
+  python3 src/run_standalone_matrix.py \
     --claim autotune_thread_wait \
     --rounds "${ROUNDS:-2}" \
     --warmups "${WARMUPS:-3}" \

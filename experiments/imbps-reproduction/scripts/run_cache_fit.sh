@@ -13,7 +13,7 @@ case "${CLAIM}" in
     ;;
 esac
 
-python src/run_standalone_matrix.py \
+python3 src/run_standalone_matrix.py \
   --claim "${CLAIM}" \
   --rounds "${ROUNDS:-5}" \
   --warmups "${WARMUPS:-3}" \

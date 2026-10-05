@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import math
+import os
 import random
 import subprocess
 import sys
@@ -43,7 +44,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--claim",
-        choices=("table_ii", "cache_fit_opt30b", "server_equation_opt30b"),
+        choices=(
+            "table_ii",
+            "cache_fit_opt30b",
+            "server_equation_opt30b",
+            "decode_l2_opt30b",
+        ),
         default="table_ii",
     )
     parser.add_argument("--pass-name", choices=("cache", "traffic"), required=True)
@@ -54,6 +60,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rounds", type=int, default=5)
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--iterations", type=int, default=3)
+    parser.add_argument("--minimum-counter-seconds", type=float, default=0.0)
     parser.add_argument("--seed", type=int, default=20261003)
     parser.add_argument("--result-dir", type=Path, required=True)
     return parser.parse_args()
@@ -72,14 +79,19 @@ def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
             for batch in claim["batches"]
         ]
         if claim_name == "table_ii"
-        else claim["cases"]
+        else claim.get("uprof_cases", claim["cases"])
     )
     cases = []
     for shape in shapes:
         model = registry["models"][shape["model"]]
         variants = [
             ("tpp", 1),
-            *(("imbps", split) for split in shape.get("splits", claim["splits"])),
+            *(
+                ("imbps", split)
+                for split in shape.get(
+                    "splits", claim.get("uprof_splits", claim["splits"])
+                )
+            ),
         ]
         cache_mib = float(claim.get("cache_mib", 384))
         lower_bound = equation13_lower_bound(
@@ -110,6 +122,10 @@ def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
                     "dtype": claim["dtype"],
                     "backend": backend,
                     "split": split,
+                    "cache_level": claim.get("cache_level", "l3"),
+                    "cache_scope": claim.get(
+                        "cache_scope", "aggregate_shared_cache"
+                    ),
                     "cache_mib": cache_mib,
                     "equation12_working_set_mib": working_set.total_bytes / MIB,
                     "equation12_fits": working_set.total_bytes < cache_mib * MIB,
@@ -154,7 +170,11 @@ def normalized_record(
     benchmark = json.loads((case_dir / "benchmark.json").read_text(encoding="utf-8"))
     manifest = json.loads((case_dir / "manifest.json").read_text(encoding="utf-8"))
     report = parse_uprof_report(case_dir / "uprof.csv")
-    iterations = int(manifest["measurement"]["iterations"])
+    iterations = int(
+        benchmark["run"].get(
+            "iterations", manifest["measurement"]["iterations"]
+        )
+    )
     active_seconds = float(manifest["measurement"]["counter_active_seconds"])
     rows = case["batch"] * case["sequence"]
     algorithmic_flops = 4 * rows * case["hidden"] * case["intermediate"]
@@ -173,6 +193,8 @@ def normalized_record(
         "measurement_wall_seconds": benchmark["run"]["measurement_wall_seconds"],
         "counter_active_seconds": active_seconds,
         "algorithmic_flops_per_invocation": algorithmic_flops,
+        "cache_level": case.get("cache_level", "l3"),
+        "cache_scope": case.get("cache_scope", "aggregate_shared_cache"),
         "cache_mib": case["cache_mib"],
         "equation12_working_set_mib": case["equation12_working_set_mib"],
         "equation12_fits": case["equation12_fits"],
@@ -186,13 +208,28 @@ def normalized_record(
         "case_dir": str(case_dir),
     }
     if pass_name == "cache":
+        retired_instructions = require_metric(
+            report, "core", "Retired Instructions"
+        )
+        l2_access_pti = require_metric(report, "core", "L2 Access (pti)")
+        l2_miss_pti = require_metric(report, "core", "L2 Miss (pti)")
+        l2_access = l2_access_pti * retired_instructions / 1000
+        l2_miss = l2_miss_pti * retired_instructions / 1000
         access = require_metric(report, "l3", "L3 Access")
         misses = require_metric(report, "l3", "L3 Miss")
         record.update(
             {
                 "ipc": require_metric(report, "core", "IPC (Sys + User)"),
-                "l2_access_pti": require_metric(report, "core", "L2 Access (pti)"),
-                "l2_miss_pti": require_metric(report, "core", "L2 Miss (pti)"),
+                "retired_instructions_per_invocation": (
+                    retired_instructions / iterations
+                ),
+                "l2_access_pti": l2_access_pti,
+                "l2_miss_pti": l2_miss_pti,
+                "l2_access_per_invocation": l2_access / iterations,
+                "l2_miss_per_invocation": l2_miss / iterations,
+                "l2_hit_per_invocation": (l2_access - l2_miss) / iterations,
+                "l2_miss_percent": 100 * l2_miss / l2_access,
+                "l2_hit_percent": 100 * (l2_access - l2_miss) / l2_access,
                 "l3_access_per_invocation": access / iterations,
                 "l3_miss_per_invocation": misses / iterations,
                 "l3_hit_per_invocation": (access - misses) / iterations,
@@ -242,11 +279,19 @@ def main() -> None:
         "rounds": args.rounds,
         "warmups": args.warmups,
         "iterations": args.iterations,
+        "minimum_counter_seconds": args.minimum_counter_seconds,
         "seed": args.seed,
         "threads": args.threads,
         "package": args.package,
         "cpu_list": args.cpu_list,
         "uprof_binary": str(args.uprof_bin),
+        "environment": {
+            "ld_preload": os.environ.get("LD_PRELOAD"),
+            "tcmalloc_prefix": os.environ.get("TCMALLOC_PREFIX"),
+            "require_tcmalloc": os.environ.get("REQUIRE_TCMALLOC"),
+            "omp_num_threads": os.environ.get("OMP_NUM_THREADS"),
+            "omp_wait_policy": os.environ.get("OMP_WAIT_POLICY"),
+        },
         "case_count_per_round": len(cases),
         "status": "running",
     }
@@ -298,6 +343,8 @@ def main() -> None:
                 str(args.warmups),
                 "--iterations",
                 str(args.iterations),
+                "--min-measurement-seconds",
+                str(args.minimum_counter_seconds),
                 "--result-dir",
                 str(case_dir),
             ]

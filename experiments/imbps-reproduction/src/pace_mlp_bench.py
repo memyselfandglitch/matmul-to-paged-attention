@@ -17,6 +17,21 @@ from pathlib import Path
 from typing import Any
 
 
+def allocator_mappings() -> list[str]:
+    """Return mapped allocator libraries as proof that LD_PRELOAD took effect."""
+    try:
+        lines = Path("/proc/self/maps").read_text(encoding="utf-8").splitlines()
+    except (FileNotFoundError, PermissionError):
+        return []
+    paths = {
+        line.rsplit(maxsplit=1)[-1]
+        for line in lines
+        if "/" in line
+        and any(name in line.lower() for name in ("tcmalloc", "jemalloc"))
+    }
+    return sorted(paths)
+
+
 def collect_thread_affinity() -> tuple[dict[int, list[int]], list[int]]:
     """Return per-thread masks and their union after worker pools exist."""
     masks: dict[int, list[int]] = {}
@@ -52,6 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--iterations", type=int, default=7)
+    parser.add_argument("--min-measurement-seconds", type=float, default=0.0)
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
@@ -61,16 +77,24 @@ def parse_args() -> argparse.Namespace:
         help="after warmup, write PID/TIDs here and wait for --start-file",
     )
     parser.add_argument("--start-file", type=Path, default=None)
+    parser.add_argument(
+        "--done-file",
+        type=Path,
+        default=None,
+        help="write immediately after the measured loop so counters can stop",
+    )
     parser.add_argument("--start-timeout", type=float, default=600.0)
     args = parser.parse_args()
     if min(args.batch, args.sequence, args.hidden, args.intermediate, args.splits) <= 0:
         parser.error("dimensions and splits must be positive")
     if args.intermediate % args.splits != 0:
         parser.error("intermediate must be divisible by splits")
-    if args.warmups < 0 or args.iterations <= 0:
+    if args.warmups < 0 or args.iterations <= 0 or args.min_measurement_seconds < 0:
         parser.error("warmups must be nonnegative and iterations positive")
     if (args.ready_file is None) != (args.start_file is None):
         parser.error("--ready-file and --start-file must be supplied together")
+    if args.done_file is not None and args.ready_file is None:
+        parser.error("--done-file requires --ready-file and --start-file")
     if args.backend == "tpp" and args.dtype != "bf16":
         parser.error("PACE v1.0 TPP linear kernels are registered for BF16 only")
     return args
@@ -118,6 +142,13 @@ def main() -> None:
     pace_version = importlib.metadata.version("pace")
     if pace_version != "1.0.0":
         raise RuntimeError(f"expected PACE 1.0.0, found {pace_version}")
+    mapped_allocators = allocator_mappings()
+    if os.environ.get("REQUIRE_TCMALLOC") == "1" and not any(
+        "tcmalloc" in path.lower() for path in mapped_allocators
+    ):
+        raise RuntimeError(
+            "REQUIRE_TCMALLOC=1 but no tcmalloc library is mapped in this process"
+        )
 
     setup_started = time.perf_counter()
     model = MergedMLP(
@@ -162,12 +193,19 @@ def main() -> None:
 
         measurement_started = time.perf_counter()
         durations_ms: list[float] = []
-        for _ in range(args.iterations):
+        while (
+            len(durations_ms) < args.iterations
+            or time.perf_counter() - measurement_started
+            < args.min_measurement_seconds
+        ):
             started = time.perf_counter_ns()
             output = model(source)
             elapsed = time.perf_counter_ns() - started
             durations_ms.append(elapsed / 1_000_000)
         measurement_wall_seconds = time.perf_counter() - measurement_started
+        if args.done_file is not None:
+            args.done_file.parent.mkdir(parents=True, exist_ok=True)
+            args.done_file.write_text("done\n", encoding="utf-8")
 
     assert output is not None
     median_ms = statistics.median(durations_ms)
@@ -194,7 +232,9 @@ def main() -> None:
         },
         "run": {
             "warmups": args.warmups,
-            "iterations": args.iterations,
+            "requested_iterations": args.iterations,
+            "min_measurement_seconds": args.min_measurement_seconds,
+            "iterations": len(durations_ms),
             "durations_ms": durations_ms,
             "median_ms": median_ms,
             "mean_ms": mean_ms,
@@ -231,6 +271,8 @@ def main() -> None:
             "gomp_cpu_affinity": os.environ.get("GOMP_CPU_AFFINITY"),
             "imbps_block_size": os.environ.get("IMBPS_BLOCK_SIZE"),
             "libxsmm_block_size": os.environ.get("LIBXSMM_BLOCK_SIZE"),
+            "ld_preload": os.environ.get("LD_PRELOAD"),
+            "allocator_mappings": mapped_allocators,
             "max_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
         },
     }

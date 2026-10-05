@@ -19,6 +19,6 @@ readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 
-python src/run_standalone_matrix.py \
+python3 src/run_standalone_matrix.py \
   --claim "${CLAIM}" \
   --finalize-existing "${RESULT_DIR}"

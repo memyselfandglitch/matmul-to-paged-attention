@@ -38,7 +38,7 @@ if [[ ! -e /sys/bus/event_source/devices/amd_l3 || \
 fi
 
 readonly THREADS=96
-readonly CPU_LIST="$(python src/select_llc_cpus.py --threads "${THREADS}")"
+readonly CPU_LIST="$(python3 src/select_llc_cpus.py --threads "${THREADS}")"
 export OMP_NUM_THREADS="${THREADS}"
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
@@ -89,7 +89,7 @@ for pass in cache traffic; do
   for variant in tpp:1 imbps:4; do
     backend="${variant%%:*}"
     split="${variant##*:}"
-    python src/run_uprof_case.py \
+    python3 src/run_uprof_case.py \
       --uprof-bin "${UPROF_BIN}" \
       --access-mode perf \
       --metrics "${metrics}" \

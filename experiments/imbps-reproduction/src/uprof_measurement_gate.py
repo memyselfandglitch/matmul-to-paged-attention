@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release a pre-warmed worker and keep uProf alive until its output appears."""
+"""Release a pre-warmed worker and keep uProf alive through its measured loop."""
 
 from __future__ import annotations
 

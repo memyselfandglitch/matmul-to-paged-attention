@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=imbps-upr-t2
+#SBATCH --job-name=imbps-upr-dec
 #SBATCH --partition=jobmn01
 #SBATCH --nodelist=mn01
 #SBATCH --nodes=1
@@ -9,19 +9,18 @@
 #SBATCH --time=08:00:00
 #SBATCH --exclusive
 #SBATCH --array=0-1%1
-#SBATCH --output=uprof-table2-%A_%a.out
-#SBATCH --error=uprof-table2-%A_%a.err
+#SBATCH --output=uprof-decode-l2-%A_%a.out
+#SBATCH --error=uprof-decode-l2-%A_%a.err
 
 set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
-readonly CLAIM="${UPROF_CLAIM:-table_ii}"
-readonly RESULT_LABEL="${UPROF_RESULT_LABEL:-table-ii}"
 readonly PASS_NAMES=(cache traffic)
 readonly PASS_NAME="${PASS_NAMES[SLURM_ARRAY_TASK_ID]}"
-readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${SLURM_ARRAY_JOB_ID}-${PASS_NAME}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-decode-l2-${SLURM_ARRAY_JOB_ID}-${PASS_NAME}"
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
+source ./scripts/enable_tcmalloc.sh
 
 if [[ -n "${AMDUPROFPCM_BIN:-}" && -x "${AMDUPROFPCM_BIN}" ]]; then
   readonly UPROF_BIN="${AMDUPROFPCM_BIN}"
@@ -41,7 +40,7 @@ if [[ ! -e /sys/bus/event_source/devices/amd_l3 || \
   exit 1
 fi
 
-readonly THREADS=96
+readonly THREADS="${SLURM_CPUS_PER_TASK}"
 readonly CPU_LIST="$(python3 src/select_llc_cpus.py --threads "${THREADS}")"
 export OMP_NUM_THREADS="${THREADS}"
 export OMP_PROC_BIND=close
@@ -51,12 +50,18 @@ export OMP_WAIT_POLICY=ACTIVE
 export NUMEXPR_MAX_THREADS="${THREADS}"
 export NUMEXPR_NUM_THREADS="${THREADS}"
 export LIBXSMM_BLOCK_SIZE=32
-export EXPECTED_PHYSICAL_CORES="${SLURM_CPUS_PER_TASK}"
+export EXPECTED_PHYSICAL_CORES="${THREADS}"
 export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
 
-numactl --cpunodebind=0 --membind=0 ./scripts/preflight.sh
 mkdir -p "${RESULT_ROOT}"
+numactl --physcpubind="${CPU_LIST}" --membind=0 \
+  python3 src/validate_runtime.py \
+    --require-tcmalloc \
+    --require-thp "${REQUIRE_THP_MODE:-always}" \
+    --expected-l2-mib 96 \
+    --output "${RESULT_ROOT}/runtime-validation.json"
+numactl --physcpubind="${CPU_LIST}" --membind=0 ./scripts/preflight.sh
 
 if [[ "${PASS_NAME}" == cache ]]; then
   readonly METRICS="ipc,l2,l3"
@@ -78,16 +83,17 @@ if (( PROBE_STATUS != 0 )); then
 fi
 
 python3 src/run_uprof_matrix.py \
-  --claim "${CLAIM}" \
+  --claim decode_l2_opt30b \
   --pass-name "${PASS_NAME}" \
   --uprof-bin "${UPROF_BIN}" \
   --package 0 \
   --cpu-list "${CPU_LIST}" \
   --threads "${THREADS}" \
-  --rounds 5 \
-  --warmups 3 \
-  --iterations 3 \
-  --seed 20261003 \
+  --rounds "${ROUNDS:-5}" \
+  --warmups "${WARMUPS:-5}" \
+  --iterations "${ITERATIONS:-10}" \
+  --minimum-counter-seconds "${MIN_COUNTER_SECONDS:-5}" \
+  --seed 20261005 \
   --result-dir "${RESULT_ROOT}/matrix"
 
-echo "uProf ${CLAIM} ${PASS_NAME}: ${RESULT_ROOT}/matrix"
+echo "Decode L2 uProf ${PASS_NAME}: ${RESULT_ROOT}/matrix"

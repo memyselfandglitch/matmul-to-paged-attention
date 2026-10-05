@@ -194,8 +194,11 @@ non-monotonic curve is the claim.
   OPT-13B; baseline OOM around batch 80 and IMBPS up to batch 160. Requires a
   separate MI210/ROCm 5.7/PyTorch 2.3.1 environment.
 - Decode: the paper gives no table or validated shapes. It says use L2 capacity.
-  The harness provides a sequence-1 active-batch/K sweep, but any OPT-125M
-  decode result is exploratory rather than a paper-number reproduction.
+  `DECODE_L2_PLAN.md` therefore preregisters an OPT-30B extension over active
+  rows 1-1024, including the aggregate-L2 Equation-13 candidate and aligned
+  neighboring K values. It is a new threshold/mechanism study, not a
+  paper-number reproduction. The standalone speculative-verification mapping
+  covers only `M=B*gamma`; accepted-token throughput requires a later E2E run.
 
 ## Software provenance gap
 

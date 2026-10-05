@@ -114,6 +114,10 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
             "backend": backend,
             "split": split,
             "rounds": len(case_rows),
+            "cache_level": case_rows[0].get("cache_level", "l3"),
+            "cache_scope": case_rows[0].get(
+                "cache_scope", "aggregate_shared_cache"
+            ),
             "cache_mib": case_rows[0]["cache_mib"],
             "equation12_working_set_mib": case_rows[0][
                 "equation12_working_set_mib"
@@ -143,6 +147,19 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
                     "l3_hit_percent",
                     "l3_miss_latency_ns",
                 ]
+            )
+            optional_l2_metrics = [
+                "retired_instructions_per_invocation",
+                "l2_access_per_invocation",
+                "l2_miss_per_invocation",
+                "l2_hit_per_invocation",
+                "l2_miss_percent",
+                "l2_hit_percent",
+            ]
+            metric_names.extend(
+                metric
+                for metric in optional_l2_metrics
+                if all(metric in row for row in case_rows)
             )
         else:
             metric_names.extend(
@@ -184,6 +201,21 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
                         ),
                     ]
                 )
+                if all("l2_miss_per_invocation" in row for row in batch_rows):
+                    ratio_specs.extend(
+                        [
+                            (
+                                "l2_miss_reduction_factor",
+                                "l2_miss_per_invocation",
+                                True,
+                            ),
+                            (
+                                "l2_access_reduction_factor",
+                                "l2_access_per_invocation",
+                                True,
+                            ),
+                        ]
+                    )
             else:
                 ratio_specs.extend(
                     [
@@ -266,11 +298,18 @@ def mechanism_checks(
         fastest_traffic, fastest_traffic_ties = tied_splits(
             traffic_candidates, "median_ms", minimize=True
         )
+        cache_level = cache_candidates[0].get("cache_level", "l3")
+        if cache_level == "l2":
+            miss_metric = "l2_miss_per_invocation"
+            hit_rate_metric = "l2_hit_percent"
+        else:
+            miss_metric = "l3_miss_per_invocation"
+            hit_rate_metric = "l3_hit_percent"
         min_misses, min_miss_ties = tied_splits(
-            cache_candidates, "l3_miss_per_invocation", minimize=True
+            cache_candidates, miss_metric, minimize=True
         )
         max_hit_rate, max_hit_rate_ties = tied_splits(
-            cache_candidates, "l3_hit_percent", minimize=False
+            cache_candidates, hit_rate_metric, minimize=False
         )
         min_dram, min_dram_ties = tied_splits(
             traffic_candidates, "dram_bytes_per_invocation", minimize=True
@@ -284,12 +323,15 @@ def mechanism_checks(
         traffic_common = sorted(
             set(fastest_traffic_ties) & set(min_dram_ties) & set(max_ai_ties)
         )
-        checks.append(
-            {
+        check = {
                 "model": model,
                 "batch": batch,
                 "sequence": sequence,
                 "rows": batch * sequence,
+                "cache_level": cache_level,
+                "cache_scope": cache_candidates[0].get(
+                    "cache_scope", "aggregate_shared_cache"
+                ),
                 "equation13_author_power_of_two_candidate": cache_candidates[0][
                     "equation13_author_power_of_two_candidate"
                 ],
@@ -297,10 +339,10 @@ def mechanism_checks(
                 "fastest_k_cache_pass_ties": fastest_cache_ties,
                 "fastest_k_traffic_pass": fastest_traffic,
                 "fastest_k_traffic_pass_ties": fastest_traffic_ties,
-                "minimum_l3_miss_k": min_misses,
-                "minimum_l3_miss_k_ties": min_miss_ties,
-                "maximum_l3_hit_rate_k": max_hit_rate,
-                "maximum_l3_hit_rate_k_ties": max_hit_rate_ties,
+                "minimum_cache_miss_k": min_misses,
+                "minimum_cache_miss_k_ties": min_miss_ties,
+                "maximum_cache_hit_rate_k": max_hit_rate,
+                "maximum_cache_hit_rate_k_ties": max_hit_rate_ties,
                 "minimum_dram_byte_k": min_dram,
                 "minimum_dram_byte_k_ties": min_dram_ties,
                 "maximum_measured_dram_ai_k": max_ai,
@@ -318,20 +360,15 @@ def mechanism_checks(
                 ]["equation13_author_power_of_two_candidate"]
                 in fastest_traffic_ties,
             }
-        )
+        check[f"minimum_{cache_level}_miss_k"] = min_misses
+        check[f"minimum_{cache_level}_miss_k_ties"] = min_miss_ties
+        check[f"maximum_{cache_level}_hit_rate_k"] = max_hit_rate
+        check[f"maximum_{cache_level}_hit_rate_k_ties"] = max_hit_rate_ties
+        checks.append(check)
     return checks
 
 
 def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, Any]]:
-    metrics = (
-        ["median_ms", "l3_miss_per_invocation", "l3_hit_percent"]
-        if pass_name == "cache"
-        else [
-            "median_ms",
-            "dram_bytes_per_invocation",
-            "measured_dram_ai_flops_per_byte",
-        ]
-    )
     comparisons = []
     shapes = sorted(
         {
@@ -340,6 +377,26 @@ def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, 
         }
     )
     for model, batch, sequence in shapes:
+        shape_rows = [
+            row
+            for row in rows
+            if row["model"] == model
+            and int(row["batch"]) == batch
+            and int(row["sequence"]) == sequence
+        ]
+        if pass_name == "cache":
+            cache_level = shape_rows[0].get("cache_level", "l3")
+            metrics = [
+                "median_ms",
+                f"{cache_level}_miss_per_invocation",
+                f"{cache_level}_hit_percent",
+            ]
+        else:
+            metrics = [
+                "median_ms",
+                "dram_bytes_per_invocation",
+                "measured_dram_ai_flops_per_byte",
+            ]
         candidates = {
             (int(row["round"]), int(row["split"])): row
             for row in rows

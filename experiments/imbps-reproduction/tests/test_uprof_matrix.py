@@ -46,6 +46,7 @@ class UprofMatrixTests(unittest.TestCase):
             (path / "uprof.csv").write_text(
                 """CORE METRICS
 Metric,System (Aggregated)
+Retired Instructions,300000
 IPC (Sys + User),1.05
 L2 Access (pti),145.61
 L2 Miss (pti),16.65
@@ -62,6 +63,9 @@ Ave L3 Miss Latency (ns),124
         self.assertEqual(row["l3_access_per_invocation"], 100)
         self.assertEqual(row["l3_miss_per_invocation"], 30)
         self.assertEqual(row["l3_hit_per_invocation"], 70)
+        self.assertAlmostEqual(row["l2_access_per_invocation"], 14561)
+        self.assertAlmostEqual(row["l2_miss_per_invocation"], 1665)
+        self.assertAlmostEqual(row["l2_miss_percent"], 100 * 16.65 / 145.61)
 
     @staticmethod
     def rows(pass_name: str) -> list[dict[str, object]]:
@@ -158,6 +162,46 @@ Ave L3 Miss Latency (ns),124
                 if case["backend"] == "tpp"
             )
         )
+
+    def test_decode_l2_profile_uses_author_candidate_and_aligned_neighbor(self) -> None:
+        cases = experiment_cases("decode_l2_opt30b")
+        self.assertEqual(len(cases), 36)
+        imbps = [case for case in cases if case["backend"] == "imbps"]
+        self.assertEqual({case["cache_level"] for case in cases}, {"l2"})
+        self.assertEqual({case["split"] for case in imbps}, {4, 7, 8, 14, 16})
+        self.assertEqual(
+            {case["equation13_author_power_of_two_candidate"] for case in cases},
+            {8},
+        )
+        self.assertTrue(
+            all(case["equation12_fits"] for case in imbps if case["split"] >= 7)
+        )
+
+    def test_l2_mechanism_check_uses_l2_not_l3_ranking(self) -> None:
+        cache_rows = self.rows("cache")
+        traffic_rows = self.rows("traffic")
+        for row in cache_rows:
+            row["cache_level"] = "l2"
+            row["cache_scope"] = "aggregate_private_l2"
+            split = int(row["split"])
+            row["l2_miss_per_invocation"] = {1: 120, 4: 80, 8: 60, 16: 70}[
+                split
+            ]
+            row["l2_access_per_invocation"] = 200
+            row["l2_hit_per_invocation"] = 200 - row["l2_miss_per_invocation"]
+            row["l2_miss_percent"] = row["l2_miss_per_invocation"] / 2
+            row["l2_hit_percent"] = 100 - row["l2_miss_percent"]
+            row["retired_instructions_per_invocation"] = 1000
+        for row in traffic_rows:
+            row["cache_level"] = "l2"
+            row["cache_scope"] = "aggregate_private_l2"
+        checks = mechanism_checks(
+            summarize_pass(cache_rows, "cache"),
+            summarize_pass(traffic_rows, "traffic"),
+        )
+        self.assertEqual(checks[0]["cache_level"], "l2")
+        self.assertEqual(checks[0]["minimum_l2_miss_k"], 8)
+        self.assertEqual(checks[0]["maximum_l2_hit_rate_k"], 8)
 
     def test_k4_k8_comparison_is_paired_by_round(self) -> None:
         comparisons = compare_k4_k8(self.rows("cache"), "cache")
