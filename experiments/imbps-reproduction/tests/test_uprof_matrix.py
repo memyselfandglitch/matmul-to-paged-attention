@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from src.run_uprof_matrix import experiment_cases, normalized_record
+from src.summarize_uprof_l2 import l2_checks
 from src.summarize_uprof_matrix import compare_k4_k8, mechanism_checks, summarize_pass
 
 
@@ -67,6 +68,56 @@ Ave L3 Miss Latency (ns),124
         self.assertAlmostEqual(row["l2_miss_per_invocation"], 1665)
         self.assertAlmostEqual(row["l2_miss_percent"], 100 * 16.65 / 145.61)
 
+    def test_normalizes_l2_without_l3_counters(self) -> None:
+        case = {
+            "model": "opt30b",
+            "batch": 512,
+            "sequence": 1,
+            "hidden": 7168,
+            "intermediate": 28672,
+            "backend": "imbps",
+            "split": 2,
+            "cache_level": "l2",
+            "cache_scope": "aggregate_private_l2",
+            "cache_mib": 96,
+            "equation12_working_set_mib": 197,
+            "equation12_fits": False,
+            "equation13_strict_lower_bound": 6.1,
+            "equation13_strict_integer_candidate": 7,
+            "equation13_author_power_of_two_candidate": 8,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            (path / "benchmark.json").write_text(
+                json.dumps(
+                    {"run": {"median_ms": 30.0, "measurement_wall_seconds": 6.0}}
+                )
+            )
+            (path / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "measurement": {
+                            "iterations": 3,
+                            "counter_active_seconds": 6.0,
+                        }
+                    }
+                )
+            )
+            (path / "uprof.csv").write_text(
+                """CORE METRICS
+Metric,System (Aggregated)
+Retired Instructions,300000
+IPC (Sys + User),1.25
+L2 Access (pti),150
+L2 Miss (pti),20
+"""
+            )
+            row = normalized_record(path, case, "l2", 1, 1)
+        self.assertEqual(row["l2_access_per_invocation"], 15000)
+        self.assertEqual(row["l2_miss_per_invocation"], 2000)
+        self.assertAlmostEqual(row["l2_hit_percent"], 100 * 130 / 150)
+        self.assertNotIn("l3_miss_per_invocation", row)
+
     @staticmethod
     def rows(pass_name: str) -> list[dict[str, object]]:
         rows: list[dict[str, object]] = []
@@ -93,7 +144,7 @@ Ave L3 Miss Latency (ns),124
                     "equation13_strict_integer_candidate": 7,
                     "equation13_author_power_of_two_candidate": 8,
                 }
-                if pass_name == "cache":
+                if pass_name in {"cache", "l2"}:
                     row.update(
                         {
                             "ipc": 1.0,
@@ -107,6 +158,17 @@ Ave L3 Miss Latency (ns),124
                             "l3_miss_latency_ns": 100.0,
                         }
                     )
+                    if pass_name == "l2":
+                        row.update(
+                            {
+                                "retired_instructions_per_invocation": 1000.0,
+                                "l2_access_per_invocation": 200.0,
+                                "l2_miss_per_invocation": misses,
+                                "l2_hit_per_invocation": 200.0 - misses,
+                                "l2_miss_percent": 100.0 - hit_rate,
+                                "l2_hit_percent": hit_rate,
+                            }
+                        )
                 else:
                     row.update(
                         {
@@ -202,6 +264,14 @@ Ave L3 Miss Latency (ns),124
         self.assertEqual(checks[0]["cache_level"], "l2")
         self.assertEqual(checks[0]["minimum_l2_miss_k"], 8)
         self.assertEqual(checks[0]["maximum_l2_hit_rate_k"], 8)
+
+    def test_l2_only_check_does_not_require_l3_or_traffic(self) -> None:
+        summary = summarize_pass(self.rows("l2"), "l2")
+        checks = l2_checks(summary)
+        self.assertEqual(checks[0]["fastest_profiled_k"], 8)
+        self.assertEqual(checks[0]["minimum_l2_miss_k"], 8)
+        self.assertEqual(checks[0]["maximum_l2_hit_rate_k"], 8)
+        self.assertTrue(checks[0]["timing_and_l2_rank_agreement"])
 
     def test_k4_k8_comparison_is_paired_by_round(self) -> None:
         comparisons = compare_k4_k8(self.rows("cache"), "cache")

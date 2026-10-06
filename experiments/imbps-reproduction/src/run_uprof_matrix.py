@@ -50,10 +50,13 @@ def parse_args() -> argparse.Namespace:
             "server_equation_opt30b",
             "decode_l2_opt30b",
             "decode_l2_pilot_opt30b",
+            "decode_l2_core_pilot_opt30b",
         ),
         default="table_ii",
     )
-    parser.add_argument("--pass-name", choices=("cache", "traffic"), required=True)
+    parser.add_argument(
+        "--pass-name", choices=("cache", "traffic", "l2"), required=True
+    )
     parser.add_argument("--uprof-bin", type=Path, required=True)
     parser.add_argument("--package", type=int, default=0)
     parser.add_argument("--cpu-list", required=True)
@@ -208,7 +211,7 @@ def normalized_record(
         ],
         "case_dir": str(case_dir),
     }
-    if pass_name == "cache":
+    if pass_name in {"cache", "l2"}:
         retired_instructions = require_metric(
             report, "core", "Retired Instructions"
         )
@@ -216,8 +219,6 @@ def normalized_record(
         l2_miss_pti = require_metric(report, "core", "L2 Miss (pti)")
         l2_access = l2_access_pti * retired_instructions / 1000
         l2_miss = l2_miss_pti * retired_instructions / 1000
-        access = require_metric(report, "l3", "L3 Access")
-        misses = require_metric(report, "l3", "L3 Miss")
         record.update(
             {
                 "ipc": require_metric(report, "core", "IPC (Sys + User)"),
@@ -231,16 +232,25 @@ def normalized_record(
                 "l2_hit_per_invocation": (l2_access - l2_miss) / iterations,
                 "l2_miss_percent": 100 * l2_miss / l2_access,
                 "l2_hit_percent": 100 * (l2_access - l2_miss) / l2_access,
-                "l3_access_per_invocation": access / iterations,
-                "l3_miss_per_invocation": misses / iterations,
-                "l3_hit_per_invocation": (access - misses) / iterations,
-                "l3_miss_percent": require_metric(report, "l3", "L3 Miss %"),
-                "l3_hit_percent": require_metric(report, "l3", "L3 Hit %"),
-                "l3_miss_latency_ns": require_metric(
-                    report, "l3", "Ave L3 Miss Latency (ns)"
-                ),
             }
         )
+        if pass_name == "cache":
+            access = require_metric(report, "l3", "L3 Access")
+            misses = require_metric(report, "l3", "L3 Miss")
+            record.update(
+                {
+                    "l3_access_per_invocation": access / iterations,
+                    "l3_miss_per_invocation": misses / iterations,
+                    "l3_hit_per_invocation": (access - misses) / iterations,
+                    "l3_miss_percent": require_metric(
+                        report, "l3", "L3 Miss %"
+                    ),
+                    "l3_hit_percent": require_metric(report, "l3", "L3 Hit %"),
+                    "l3_miss_latency_ns": require_metric(
+                        report, "l3", "Ave L3 Miss Latency (ns)"
+                    ),
+                }
+            )
     else:
         total_bw = require_metric(report, "df", "Total Mem Bw (GB/s)")
         read_bw = require_metric(report, "df", "Total Mem RdBw (GB/s)")
@@ -266,7 +276,11 @@ def normalized_record(
 
 def main() -> None:
     args = parse_args()
-    metrics = "ipc,l2,l3" if args.pass_name == "cache" else "memory"
+    metrics = {
+        "cache": "ipc,l2,l3",
+        "l2": "ipc,l2",
+        "traffic": "memory",
+    }[args.pass_name]
     result_dir = args.result_dir.resolve()
     cases_dir = result_dir / "cases"
     cases_dir.mkdir(parents=True, exist_ok=False)

@@ -4,10 +4,10 @@
 
 - Origin skill: `academic-research-suite` / experiment-agent
 - Artifact type: prospective code experiment plan
-- Status: preregistered; no server result has been observed
+- Status: timing completed; core-counter-only L2 pilot preregistered
 - Target: AMD EPYC 9654 package 0 on `mn01`
 - Implementation: AMD-PACE v1.0, OPT-30B MLP, BF16, ReLU
-- Last updated: 2026-10-05
+- Last updated: 2026-10-06
 
 ## Research question
 
@@ -79,6 +79,15 @@ passes use rows `1,128,1024`, the same splits, three randomized rounds, three
 warmups, at least five invocations, and at least three counter-active seconds.
 This retains the below-bound K=4 control, aligned K=7, Equation-13 K=8, and
 larger-split overhead controls while fitting a short presentation deadline.
+
+### Core-counter-only L2 pilot
+
+When `amd_l3` and `amd_df` are unavailable, a separate pilot uses only uProf
+`ipc,l2`. It measures active rows `128,512,1024`, TPP K=1, and IMBPS
+K=`2,4,8` for three randomized rounds. These splits represent the full-timing
+winner, the earlier pilot winner, and the Equation-13 candidate, respectively.
+This stratum can test L2 accesses, misses, and hit rate. It cannot support L3,
+DRAM-traffic, or arithmetic-intensity claims.
 
 ## Fixed controls
 

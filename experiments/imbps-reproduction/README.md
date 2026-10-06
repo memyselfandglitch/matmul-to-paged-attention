@@ -552,6 +552,16 @@ The pilot matrix and its reduced repetition counts are preregistered in
 `DECODE_L2_PLAN.md`. Report it as preliminary; it does not replace the full
 matrix.
 
+If `amd_l3` and `amd_df` are unavailable, run the core-counter-only L2 pilot:
+
+```bash
+./scripts/submit_decode_l2_core.sh
+```
+
+This profiles active rows 128/512/1024 with TPP and IMBPS K=2/4/8 using only
+uProf `ipc,l2`. It can test L2 access, miss, and hit-rate behavior, but it does
+not provide L3, DRAM-traffic, or arithmetic-intensity evidence.
+
 ## Stage 9 - KV-cache target verification
 
 The standalone MLP study cannot observe attention or a KV cache. The prospective

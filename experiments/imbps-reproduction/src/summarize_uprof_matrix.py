@@ -134,20 +134,25 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
             ],
         }
         metric_names = ["median_ms"]
-        if pass_name == "cache":
+        if pass_name in {"cache", "l2"}:
             metric_names.extend(
                 [
                     "ipc",
                     "l2_access_pti",
                     "l2_miss_pti",
-                    "l3_access_per_invocation",
-                    "l3_miss_per_invocation",
-                    "l3_hit_per_invocation",
-                    "l3_miss_percent",
-                    "l3_hit_percent",
-                    "l3_miss_latency_ns",
                 ]
             )
+            if pass_name == "cache":
+                metric_names.extend(
+                    [
+                        "l3_access_per_invocation",
+                        "l3_miss_per_invocation",
+                        "l3_hit_per_invocation",
+                        "l3_miss_percent",
+                        "l3_hit_percent",
+                        "l3_miss_latency_ns",
+                    ]
+                )
             optional_l2_metrics = [
                 "retired_instructions_per_invocation",
                 "l2_access_per_invocation",
@@ -186,21 +191,22 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
                 or (row["backend"] == backend and int(row["split"]) == split)
             ]
             ratio_specs = [("timing_speedup", "median_ms", True)]
-            if pass_name == "cache":
-                ratio_specs.extend(
-                    [
-                        (
-                            "l3_miss_reduction_factor",
-                            "l3_miss_per_invocation",
-                            True,
-                        ),
-                        (
-                            "l3_access_reduction_factor",
-                            "l3_access_per_invocation",
-                            True,
-                        ),
-                    ]
-                )
+            if pass_name in {"cache", "l2"}:
+                if pass_name == "cache":
+                    ratio_specs.extend(
+                        [
+                            (
+                                "l3_miss_reduction_factor",
+                                "l3_miss_per_invocation",
+                                True,
+                            ),
+                            (
+                                "l3_access_reduction_factor",
+                                "l3_access_per_invocation",
+                                True,
+                            ),
+                        ]
+                    )
                 if all("l2_miss_per_invocation" in row for row in batch_rows):
                     ratio_specs.extend(
                         [
@@ -384,7 +390,7 @@ def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, 
             and int(row["batch"]) == batch
             and int(row["sequence"]) == sequence
         ]
-        if pass_name == "cache":
+        if pass_name in {"cache", "l2"}:
             cache_level = shape_rows[0].get("cache_level", "l3")
             metrics = [
                 "median_ms",
