@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=96
 #SBATCH --mem=96G
-#SBATCH --time=02:00:00
+#SBATCH --time=01:30:00
 #SBATCH --exclusive
 #SBATCH --output=decode-l2-pilot-%j.out
 #SBATCH --error=decode-l2-pilot-%j.err

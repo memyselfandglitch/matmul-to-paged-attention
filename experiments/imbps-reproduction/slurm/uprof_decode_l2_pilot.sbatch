@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=96
 #SBATCH --mem=96G
-#SBATCH --time=02:00:00
+#SBATCH --time=01:15:00
 #SBATCH --exclusive
 #SBATCH --array=0-1%1
 #SBATCH --output=uprof-decode-l2-pilot-%A_%a.out
