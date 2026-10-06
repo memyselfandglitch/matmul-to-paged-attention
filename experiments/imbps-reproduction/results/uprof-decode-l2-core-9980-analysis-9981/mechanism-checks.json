@@ -1,0 +1,80 @@
+[
+  {
+    "model": "opt30b",
+    "batch": 128,
+    "sequence": 1,
+    "rows": 128,
+    "cache_level": "l2",
+    "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_profiled_k": 2,
+    "fastest_profiled_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "timing_and_l2_common_best_k": [
+      2
+    ],
+    "timing_and_l2_rank_agreement": true,
+    "equation_candidate_is_l2_best_or_tied": false,
+    "timing_note": "uProf-instrumented; use job 9974 for clean timing"
+  },
+  {
+    "model": "opt30b",
+    "batch": 512,
+    "sequence": 1,
+    "rows": 512,
+    "cache_level": "l2",
+    "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_profiled_k": 2,
+    "fastest_profiled_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 4,
+    "maximum_l2_hit_rate_k_ties": [
+      4
+    ],
+    "timing_and_l2_common_best_k": [],
+    "timing_and_l2_rank_agreement": false,
+    "equation_candidate_is_l2_best_or_tied": false,
+    "timing_note": "uProf-instrumented; use job 9974 for clean timing"
+  },
+  {
+    "model": "opt30b",
+    "batch": 1024,
+    "sequence": 1,
+    "rows": 1024,
+    "cache_level": "l2",
+    "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_profiled_k": 2,
+    "fastest_profiled_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 4,
+    "minimum_l2_miss_k_ties": [
+      4,
+      8
+    ],
+    "maximum_l2_hit_rate_k": 8,
+    "maximum_l2_hit_rate_k_ties": [
+      8
+    ],
+    "timing_and_l2_common_best_k": [],
+    "timing_and_l2_rank_agreement": false,
+    "equation_candidate_is_l2_best_or_tied": true,
+    "timing_note": "uProf-instrumented; use job 9974 for clean timing"
+  }
+]

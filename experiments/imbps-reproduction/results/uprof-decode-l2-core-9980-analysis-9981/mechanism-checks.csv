@@ -1,0 +1,4 @@
+model,batch,sequence,rows,cache_level,cache_scope,equation13_author_power_of_two_candidate,fastest_profiled_k,fastest_profiled_k_ties,minimum_l2_miss_k,minimum_l2_miss_k_ties,maximum_l2_hit_rate_k,maximum_l2_hit_rate_k_ties,timing_and_l2_common_best_k,timing_and_l2_rank_agreement,equation_candidate_is_l2_best_or_tied,timing_note
+opt30b,128,1,128,l2,aggregate_private_l2_across_96_pinned_physical_cores,8,2,[2],2,[2],2,[2],[2],True,False,uProf-instrumented; use job 9974 for clean timing
+opt30b,512,1,512,l2,aggregate_private_l2_across_96_pinned_physical_cores,8,2,[2],2,[2],4,[4],[],False,False,uProf-instrumented; use job 9974 for clean timing
+opt30b,1024,1,1024,l2,aggregate_private_l2_across_96_pinned_physical_cores,8,2,[2],4,"[4, 8]",8,[8],[],False,True,uProf-instrumented; use job 9974 for clean timing
