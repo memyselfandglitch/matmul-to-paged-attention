@@ -1,0 +1,1 @@
+{"output": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/decode-l2-pilot-9970/timing/raw/r01-o21-opt30b-b1024-s1-tpp-k1.json", "median_ms": 79.2508355}
