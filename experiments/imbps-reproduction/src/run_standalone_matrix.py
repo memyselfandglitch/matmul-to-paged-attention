@@ -53,6 +53,7 @@ def parse_args() -> argparse.Namespace:
             "table_viii",
             "decode_exploratory",
             "decode_l2_opt30b",
+            "decode_l2_pilot_opt30b",
             "cache_fit_opt30b",
             "cache_resident_control",
             "autotune_thread_wait",

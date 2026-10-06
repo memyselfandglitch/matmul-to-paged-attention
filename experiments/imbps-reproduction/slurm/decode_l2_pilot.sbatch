@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=imbps-dec-pilot
+#SBATCH --partition=jobmn01
+#SBATCH --nodelist=mn01
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=96
+#SBATCH --mem=96G
+#SBATCH --time=02:00:00
+#SBATCH --exclusive
+#SBATCH --output=decode-l2-pilot-%j.out
+#SBATCH --error=decode-l2-pilot-%j.err
+
+set -euo pipefail
+
+readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
+readonly THREADS="${SLURM_CPUS_PER_TASK}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/decode-l2-pilot-${SLURM_JOB_ID}"
+cd "${PROJECT_ROOT}"
+source .venv/bin/activate
+source ./scripts/enable_tcmalloc.sh
+
+readonly CPU_LIST="$(python3 src/select_llc_cpus.py --threads "${THREADS}")"
+export OMP_NUM_THREADS="${THREADS}"
+export OMP_PROC_BIND=close
+export OMP_PLACES=cores
+export OMP_DYNAMIC=false
+export OMP_WAIT_POLICY=ACTIVE
+export NUMEXPR_MAX_THREADS="${THREADS}"
+export NUMEXPR_NUM_THREADS="${THREADS}"
+export LIBXSMM_BLOCK_SIZE=32
+export EXPECTED_PHYSICAL_CORES="${THREADS}"
+export REQUIRE_SINGLE_SOCKET=1
+export REJECT_SMT=1
+
+mkdir -p "${RESULT_ROOT}"
+numactl --physcpubind="${CPU_LIST}" --membind=0 \
+  python3 src/validate_runtime.py \
+    --require-tcmalloc \
+    --require-thp always \
+    --expected-l2-mib 96 \
+    --output "${RESULT_ROOT}/runtime-validation.json"
+numactl --physcpubind="${CPU_LIST}" --membind=0 ./scripts/preflight.sh
+python3 src/select_llc_cpus.py --threads "${THREADS}" --json \
+  > "${RESULT_ROOT}/cpu-selection.json"
+
+numactl --physcpubind="${CPU_LIST}" --membind=0 \
+  python3 src/run_standalone_matrix.py \
+    --claim decode_l2_pilot_opt30b \
+    --rounds 3 \
+    --warmups 3 \
+    --iterations 10 \
+    --min-measurement-seconds 0.5 \
+    --threads "${THREADS}" \
+    --result-dir "${RESULT_ROOT}/timing"
+
+echo "Decode L2 pilot timing: ${RESULT_ROOT}/timing"

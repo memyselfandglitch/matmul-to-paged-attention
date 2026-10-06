@@ -541,6 +541,17 @@ echo "tcmalloc=${tcmalloc_id} timing=${decode_id} uprof=${uprof_id} summary=${su
 All measurement jobs are exclusive. The summary job only reads completed JSON
 and CSV files, so it is deliberately not an exclusive measurement allocation.
 
+For a deadline-bounded preliminary pilot, cancel any full timing run first and
+submit timing, both serialized uProf passes, and analysis as one chain:
+
+```bash
+./scripts/submit_decode_l2_pilot.sh
+```
+
+The pilot matrix and its reduced repetition counts are preregistered in
+`DECODE_L2_PLAN.md`. Report it as preliminary; it does not replace the full
+matrix.
+
 ## Decision rules
 
 - Timing: report every round, median, IQR, coefficient of variation, and the

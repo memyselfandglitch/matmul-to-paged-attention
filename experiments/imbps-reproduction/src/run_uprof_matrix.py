@@ -49,6 +49,7 @@ def parse_args() -> argparse.Namespace:
             "cache_fit_opt30b",
             "server_equation_opt30b",
             "decode_l2_opt30b",
+            "decode_l2_pilot_opt30b",
         ),
         default="table_ii",
     )

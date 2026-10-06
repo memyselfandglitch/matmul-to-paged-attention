@@ -69,6 +69,17 @@ presumes that hypothesis.
   warmups, at least 10 invocations and at least five counter-active seconds per
   case.
 
+### Five-hour presentation pilot
+
+The deadline-bounded pilot is a separate preliminary stratum and does not
+replace the full matrix. Timing uses rows `1,32,128,512,1024`, TPP K=1, and
+IMBPS K=`4,7,8,14,16` for three randomized rounds, three warmups, at least 10
+measurements, and at least 0.5 measured seconds per case. The cache and traffic
+passes use rows `1,128,1024`, the same splits, three randomized rounds, three
+warmups, at least five invocations, and at least three counter-active seconds.
+This retains the below-bound K=4 control, aligned K=7, Equation-13 K=8, and
+larger-split overhead controls while fitting a short presentation deadline.
+
 ## Fixed controls
 
 - One exclusive Slurm allocation on `mn01`, package/NUMA node 0 only.

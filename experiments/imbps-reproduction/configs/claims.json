@@ -104,6 +104,34 @@
       "targets": {},
       "design_note": "Standalone OPT-30B MLP threshold study for normal decode and speculative-verification work. Equation 13 is evaluated with mn01's aggregate 96 MiB of private L2 only as an author-hinted placement hypothesis. K=7 is the smallest aligned legal split above the bound for these rows; K=8 is the next-power-of-two policy. Timing covers every unique active-row count once because the standalone MLP sees only M=B*gamma, not the B/gamma decomposition."
     },
+    "decode_l2_pilot_opt30b": {
+      "dtype": "bf16",
+      "cache_level": "l2",
+      "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+      "cache_mib": 96,
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1},
+        {"model": "opt30b", "batch": 32, "sequence": 1},
+        {"model": "opt30b", "batch": 128, "sequence": 1},
+        {"model": "opt30b", "batch": 512, "sequence": 1},
+        {"model": "opt30b", "batch": 1024, "sequence": 1}
+      ],
+      "splits": [4, 7, 8, 14, 16],
+      "uprof_cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1},
+        {"model": "opt30b", "batch": 128, "sequence": 1},
+        {"model": "opt30b", "batch": 1024, "sequence": 1}
+      ],
+      "uprof_splits": [4, 7, 8, 14, 16],
+      "semantic_mappings": {
+        "normal_decode": "active_rows equals live batch size",
+        "speculative_verification": "active_rows equals live batch size times verified draft-token count",
+        "draft_token_counts": [2, 4, 8]
+      },
+      "targets": {},
+      "design_note": "Deadline-bounded preliminary pilot. It preserves the TPP baseline, the below-bound K=4 control, aligned K=7, Equation-13 power-of-two K=8, and larger-split overhead controls K=14 and K=16. Results are preliminary and do not replace the full decode_l2_opt30b matrix."
+    },
     "cache_fit_opt30b": {
       "dtype": "bf16",
       "cache_mib": 384,
