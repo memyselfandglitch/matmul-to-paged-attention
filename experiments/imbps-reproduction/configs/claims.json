@@ -228,6 +228,34 @@
       "design_note": "Shape-invariance control: all cases flatten to M=4096 and should be equivalent to the standalone PACE operator."
     }
   },
+  "target_verification": {
+    "target_verify_smoke_opt125m": {
+      "model": "opt125m",
+      "dtype": "bf16",
+      "kv_cache_type": "BMC",
+      "splits": [2, 4, 8],
+      "cases": [
+        {"case_id": "normal-b2-g1-m2-c16", "mode": "normal_decode", "batch": 2, "draft_tokens": 1, "context_tokens": 16},
+        {"case_id": "verify-b2-g4-m8-c16", "mode": "target_verification", "batch": 2, "draft_tokens": 4, "context_tokens": 16}
+      ],
+      "design_note": "Fast API and cache-lifecycle smoke test. It is not evidence about OPT-30B performance."
+    },
+    "target_verify_opt30b_pilot": {
+      "model": "opt30b",
+      "dtype": "bf16",
+      "kv_cache_type": "BMC",
+      "splits": [2, 4, 8],
+      "cases": [
+        {"case_id": "normal-b256-g1-m256-c128", "mode": "normal_decode", "batch": 256, "draft_tokens": 1, "context_tokens": 128},
+        {"case_id": "normal-b512-g1-m512-c128", "mode": "normal_decode", "batch": 512, "draft_tokens": 1, "context_tokens": 128},
+        {"case_id": "verify-b128-g4-m512-c128", "mode": "target_verification", "batch": 128, "draft_tokens": 4, "context_tokens": 128},
+        {"case_id": "verify-b64-g8-m512-c128", "mode": "target_verification", "batch": 64, "draft_tokens": 8, "context_tokens": 128},
+        {"case_id": "verify-b256-g4-m1024-c128", "mode": "target_verification", "batch": 256, "draft_tokens": 4, "context_tokens": 128},
+        {"case_id": "verify-b128-g8-m1024-c128", "mode": "target_verification", "batch": 128, "draft_tokens": 8, "context_tokens": 128}
+      ],
+      "design_note": "KV-cache-inclusive OPT-30B target-forward pilot. Prefill populates the BMC cache but is excluded from target-forward latency. Replayed draft blocks test M=B*gamma while draft-model generation, acceptance, and sampling remain out of scope."
+    }
+  },
   "e2e": {
     "table_iii": {
       "dtype": "fp32",

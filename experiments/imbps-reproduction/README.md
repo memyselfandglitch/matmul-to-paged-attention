@@ -552,6 +552,40 @@ The pilot matrix and its reduced repetition counts are preregistered in
 `DECODE_L2_PLAN.md`. Report it as preliminary; it does not replace the full
 matrix.
 
+## Stage 9 - KV-cache target verification
+
+The standalone MLP study cannot observe attention or a KV cache. The prospective
+follow-up in `TARGET_VERIFY_PLAN.md` pre-fills PACE's BMC cache, then times the
+target model on either one normal-decode token or a replayed multi-token draft
+block. It is a target-verification microbenchmark, not full speculative decoding:
+draft generation, acceptance, and sampling are excluded.
+
+Run the small OPT-125M smoke test first. The four array elements are serialized
+and exercise TPP K=1 and IMBPS K=2/4/8:
+
+```bash
+TARGET_VERIFY_CLAIM=target_verify_smoke_opt125m \
+TARGET_VERIFY_ROUNDS=1 \
+TARGET_VERIFY_WARMUPS=1 \
+TARGET_VERIFY_ITERATIONS=1 \
+TARGET_VERIFY_MIN_ROUND_SECONDS=0 \
+  ./scripts/submit_target_verify.sh
+```
+
+After the smoke array and its dependent summary complete, submit the
+preregistered OPT-30B pilot:
+
+```bash
+./scripts/submit_target_verify.sh
+```
+
+To use a local immutable model snapshot instead of resolving the Hugging Face
+identifier, export `TARGET_MODEL_REFERENCE=/absolute/path/to/snapshot` before
+submission. By default, the launcher places the Hugging Face cache under
+`/data/scratch/$USER/huggingface` instead of the small home filesystem. Results
+are written beneath `results/target-verify-ARRAY_JOB_ID/`, with the combined CSV
+at `analysis/summary.csv`.
+
 ## Decision rules
 
 - Timing: report every round, median, IQR, coefficient of variation, and the
