@@ -1,0 +1,990 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "captured_at_utc": "2026-10-09T14:10:11.474454+00:00",
+  "case": {
+    "backend": "imbps",
+    "batch": 1,
+    "sequence": 1,
+    "rows": 1,
+    "hidden": 7168,
+    "intermediate": 28672,
+    "splits": 8,
+    "dtype": "bf16",
+    "activation": "relu",
+    "bias": true,
+    "seed": 0,
+    "model": "opt30b",
+    "split": 8
+  },
+  "run": {
+    "warmups": 5,
+    "requested_iterations": 20,
+    "min_measurement_seconds": 1.0,
+    "iterations": 226,
+    "durations_ms": [
+      5.894662,
+      4.534878,
+      4.572637,
+      5.864075,
+      4.201801,
+      3.976961,
+      5.274057,
+      4.127986,
+      5.364788,
+      3.640519,
+      3.778322,
+      5.229778,
+      3.649632,
+      3.836092,
+      5.276571,
+      4.016843,
+      5.324385,
+      3.691077,
+      3.832516,
+      5.328051,
+      3.627348,
+      3.803091,
+      5.316243,
+      3.976881,
+      5.371959,
+      3.576629,
+      3.823623,
+      5.309763,
+      3.615179,
+      3.846559,
+      5.294198,
+      3.986546,
+      5.532419,
+      3.677225,
+      3.80878,
+      5.32709,
+      3.562377,
+      3.839287,
+      5.3531,
+      3.988529,
+      5.49434,
+      3.585242,
+      3.796159,
+      5.524737,
+      3.547534,
+      3.800878,
+      5.336063,
+      3.650584,
+      3.858958,
+      5.409387,
+      3.919261,
+      5.605663,
+      3.572322,
+      3.787808,
+      5.516715,
+      3.560334,
+      3.870225,
+      5.394554,
+      3.944541,
+      5.839266,
+      3.55767,
+      3.822591,
+      5.501901,
+      3.580024,
+      3.844815,
+      5.511395,
+      3.948027,
+      5.629018,
+      3.571861,
+      3.800436,
+      5.436189,
+      3.580946,
+      3.801649,
+      5.448799,
+      3.96257,
+      5.710305,
+      3.582087,
+      3.811013,
+      5.560232,
+      3.5643,
+      3.836994,
+      5.405942,
+      3.947455,
+      5.869111,
+      3.566884,
+      3.800728,
+      5.549646,
+      3.550038,
+      3.841921,
+      5.66193,
+      3.567234,
+      3.836853,
+      5.790409,
+      3.93089,
+      5.750678,
+      3.606625,
+      3.801369,
+      5.444192,
+      3.553443,
+      3.8544,
+      5.402216,
+      3.942387,
+      5.562455,
+      3.547243,
+      3.863795,
+      5.523145,
+      3.61661,
+      3.89927,
+      5.405592,
+      3.920143,
+      5.679257,
+      3.553604,
+      3.836082,
+      5.528132,
+      3.601688,
+      3.833548,
+      5.37863,
+      3.961137,
+      5.763287,
+      3.592774,
+      3.884918,
+      5.51423,
+      3.586985,
+      3.85392,
+      5.789488,
+      3.907803,
+      5.758861,
+      3.5775,
+      3.845327,
+      5.654828,
+      3.572132,
+      3.836913,
+      5.396367,
+      3.571961,
+      3.845356,
+      5.496563,
+      3.927043,
+      5.845986,
+      3.576498,
+      3.817743,
+      5.606073,
+      3.576098,
+      3.857555,
+      5.401745,
+      3.948897,
+      5.654618,
+      3.575026,
+      3.871798,
+      5.510454,
+      3.544228,
+      3.804262,
+      5.390287,
+      3.97659,
+      5.57204,
+      3.524307,
+      3.872628,
+      5.629559,
+      3.590531,
+      3.82195,
+      5.409848,
+      3.937991,
+      5.672075,
+      3.566102,
+      3.852949,
+      5.505556,
+      3.578922,
+      3.840088,
+      5.511055,
+      3.94446,
+      5.718087,
+      3.597952,
+      3.843974,
+      5.490463,
+      3.576599,
+      3.803812,
+      5.641107,
+      3.840268,
+      3.953625,
+      5.398049,
+      3.926803,
+      5.75905,
+      3.587375,
+      3.878198,
+      5.609068,
+      3.537348,
+      3.844115,
+      5.51421,
+      3.993457,
+      5.538168,
+      3.614427,
+      3.864907,
+      5.507629,
+      3.609199,
+      3.80873,
+      5.512948,
+      3.966505,
+      5.62394,
+      3.585652,
+      3.831805,
+      5.884215,
+      3.57124,
+      3.838626,
+      5.532689,
+      3.903167,
+      5.605572,
+      3.560053,
+      3.841501,
+      5.492837,
+      3.548024,
+      3.866579,
+      5.45591,
+      3.922486,
+      5.753512,
+      3.568135,
+      3.895474,
+      5.641699,
+      3.597811,
+      3.831846,
+      5.471934,
+      3.5712,
+      3.817333,
+      5.452855,
+      3.945302,
+      5.702302,
+      3.561285,
+      3.843504
+    ],
+    "median_ms": 3.913532,
+    "mean_ms": 4.43067817699115,
+    "stdev_ms": 0.8724752929251628,
+    "q1_ms": 3.78989575,
+    "q3_ms": 5.451841,
+    "iqr_ms": 1.66194525,
+    "coefficient_of_variation": 0.19691687323534207,
+    "setup_seconds": 2.3083807330112904,
+    "measurement_wall_seconds": 1.0019730579806492
+  },
+  "output": {
+    "shape": [
+      1,
+      7168
+    ],
+    "dtype": "torch.bfloat16",
+    "sum_fp32": -108.93780517578125,
+    "max_abs_fp32": 0.10498046875
+  },
+  "environment": {
+    "hostname": "mn01",
+    "pid": 502232,
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "main_thread_affinity": [
+      0
+    ],
+    "process_thread_count": 288,
+    "thread_affinity_masks": [
+      {
+        "cpus": [
+          0
+        ],
+        "thread_count": 193
+      },
+      {
+        "cpus": [
+          1
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          2
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          3
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          4
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          5
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          6
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          7
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          8
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          9
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          10
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          11
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          12
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          13
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          14
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          15
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          16
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          17
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          18
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          19
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          20
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          21
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          22
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          23
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          24
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          25
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          26
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          27
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          28
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          29
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          30
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          31
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          32
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          33
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          34
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          35
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          36
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          37
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          38
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          39
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          40
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          41
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          42
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          43
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          44
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          45
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          46
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          47
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          48
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          49
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          50
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          51
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          52
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          53
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          54
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          55
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          56
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          57
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          58
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          59
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          60
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          61
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          62
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          63
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          64
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          65
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          66
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          67
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          68
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          69
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          70
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          71
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          72
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          73
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          74
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          75
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          76
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          77
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          78
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          79
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          80
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          81
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          82
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          83
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          84
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          85
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          86
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          87
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          88
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          89
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          90
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          91
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          92
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          93
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          94
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          95
+        ],
+        "thread_count": 1
+      }
+    ],
+    "torch_version": "2.7.0+cpu",
+    "pace_version": "1.0.0",
+    "torch_threads": 96,
+    "torch_interop_threads": 1,
+    "omp_num_threads": "96",
+    "omp_proc_bind": "close",
+    "omp_places": "cores",
+    "omp_wait_policy": "ACTIVE",
+    "omp_dynamic": "false",
+    "gomp_cpu_affinity": null,
+    "imbps_block_size": "8",
+    "libxsmm_block_size": "32",
+    "ld_preload": "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5",
+    "allocator_mappings": [
+      "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5"
+    ],
+    "max_rss_kib": 4229308
+  },
+  "cache_model": {
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "cache_mib": 384,
+    "input_mib": 0.013671875,
+    "split_activation_mib": 0.0068359375,
+    "split_weight_mib": 49.0,
+    "working_set_mib": 49.0205078125,
+    "fits_strict": true,
+    "equation13_strict_lower_bound": 1.0210121006505561,
+    "equation13_strict_integer_candidate": 2,
+    "equation13_author_power_of_two_candidate": 2
+  },
+  "matrix": {
+    "round": 4,
+    "order": 40
+  }
+}

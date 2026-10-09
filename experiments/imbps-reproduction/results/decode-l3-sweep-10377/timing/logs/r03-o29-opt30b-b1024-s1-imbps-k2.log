@@ -1,0 +1,1 @@
+{"output": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/decode-l3-sweep-10377/timing/raw/r03-o29-opt30b-b1024-s1-imbps-k2.json", "median_ms": 56.5149325}

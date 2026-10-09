@@ -1,0 +1,450 @@
+[
+  {
+    "model": "opt30b",
+    "batch": 32,
+    "sequence": 1,
+    "rows": 32,
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 2,
+    "fastest_k_cache_pass_ties": [
+      2
+    ],
+    "fastest_k_traffic_pass": 2,
+    "fastest_k_traffic_pass_ties": [
+      2
+    ],
+    "minimum_cache_miss_k": 2,
+    "minimum_cache_miss_k_ties": [
+      2
+    ],
+    "maximum_cache_hit_rate_k": 2,
+    "maximum_cache_hit_rate_k_ties": [
+      2,
+      4
+    ],
+    "minimum_dram_byte_k": 2,
+    "minimum_dram_byte_k_ties": [
+      2
+    ],
+    "maximum_measured_dram_ai_k": 2,
+    "maximum_measured_dram_ai_k_ties": [
+      2
+    ],
+    "cache_pass_common_best_k": [
+      2
+    ],
+    "traffic_pass_common_best_k": [
+      2
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true,
+    "minimum_l3_miss_k": 2,
+    "minimum_l3_miss_k_ties": [
+      2
+    ],
+    "maximum_l3_hit_rate_k": 2,
+    "maximum_l3_hit_rate_k_ties": [
+      2,
+      4
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 4.6229275,
+    "fastest_clean_paired_speedup_median": 0.7751965621009114,
+    "fastest_clean_paired_speedup_ci95_low": 0.7564565042614069,
+    "fastest_clean_paired_speedup_ci95_high": 0.798654010579843,
+    "fastest_clean_supports_faster": false,
+    "equation_candidate_is_clean_fastest": true,
+    "clean_fastest_has_minimum_dram_bytes_or_overlap": true,
+    "clean_fastest_has_maximum_dram_ai_or_overlap": true,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "clean_fastest_has_minimum_l3_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l3_hit_rate_or_overlap": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 128,
+    "sequence": 1,
+    "rows": 128,
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 2,
+    "fastest_k_cache_pass_ties": [
+      2
+    ],
+    "fastest_k_traffic_pass": 2,
+    "fastest_k_traffic_pass_ties": [
+      2
+    ],
+    "minimum_cache_miss_k": 2,
+    "minimum_cache_miss_k_ties": [
+      2
+    ],
+    "maximum_cache_hit_rate_k": 2,
+    "maximum_cache_hit_rate_k_ties": [
+      2,
+      4
+    ],
+    "minimum_dram_byte_k": 2,
+    "minimum_dram_byte_k_ties": [
+      2
+    ],
+    "maximum_measured_dram_ai_k": 2,
+    "maximum_measured_dram_ai_k_ties": [
+      2
+    ],
+    "cache_pass_common_best_k": [
+      2
+    ],
+    "traffic_pass_common_best_k": [
+      2
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true,
+    "minimum_l3_miss_k": 2,
+    "minimum_l3_miss_k_ties": [
+      2
+    ],
+    "maximum_l3_hit_rate_k": 2,
+    "maximum_l3_hit_rate_k_ties": [
+      2,
+      4
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 12.359373999999999,
+    "fastest_clean_paired_speedup_median": 0.6675424640783377,
+    "fastest_clean_paired_speedup_ci95_low": 0.66156452734129,
+    "fastest_clean_paired_speedup_ci95_high": 0.6711812376039217,
+    "fastest_clean_supports_faster": false,
+    "equation_candidate_is_clean_fastest": true,
+    "clean_fastest_has_minimum_dram_bytes_or_overlap": true,
+    "clean_fastest_has_maximum_dram_ai_or_overlap": true,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "clean_fastest_has_minimum_l3_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l3_hit_rate_or_overlap": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 256,
+    "sequence": 1,
+    "rows": 256,
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 2,
+    "fastest_k_cache_pass_ties": [
+      2
+    ],
+    "fastest_k_traffic_pass": 2,
+    "fastest_k_traffic_pass_ties": [
+      2
+    ],
+    "minimum_cache_miss_k": 2,
+    "minimum_cache_miss_k_ties": [
+      2
+    ],
+    "maximum_cache_hit_rate_k": 2,
+    "maximum_cache_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_dram_byte_k": 2,
+    "minimum_dram_byte_k_ties": [
+      2
+    ],
+    "maximum_measured_dram_ai_k": 2,
+    "maximum_measured_dram_ai_k_ties": [
+      2
+    ],
+    "cache_pass_common_best_k": [
+      2
+    ],
+    "traffic_pass_common_best_k": [
+      2
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true,
+    "minimum_l3_miss_k": 2,
+    "minimum_l3_miss_k_ties": [
+      2
+    ],
+    "maximum_l3_hit_rate_k": 2,
+    "maximum_l3_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 18.5608125,
+    "fastest_clean_paired_speedup_median": 0.842835124668216,
+    "fastest_clean_paired_speedup_ci95_low": 0.84068158288431,
+    "fastest_clean_paired_speedup_ci95_high": 0.846578718043885,
+    "fastest_clean_supports_faster": false,
+    "equation_candidate_is_clean_fastest": true,
+    "clean_fastest_has_minimum_dram_bytes_or_overlap": true,
+    "clean_fastest_has_maximum_dram_ai_or_overlap": true,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "clean_fastest_has_minimum_l3_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l3_hit_rate_or_overlap": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 384,
+    "sequence": 1,
+    "rows": 384,
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 2,
+    "fastest_k_cache_pass_ties": [
+      2
+    ],
+    "fastest_k_traffic_pass": 2,
+    "fastest_k_traffic_pass_ties": [
+      2
+    ],
+    "minimum_cache_miss_k": 2,
+    "minimum_cache_miss_k_ties": [
+      2
+    ],
+    "maximum_cache_hit_rate_k": 2,
+    "maximum_cache_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_dram_byte_k": 2,
+    "minimum_dram_byte_k_ties": [
+      2
+    ],
+    "maximum_measured_dram_ai_k": 2,
+    "maximum_measured_dram_ai_k_ties": [
+      2
+    ],
+    "cache_pass_common_best_k": [
+      2
+    ],
+    "traffic_pass_common_best_k": [
+      2
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true,
+    "minimum_l3_miss_k": 2,
+    "minimum_l3_miss_k_ties": [
+      2
+    ],
+    "maximum_l3_hit_rate_k": 2,
+    "maximum_l3_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 24.214831,
+    "fastest_clean_paired_speedup_median": 0.9712133655853022,
+    "fastest_clean_paired_speedup_ci95_low": 0.95256348649312,
+    "fastest_clean_paired_speedup_ci95_high": 0.9758910148908329,
+    "fastest_clean_supports_faster": false,
+    "equation_candidate_is_clean_fastest": true,
+    "clean_fastest_has_minimum_dram_bytes_or_overlap": true,
+    "clean_fastest_has_maximum_dram_ai_or_overlap": true,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "clean_fastest_has_minimum_l3_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l3_hit_rate_or_overlap": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 512,
+    "sequence": 1,
+    "rows": 512,
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 2,
+    "fastest_k_cache_pass_ties": [
+      2
+    ],
+    "fastest_k_traffic_pass": 2,
+    "fastest_k_traffic_pass_ties": [
+      2
+    ],
+    "minimum_cache_miss_k": 2,
+    "minimum_cache_miss_k_ties": [
+      2
+    ],
+    "maximum_cache_hit_rate_k": 2,
+    "maximum_cache_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_dram_byte_k": 2,
+    "minimum_dram_byte_k_ties": [
+      2
+    ],
+    "maximum_measured_dram_ai_k": 2,
+    "maximum_measured_dram_ai_k_ties": [
+      2
+    ],
+    "cache_pass_common_best_k": [
+      2
+    ],
+    "traffic_pass_common_best_k": [
+      2
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true,
+    "minimum_l3_miss_k": 2,
+    "minimum_l3_miss_k_ties": [
+      2
+    ],
+    "maximum_l3_hit_rate_k": 2,
+    "maximum_l3_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2,
+      4
+    ],
+    "maximum_l2_hit_rate_k": 4,
+    "maximum_l2_hit_rate_k_ties": [
+      2,
+      4
+    ],
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 30.425437,
+    "fastest_clean_paired_speedup_median": 1.2644392765406742,
+    "fastest_clean_paired_speedup_ci95_low": 1.255625708187529,
+    "fastest_clean_paired_speedup_ci95_high": 1.2785383427450958,
+    "fastest_clean_supports_faster": true,
+    "equation_candidate_is_clean_fastest": true,
+    "clean_fastest_has_minimum_dram_bytes_or_overlap": true,
+    "clean_fastest_has_maximum_dram_ai_or_overlap": true,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "clean_fastest_has_minimum_l3_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l3_hit_rate_or_overlap": true
+  },
+  {
+    "model": "opt30b",
+    "batch": 1024,
+    "sequence": 1,
+    "rows": 1024,
+    "cache_level": "l3",
+    "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+    "equation13_author_power_of_two_candidate": 2,
+    "fastest_k_cache_pass": 2,
+    "fastest_k_cache_pass_ties": [
+      2
+    ],
+    "fastest_k_traffic_pass": 2,
+    "fastest_k_traffic_pass_ties": [
+      2
+    ],
+    "minimum_cache_miss_k": 2,
+    "minimum_cache_miss_k_ties": [
+      2
+    ],
+    "maximum_cache_hit_rate_k": 2,
+    "maximum_cache_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_dram_byte_k": 2,
+    "minimum_dram_byte_k_ties": [
+      2
+    ],
+    "maximum_measured_dram_ai_k": 2,
+    "maximum_measured_dram_ai_k_ties": [
+      2
+    ],
+    "cache_pass_common_best_k": [
+      2
+    ],
+    "traffic_pass_common_best_k": [
+      2
+    ],
+    "cache_pass_rank_agreement": true,
+    "traffic_pass_rank_agreement": true,
+    "equation_candidate_is_cache_fastest_or_tied": true,
+    "equation_candidate_is_traffic_fastest_or_tied": true,
+    "minimum_l3_miss_k": 2,
+    "minimum_l3_miss_k_ties": [
+      2
+    ],
+    "maximum_l3_hit_rate_k": 2,
+    "maximum_l3_hit_rate_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 4,
+    "minimum_l2_miss_k_ties": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "maximum_l2_hit_rate_k": 16,
+    "maximum_l2_hit_rate_k_ties": [
+      8,
+      16
+    ],
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 56.536124,
+    "fastest_clean_paired_speedup_median": 1.4066447291487023,
+    "fastest_clean_paired_speedup_ci95_low": 1.3929954324695608,
+    "fastest_clean_paired_speedup_ci95_high": 1.4342645155511544,
+    "fastest_clean_supports_faster": true,
+    "equation_candidate_is_clean_fastest": true,
+    "clean_fastest_has_minimum_dram_bytes_or_overlap": true,
+    "clean_fastest_has_maximum_dram_ai_or_overlap": true,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": false,
+    "clean_fastest_has_minimum_l3_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l3_hit_rate_or_overlap": true
+  }
+]

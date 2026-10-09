@@ -1,0 +1,2 @@
+Profiling started.
+Generated Cumulative data file path: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-decode-l3-sweep-10378-traffic/matrix/cases/r02-o05-opt30b-b256-imbps-k4/uprof.csv
