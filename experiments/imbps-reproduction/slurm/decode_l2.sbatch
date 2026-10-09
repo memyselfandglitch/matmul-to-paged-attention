@@ -36,12 +36,17 @@ export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
 
 mkdir -p "${RESULT_ROOT}"
+runtime_validation_args=(
+  --require-tcmalloc
+  --require-thp "${REQUIRE_THP_MODE:-always}"
+  --expected-l2-mib 96
+  --output "${RESULT_ROOT}/runtime-validation.json"
+)
+if [[ -n "${EXPECTED_L3_MIB:-}" ]]; then
+  runtime_validation_args+=(--expected-l3-mib "${EXPECTED_L3_MIB}")
+fi
 numactl --physcpubind="${CPU_LIST}" --membind=0 \
-  python3 src/validate_runtime.py \
-    --require-tcmalloc \
-    --require-thp "${REQUIRE_THP_MODE:-always}" \
-    --expected-l2-mib 96 \
-    --output "${RESULT_ROOT}/runtime-validation.json"
+  python3 src/validate_runtime.py "${runtime_validation_args[@]}"
 numactl --physcpubind="${CPU_LIST}" --membind=0 ./scripts/preflight.sh
 python3 src/select_llc_cpus.py --threads "${THREADS}" --json \
   > "${RESULT_ROOT}/cpu-selection.json"

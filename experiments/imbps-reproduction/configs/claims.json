@@ -174,6 +174,41 @@
       "targets": {},
       "design_note": "Focused validation around the observed runtime crossover. Clean timing and a separate core-counter-only ipc,l2 pass use identical rows and splits. K=2 is the prior timing winner, K=4 is an intermediate control, and K=8 is the aggregate-L2 Equation-13 power-of-two candidate."
     },
+    "decode_l3_sweep_opt30b": {
+      "dtype": "bf16",
+      "cache_level": "l3",
+      "cache_scope": "aggregate_segmented_l3_across_12_ccds_on_package_0",
+      "cache_mib": 384,
+      "models": ["opt30b"],
+      "cases": [
+        {"model": "opt30b", "batch": 1, "sequence": 1},
+        {"model": "opt30b", "batch": 8, "sequence": 1},
+        {"model": "opt30b", "batch": 32, "sequence": 1},
+        {"model": "opt30b", "batch": 128, "sequence": 1},
+        {"model": "opt30b", "batch": 256, "sequence": 1},
+        {"model": "opt30b", "batch": 384, "sequence": 1},
+        {"model": "opt30b", "batch": 512, "sequence": 1},
+        {"model": "opt30b", "batch": 768, "sequence": 1},
+        {"model": "opt30b", "batch": 1024, "sequence": 1}
+      ],
+      "splits": [2, 4, 8, 16, 32],
+      "uprof_cases": [
+        {"model": "opt30b", "batch": 32, "sequence": 1},
+        {"model": "opt30b", "batch": 128, "sequence": 1},
+        {"model": "opt30b", "batch": 256, "sequence": 1},
+        {"model": "opt30b", "batch": 384, "sequence": 1},
+        {"model": "opt30b", "batch": 512, "sequence": 1},
+        {"model": "opt30b", "batch": 1024, "sequence": 1}
+      ],
+      "uprof_splits": [2, 4, 8, 16],
+      "semantic_mappings": {
+        "normal_decode": "active_rows equals live batch size because one token per sequence enters the MLP",
+        "speculative_verification": "active_rows equals live batch size times verified draft-token count",
+        "context_length": "does not change the standalone MLP shape and is deferred to end-to-end KV-cache experiments"
+      },
+      "targets": {},
+      "design_note": "Standalone OPT-30B decode-shaped L3 sweep. For 384 MiB aggregate package-visible L3, Equation 13 selects K=2 for every tested active-row count. The cache is physically segmented into twelve 32 MiB CCD slices, so the aggregate-capacity interpretation is a hypothesis rather than a shared-cache claim. K=32 is retained only in clean timing as an over-splitting control."
+    },
     "cache_fit_opt30b": {
       "dtype": "bf16",
       "cache_mib": 384,

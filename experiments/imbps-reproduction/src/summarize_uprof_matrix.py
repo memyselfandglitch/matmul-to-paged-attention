@@ -17,8 +17,74 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cache-dir", type=Path, required=True)
     parser.add_argument("--traffic-dir", type=Path, required=True)
+    parser.add_argument("--timing-summary", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     return parser.parse_args()
+
+
+def read_clean_timing(path: Path) -> list[dict[str, Any]]:
+    integer_fields = {"batch", "sequence", "active_rows", "split"}
+    float_fields = {
+        "median_ms",
+        "paired_speedup_median",
+        "paired_speedup_ci95_low",
+        "paired_speedup_ci95_high",
+    }
+    with path.open(newline="", encoding="utf-8") as source:
+        rows = list(csv.DictReader(source))
+    for row in rows:
+        for field in integer_fields:
+            row[field] = int(row[field])
+        for field in float_fields:
+            row[field] = float(row[field])
+        row["paired_speedup_supports_faster"] = (
+            row["paired_speedup_supports_faster"].lower() == "true"
+        )
+    return rows
+
+
+def add_clean_timing(
+    summary: list[dict[str, Any]], timing: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    timing_by_case = {
+        (
+            row["model"],
+            int(row["batch"]),
+            int(row["sequence"]),
+            row["backend"],
+            int(row["split"]),
+        ): row
+        for row in timing
+    }
+    combined = []
+    for row in summary:
+        key = (
+            row["model"],
+            int(row["batch"]),
+            int(row["sequence"]),
+            row["backend"],
+            int(row["split"]),
+        )
+        if key not in timing_by_case:
+            raise ValueError(f"clean timing is missing profiled case {key}")
+        timed = timing_by_case[key]
+        combined.append(
+            {
+                **row,
+                "clean_median_ms": timed["median_ms"],
+                "clean_paired_speedup_median": timed["paired_speedup_median"],
+                "clean_paired_speedup_ci95_low": timed[
+                    "paired_speedup_ci95_low"
+                ],
+                "clean_paired_speedup_ci95_high": timed[
+                    "paired_speedup_ci95_high"
+                ],
+                "clean_paired_speedup_supports_faster": timed[
+                    "paired_speedup_supports_faster"
+                ],
+            }
+        )
+    return combined
 
 
 def quantile(values: list[float], q: float) -> float:
@@ -370,8 +436,85 @@ def mechanism_checks(
         check[f"minimum_{cache_level}_miss_k_ties"] = min_miss_ties
         check[f"maximum_{cache_level}_hit_rate_k"] = max_hit_rate
         check[f"maximum_{cache_level}_hit_rate_k_ties"] = max_hit_rate_ties
+        for level in ("l2", "l3"):
+            level_miss_metric = f"{level}_miss_per_invocation"
+            level_hit_metric = f"{level}_hit_percent"
+            if f"{level_miss_metric}_median" not in cache_candidates[0]:
+                continue
+            level_min, level_min_ties = tied_splits(
+                cache_candidates, level_miss_metric, minimize=True
+            )
+            level_max, level_max_ties = tied_splits(
+                cache_candidates, level_hit_metric, minimize=False
+            )
+            check[f"minimum_{level}_miss_k"] = level_min
+            check[f"minimum_{level}_miss_k_ties"] = level_min_ties
+            check[f"maximum_{level}_hit_rate_k"] = level_max
+            check[f"maximum_{level}_hit_rate_k_ties"] = level_max_ties
         checks.append(check)
     return checks
+
+
+def add_clean_timing_checks(
+    checks: list[dict[str, Any]], timing: list[dict[str, Any]]
+) -> None:
+    for check in checks:
+        candidates = [
+            row
+            for row in timing
+            if row["model"] == check["model"]
+            and int(row["batch"]) == check["batch"]
+            and int(row["sequence"]) == check["sequence"]
+            and row["backend"] == "imbps"
+        ]
+        if not candidates:
+            raise ValueError(
+                "clean timing has no IMBPS candidates for "
+                f"{check['model']} B={check['batch']} SL={check['sequence']}"
+            )
+        fastest = min(candidates, key=lambda row: row["median_ms"])
+        fastest_k = int(fastest["split"])
+        clean_fields: dict[str, Any] = {
+            "fastest_clean_k": fastest_k,
+            "fastest_clean_median_ms": fastest["median_ms"],
+            "fastest_clean_paired_speedup_median": fastest[
+                "paired_speedup_median"
+            ],
+            "fastest_clean_paired_speedup_ci95_low": fastest[
+                "paired_speedup_ci95_low"
+            ],
+            "fastest_clean_paired_speedup_ci95_high": fastest[
+                "paired_speedup_ci95_high"
+            ],
+            "fastest_clean_supports_faster": fastest[
+                "paired_speedup_supports_faster"
+            ],
+            "equation_candidate_is_clean_fastest": (
+                check["equation13_author_power_of_two_candidate"] == fastest_k
+            ),
+            "clean_fastest_has_minimum_dram_bytes_or_overlap": (
+                fastest_k in check["minimum_dram_byte_k_ties"]
+            ),
+            "clean_fastest_has_maximum_dram_ai_or_overlap": (
+                fastest_k in check["maximum_measured_dram_ai_k_ties"]
+            ),
+            "timing_note": (
+                "clean timing joined from a separate unprofiled run; "
+                "counter timing remains diagnostic only"
+            ),
+        }
+        for level in ("l2", "l3"):
+            miss_ties = check.get(f"minimum_{level}_miss_k_ties")
+            hit_ties = check.get(f"maximum_{level}_hit_rate_k_ties")
+            if miss_ties is not None:
+                clean_fields[
+                    f"clean_fastest_has_minimum_{level}_misses_or_overlap"
+                ] = fastest_k in miss_ties
+            if hit_ties is not None:
+                clean_fields[
+                    f"clean_fastest_has_maximum_{level}_hit_rate_or_overlap"
+                ] = fastest_k in hit_ties
+        check.update(clean_fields)
 
 
 def compare_k4_k8(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str, Any]]:
@@ -471,10 +614,20 @@ def main() -> None:
     )
     args.output_dir.mkdir(parents=True, exist_ok=False)
     summary = cache_summary + traffic_summary
+    combined = None
+    if args.timing_summary is not None:
+        timing = read_clean_timing(args.timing_summary)
+        combined = add_clean_timing(summary, timing)
+        add_clean_timing_checks(checks, timing)
     (args.output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     write_csv(args.output_dir / "summary.csv", summary)
+    if combined is not None:
+        (args.output_dir / "combined-summary.json").write_text(
+            json.dumps(combined, indent=2) + "\n", encoding="utf-8"
+        )
+        write_csv(args.output_dir / "combined-summary.csv", combined)
     (args.output_dir / "mechanism-checks.json").write_text(
         json.dumps(checks, indent=2) + "\n", encoding="utf-8"
     )

@@ -99,13 +99,20 @@ same variants in both strata: TPP K=1 and IMBPS K=`2,4,8`.
 
 - Clean timing: five randomized paired rounds, five warmups, at least 20
   iterations and at least one measured second per case.
-- L2 counters: five independently randomized rounds, five warmups, at least 10
-  invocations and at least five counter-active seconds per case.
+- Cache counters: five independently randomized rounds using uProf
+  `ipc,l2,l3`, five warmups, at least 10 invocations and at least five
+  counter-active seconds per case.
+- Traffic counters: a second five-round uProf `memory` pass records DRAM bytes
+  and DRAM arithmetic intensity for the same cases.
 - K=2 is the prior clean-timing winner, K=4 is an intermediate control, and
   K=8 is the aggregate-L2 Equation-13 candidate.
 - The combined analysis joins clean timing to the separately profiled L2
-  metrics by exact model/row/backend/K identity. Profiled latency is retained
-  only as a diagnostic.
+  and L3 metrics and DRAM traffic by exact model/row/backend/K identity.
+  Profiled latency is retained only as a diagnostic.
+
+The profiler jobs require the `amd_l3` and `amd_df` perf devices and probe both
+metric sets before launching the matrix. They fail immediately if either device
+or either uProf metric set is unavailable.
 
 This experiment may confirm a system-specific crossover region, but it cannot
 validate the 96 MiB aggregate-private-L2 model. A later worker-ownership study

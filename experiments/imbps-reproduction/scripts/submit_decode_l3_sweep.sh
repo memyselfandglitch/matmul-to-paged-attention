@@ -2,17 +2,17 @@
 
 set -euo pipefail
 
-readonly TIMING_LABEL="decode-l2-crossover"
-readonly PROFILE_LABEL="decode-l2-crossover"
-readonly CLAIM="decode_l2_crossover_opt30b"
+readonly TIMING_LABEL="decode-l3-sweep"
+readonly PROFILE_LABEL="decode-l3-sweep"
+readonly CLAIM="decode_l3_sweep_opt30b"
 
 timing_id="$(sbatch --parsable \
-  --export="ALL,DECODE_L2_CLAIM=${CLAIM},DECODE_L2_RESULT_LABEL=${TIMING_LABEL}" \
+  --export="ALL,DECODE_L2_CLAIM=${CLAIM},DECODE_L2_RESULT_LABEL=${TIMING_LABEL},EXPECTED_L3_MIB=384" \
   slurm/decode_l2.sbatch)"
 
 profile_id="$(sbatch --parsable \
   --dependency="afterok:${timing_id}" \
-  --export="ALL,DECODE_UPROF_CLAIM=${CLAIM},DECODE_UPROF_RESULT_LABEL=${PROFILE_LABEL},ROUNDS=5,WARMUPS=5,ITERATIONS=10,MIN_COUNTER_SECONDS=5" \
+  --export="ALL,DECODE_UPROF_CLAIM=${CLAIM},DECODE_UPROF_RESULT_LABEL=${PROFILE_LABEL},EXPECTED_L3_MIB=384,ROUNDS=5,WARMUPS=5,ITERATIONS=10,MIN_COUNTER_SECONDS=5" \
   slurm/uprof_decode_l2.sbatch)"
 
 timing_summary="${PWD}/results/${TIMING_LABEL}-${timing_id}/timing/summary.csv"

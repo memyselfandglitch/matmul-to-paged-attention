@@ -562,18 +562,35 @@ This profiles active rows 128/512/1024 with TPP and IMBPS K=2/4/8 using only
 uProf `ipc,l2`. It can test L2 access, miss, and hit-rate behavior, but it does
 not provide L3, DRAM-traffic, or arithmetic-intensity evidence.
 
-To validate the observed crossover with matching clean-timing and L2-counter
-matrices at 256, 384, and 512 active rows, run:
+To validate the observed crossover with matching clean timing, L2/L3 counters,
+and DRAM traffic at 256, 384, and 512 active rows, run:
 
 ```bash
 ./scripts/submit_decode_l2_crossover.sh
 ```
 
-The command submits a serialized chain: clean timing, an `ipc,l2` uProf pass,
-and a summary that joins both strata by exact case identity. It compares TPP
-K=1 with IMBPS K=2/4/8 for five randomized rounds. The resulting
-`combined-summary.csv` uses unprofiled latency for performance conclusions and
-uProf only for mechanism evidence.
+The command submits a serialized chain: clean timing, serialized uProf
+`ipc,l2,l3` and `memory` passes, and a summary that joins all strata by exact
+case identity. It compares TPP K=1 with IMBPS K=2/4/8 for five randomized
+rounds. THP `always`, tcmalloc, topology, affinity, `amd_l3`, and `amd_df` are
+validated before measurement. The resulting `combined-summary.csv` uses
+unprofiled latency for performance conclusions and uProf only for mechanism
+evidence.
+
+To test the 384 MiB aggregate-L3 hypothesis over a wider decode-shaped
+active-row range, run:
+
+```bash
+./scripts/submit_decode_l3_sweep.sh
+```
+
+The preregistered matrix is in `DECODE_L3_PLAN.md`. Clean timing covers active
+rows 1 through 1024 and TPP K=1 versus IMBPS K=2/4/8/16/32. The separate uProf
+subset measures `ipc,l2,l3` and DRAM traffic at rows
+32/128/256/384/512/1024. Equation 13 selects K=2 throughout this range when
+evaluated against 384 MiB. The jobs require THP `always`, mapped tcmalloc,
+96 MiB aggregate L2, 384 MiB aggregate L3, and available `amd_l3`/`amd_df`
+perf devices before measurement.
 
 ## Stage 9 - KV-cache target verification
 

@@ -4,15 +4,24 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from pathlib import Path
 from typing import Any
 
 try:
-    from .summarize_uprof_matrix import summarize_pass, write_csv
+    from .summarize_uprof_matrix import (
+        add_clean_timing,
+        read_clean_timing,
+        summarize_pass,
+        write_csv,
+    )
 except ImportError:
-    from summarize_uprof_matrix import summarize_pass, write_csv
+    from summarize_uprof_matrix import (
+        add_clean_timing,
+        read_clean_timing,
+        summarize_pass,
+        write_csv,
+    )
 
 
 def tied_splits(
@@ -95,71 +104,6 @@ def l2_checks(summary: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return checks
-
-
-def read_clean_timing(path: Path) -> list[dict[str, Any]]:
-    integer_fields = {"batch", "sequence", "active_rows", "split"}
-    float_fields = {
-        "median_ms",
-        "paired_speedup_median",
-        "paired_speedup_ci95_low",
-        "paired_speedup_ci95_high",
-    }
-    with path.open(newline="", encoding="utf-8") as source:
-        rows = list(csv.DictReader(source))
-    for row in rows:
-        for field in integer_fields:
-            row[field] = int(row[field])
-        for field in float_fields:
-            row[field] = float(row[field])
-        row["paired_speedup_supports_faster"] = (
-            row["paired_speedup_supports_faster"].lower() == "true"
-        )
-    return rows
-
-
-def add_clean_timing(
-    summary: list[dict[str, Any]], timing: list[dict[str, Any]]
-) -> list[dict[str, Any]]:
-    timing_by_case = {
-        (
-            row["model"],
-            int(row["batch"]),
-            int(row["sequence"]),
-            row["backend"],
-            int(row["split"]),
-        ): row
-        for row in timing
-    }
-    combined = []
-    for row in summary:
-        key = (
-            row["model"],
-            int(row["batch"]),
-            int(row["sequence"]),
-            row["backend"],
-            int(row["split"]),
-        )
-        if key not in timing_by_case:
-            raise ValueError(f"clean timing is missing profiled case {key}")
-        timed = timing_by_case[key]
-        combined.append(
-            {
-                **row,
-                "clean_median_ms": timed["median_ms"],
-                "clean_paired_speedup_median": timed["paired_speedup_median"],
-                "clean_paired_speedup_ci95_low": timed[
-                    "paired_speedup_ci95_low"
-                ],
-                "clean_paired_speedup_ci95_high": timed[
-                    "paired_speedup_ci95_high"
-                ],
-                "clean_paired_speedup_supports_faster": timed[
-                    "paired_speedup_supports_faster"
-                ],
-            }
-        )
-    return combined
 
 
 def add_clean_timing_checks(

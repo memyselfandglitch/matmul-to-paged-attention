@@ -6,12 +6,14 @@ import unittest
 from pathlib import Path
 
 from src.run_uprof_matrix import experiment_cases, normalized_record
-from src.summarize_uprof_l2 import (
+from src.summarize_uprof_l2 import add_clean_timing_checks, l2_checks
+from src.summarize_uprof_matrix import (
     add_clean_timing,
-    add_clean_timing_checks,
-    l2_checks,
+    add_clean_timing_checks as add_full_clean_timing_checks,
+    compare_k4_k8,
+    mechanism_checks,
+    summarize_pass,
 )
-from src.summarize_uprof_matrix import compare_k4_k8, mechanism_checks, summarize_pass
 
 
 class UprofMatrixTests(unittest.TestCase):
@@ -198,6 +200,32 @@ L2 Miss (pti),20
         self.assertEqual(checks[0]["maximum_measured_dram_ai_k"], 8)
         self.assertTrue(checks[0]["cache_pass_rank_agreement"])
         self.assertTrue(checks[0]["traffic_pass_rank_agreement"])
+        timing = []
+        for backend, split, median_ms, speedup in (
+            ("tpp", 1, 12.0, 1.0),
+            ("imbps", 4, 8.0, 1.5),
+            ("imbps", 8, 9.0, 4 / 3),
+            ("imbps", 16, 11.0, 12 / 11),
+        ):
+            timing.append(
+                {
+                    "model": "opt30b",
+                    "batch": 16,
+                    "sequence": 1920,
+                    "backend": backend,
+                    "split": split,
+                    "median_ms": median_ms,
+                    "paired_speedup_median": speedup,
+                    "paired_speedup_ci95_low": speedup - 0.01,
+                    "paired_speedup_ci95_high": speedup + 0.01,
+                    "paired_speedup_supports_faster": speedup - 0.01 > 1,
+                }
+            )
+        add_full_clean_timing_checks(checks, timing)
+        self.assertEqual(checks[0]["fastest_clean_k"], 4)
+        self.assertFalse(
+            checks[0]["clean_fastest_has_minimum_dram_bytes_or_overlap"]
+        )
 
     def test_cache_fit_claim_has_only_resident_imbps_cases(self) -> None:
         cases = experiment_cases("cache_fit_opt30b")
@@ -255,6 +283,26 @@ L2 Miss (pti),20
             {case["equation13_author_power_of_two_candidate"] for case in cases},
             {8},
         )
+
+    def test_decode_l3_sweep_uses_decode_rows_and_l3_candidate(self) -> None:
+        cases = experiment_cases("decode_l3_sweep_opt30b")
+        self.assertEqual(len(cases), 30)
+        self.assertEqual(
+            {case["batch"] for case in cases},
+            {32, 128, 256, 384, 512, 1024},
+        )
+        self.assertEqual({case["cache_level"] for case in cases}, {"l3"})
+        self.assertEqual(
+            {case["cache_scope"] for case in cases},
+            {"aggregate_segmented_l3_across_12_ccds_on_package_0"},
+        )
+        imbps = [case for case in cases if case["backend"] == "imbps"]
+        self.assertEqual({case["split"] for case in imbps}, {2, 4, 8, 16})
+        self.assertEqual(
+            {case["equation13_author_power_of_two_candidate"] for case in cases},
+            {2},
+        )
+        self.assertTrue(all(case["equation12_fits"] for case in imbps))
 
     def test_l2_mechanism_check_uses_l2_not_l3_ranking(self) -> None:
         cache_rows = self.rows("cache")

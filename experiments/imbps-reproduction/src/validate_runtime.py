@@ -39,6 +39,7 @@ def build_report(
     require_tcmalloc: bool,
     require_thp: str | None,
     expected_l2_mib: float | None = None,
+    expected_l3_mib: float | None = None,
 ) -> dict:
     thp_text = THP_ENABLED.read_text(encoding="utf-8").strip()
     maps_text = Path("/proc/self/maps").read_text(encoding="utf-8")
@@ -61,6 +62,12 @@ def build_report(
             f"affinity-visible aggregate L2 must be {expected_l2_mib} MiB, "
             f"found {observed_l2_mib} MiB"
         )
+    observed_l3_mib = caches["affinity_unique_by_level_mib"].get("3", 0.0)
+    if expected_l3_mib is not None and observed_l3_mib != expected_l3_mib:
+        errors.append(
+            f"affinity-visible aggregate L3 must be {expected_l3_mib} MiB, "
+            f"found {observed_l3_mib} MiB"
+        )
     return {
         "schema_version": 1,
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -69,6 +76,7 @@ def build_report(
             "tcmalloc": require_tcmalloc,
             "transparent_hugepage": require_thp,
             "affinity_l2_mib": expected_l2_mib,
+            "affinity_l3_mib": expected_l3_mib,
         },
         "observed": {
             "ld_preload": os.environ.get("LD_PRELOAD"),
@@ -91,9 +99,13 @@ def main() -> None:
     parser.add_argument("--require-tcmalloc", action="store_true")
     parser.add_argument("--require-thp", choices=("always", "madvise", "never"))
     parser.add_argument("--expected-l2-mib", type=float)
+    parser.add_argument("--expected-l3-mib", type=float)
     args = parser.parse_args()
     report = build_report(
-        args.require_tcmalloc, args.require_thp, args.expected_l2_mib
+        args.require_tcmalloc,
+        args.require_thp,
+        args.expected_l2_mib,
+        args.expected_l3_mib,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

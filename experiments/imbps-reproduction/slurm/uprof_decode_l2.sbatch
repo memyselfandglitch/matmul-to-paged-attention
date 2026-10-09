@@ -15,9 +15,11 @@
 set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
+readonly CLAIM="${DECODE_UPROF_CLAIM:-decode_l2_opt30b}"
+readonly RESULT_LABEL="${DECODE_UPROF_RESULT_LABEL:-decode-l2}"
 readonly PASS_NAMES=(cache traffic)
 readonly PASS_NAME="${PASS_NAMES[SLURM_ARRAY_TASK_ID]}"
-readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-decode-l2-${SLURM_ARRAY_JOB_ID}-${PASS_NAME}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-${RESULT_LABEL}-${SLURM_ARRAY_JOB_ID}-${PASS_NAME}"
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 source ./scripts/enable_tcmalloc.sh
@@ -55,12 +57,17 @@ export REQUIRE_SINGLE_SOCKET=1
 export REJECT_SMT=1
 
 mkdir -p "${RESULT_ROOT}"
+runtime_validation_args=(
+  --require-tcmalloc
+  --require-thp "${REQUIRE_THP_MODE:-always}"
+  --expected-l2-mib 96
+  --output "${RESULT_ROOT}/runtime-validation.json"
+)
+if [[ -n "${EXPECTED_L3_MIB:-}" ]]; then
+  runtime_validation_args+=(--expected-l3-mib "${EXPECTED_L3_MIB}")
+fi
 numactl --physcpubind="${CPU_LIST}" --membind=0 \
-  python3 src/validate_runtime.py \
-    --require-tcmalloc \
-    --require-thp "${REQUIRE_THP_MODE:-always}" \
-    --expected-l2-mib 96 \
-    --output "${RESULT_ROOT}/runtime-validation.json"
+  python3 src/validate_runtime.py "${runtime_validation_args[@]}"
 numactl --physcpubind="${CPU_LIST}" --membind=0 ./scripts/preflight.sh
 
 if [[ "${PASS_NAME}" == cache ]]; then
@@ -83,7 +90,7 @@ if (( PROBE_STATUS != 0 )); then
 fi
 
 python3 src/run_uprof_matrix.py \
-  --claim decode_l2_opt30b \
+  --claim "${CLAIM}" \
   --pass-name "${PASS_NAME}" \
   --uprof-bin "${UPROF_BIN}" \
   --package 0 \
@@ -96,4 +103,4 @@ python3 src/run_uprof_matrix.py \
   --seed 20261005 \
   --result-dir "${RESULT_ROOT}/matrix"
 
-echo "Decode L2 uProf ${PASS_NAME}: ${RESULT_ROOT}/matrix"
+echo "Decode uProf ${CLAIM} ${PASS_NAME}: ${RESULT_ROOT}/matrix"
