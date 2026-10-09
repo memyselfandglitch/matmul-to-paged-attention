@@ -1,0 +1,109 @@
+[
+  {
+    "model": "opt30b",
+    "batch": 256,
+    "sequence": 1,
+    "rows": 256,
+    "cache_level": "l2",
+    "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_profiled_k": 2,
+    "fastest_profiled_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "timing_and_l2_common_best_k": [
+      2
+    ],
+    "timing_and_l2_rank_agreement": true,
+    "equation_candidate_is_l2_best_or_tied": false,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 18.5812235,
+    "fastest_clean_paired_speedup_median": 0.8411925350340896,
+    "fastest_clean_paired_speedup_ci95_low": 0.8368606706189679,
+    "fastest_clean_paired_speedup_ci95_high": 0.8453620185684039,
+    "fastest_clean_supports_faster": false,
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "equation_candidate_is_clean_fastest": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 384,
+    "sequence": 1,
+    "rows": 384,
+    "cache_level": "l2",
+    "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_profiled_k": 2,
+    "fastest_profiled_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2
+    ],
+    "maximum_l2_hit_rate_k": 2,
+    "maximum_l2_hit_rate_k_ties": [
+      2
+    ],
+    "timing_and_l2_common_best_k": [
+      2
+    ],
+    "timing_and_l2_rank_agreement": true,
+    "equation_candidate_is_l2_best_or_tied": false,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 24.217808,
+    "fastest_clean_paired_speedup_median": 0.9746892073116403,
+    "fastest_clean_paired_speedup_ci95_low": 0.9634869693314916,
+    "fastest_clean_paired_speedup_ci95_high": 1.0399128129648978,
+    "fastest_clean_supports_faster": false,
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": true,
+    "equation_candidate_is_clean_fastest": false
+  },
+  {
+    "model": "opt30b",
+    "batch": 512,
+    "sequence": 1,
+    "rows": 512,
+    "cache_level": "l2",
+    "cache_scope": "aggregate_private_l2_across_96_pinned_physical_cores",
+    "equation13_author_power_of_two_candidate": 8,
+    "fastest_profiled_k": 2,
+    "fastest_profiled_k_ties": [
+      2
+    ],
+    "minimum_l2_miss_k": 2,
+    "minimum_l2_miss_k_ties": [
+      2,
+      4
+    ],
+    "maximum_l2_hit_rate_k": 4,
+    "maximum_l2_hit_rate_k_ties": [
+      4
+    ],
+    "timing_and_l2_common_best_k": [],
+    "timing_and_l2_rank_agreement": false,
+    "equation_candidate_is_l2_best_or_tied": false,
+    "timing_note": "clean timing joined from a separate unprofiled run; counter timing remains diagnostic only",
+    "fastest_clean_k": 2,
+    "fastest_clean_median_ms": 30.419139,
+    "fastest_clean_paired_speedup_median": 1.2703892446063179,
+    "fastest_clean_paired_speedup_ci95_low": 1.2619412090974111,
+    "fastest_clean_paired_speedup_ci95_high": 1.2807175205431667,
+    "fastest_clean_supports_faster": true,
+    "clean_fastest_has_minimum_l2_misses_or_overlap": true,
+    "clean_fastest_has_maximum_l2_hit_rate_or_overlap": false,
+    "equation_candidate_is_clean_fastest": false
+  }
+]
