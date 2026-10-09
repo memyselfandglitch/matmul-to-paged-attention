@@ -562,6 +562,19 @@ This profiles active rows 128/512/1024 with TPP and IMBPS K=2/4/8 using only
 uProf `ipc,l2`. It can test L2 access, miss, and hit-rate behavior, but it does
 not provide L3, DRAM-traffic, or arithmetic-intensity evidence.
 
+To validate the observed crossover with matching clean-timing and L2-counter
+matrices at 256, 384, and 512 active rows, run:
+
+```bash
+./scripts/submit_decode_l2_crossover.sh
+```
+
+The command submits a serialized chain: clean timing, an `ipc,l2` uProf pass,
+and a summary that joins both strata by exact case identity. It compares TPP
+K=1 with IMBPS K=2/4/8 for five randomized rounds. The resulting
+`combined-summary.csv` uses unprofiled latency for performance conclusions and
+uProf only for mechanism evidence.
+
 ## Stage 9 - KV-cache target verification
 
 The standalone MLP study cannot observe attention or a KV cache. The prospective

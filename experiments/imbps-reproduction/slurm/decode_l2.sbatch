@@ -15,7 +15,9 @@ set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
 readonly THREADS="${SLURM_CPUS_PER_TASK}"
-readonly RESULT_ROOT="${PROJECT_ROOT}/results/decode-l2-${SLURM_JOB_ID}"
+readonly CLAIM="${DECODE_L2_CLAIM:-decode_l2_opt30b}"
+readonly RESULT_LABEL="${DECODE_L2_RESULT_LABEL:-decode-l2}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/${RESULT_LABEL}-${SLURM_JOB_ID}"
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 source ./scripts/enable_tcmalloc.sh
@@ -46,7 +48,7 @@ python3 src/select_llc_cpus.py --threads "${THREADS}" --json \
 
 numactl --physcpubind="${CPU_LIST}" --membind=0 \
   python3 src/run_standalone_matrix.py \
-    --claim decode_l2_opt30b \
+    --claim "${CLAIM}" \
     --rounds "${ROUNDS:-5}" \
     --warmups "${WARMUPS:-5}" \
     --iterations "${ITERATIONS:-20}" \
@@ -54,4 +56,4 @@ numactl --physcpubind="${CPU_LIST}" --membind=0 \
     --threads "${THREADS}" \
     --result-dir "${RESULT_ROOT}/timing"
 
-echo "Decode L2 timing: ${RESULT_ROOT}/timing"
+echo "Decode L2 timing (${CLAIM}): ${RESULT_ROOT}/timing"

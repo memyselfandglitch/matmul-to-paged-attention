@@ -4,10 +4,10 @@
 
 - Origin skill: `academic-research-suite` / experiment-agent
 - Artifact type: prospective code experiment plan
-- Status: timing completed; core-counter-only L2 pilot preregistered
+- Status: full timing completed; focused crossover validation preregistered
 - Target: AMD EPYC 9654 package 0 on `mn01`
 - Implementation: AMD-PACE v1.0, OPT-30B MLP, BF16, ReLU
-- Last updated: 2026-10-06
+- Last updated: 2026-10-09
 
 ## Research question
 
@@ -39,11 +39,12 @@ from this operator benchmark.
 ## Analytical candidates
 
 The paper's Equation 13 is evaluated with OPT-30B `H=7168`, `I=28672`, BF16
-`f=2`, active rows `M`, and the affinity-visible aggregate L2 capacity of
+element size `alpha=2` bytes, active rows `M`, and the affinity-visible
+aggregate L2 capacity of
 96 MiB:
 
 ```text
-K > f I (M + H) / (L2 - f M H)
+K > alpha I (M + H) / (L2 - alpha M H)
 ```
 
 For `M=1`, the lower bound is 4.084; for `M=1024`, it is 5.463. The author's
@@ -88,6 +89,28 @@ K=`2,4,8` for three randomized rounds. These splits represent the full-timing
 winner, the earlier pilot winner, and the Equation-13 candidate, respectively.
 This stratum can test L2 accesses, misses, and hit rate. It cannot support L3,
 DRAM-traffic, or arithmetic-intensity claims.
+
+### Focused crossover validation
+
+The first clean timing sweep brackets the observed runtime crossover between
+256 and 512 active rows, but the initial L2-only profile omitted 256 and 384.
+The focused validation therefore measures rows `256,384,512` with exactly the
+same variants in both strata: TPP K=1 and IMBPS K=`2,4,8`.
+
+- Clean timing: five randomized paired rounds, five warmups, at least 20
+  iterations and at least one measured second per case.
+- L2 counters: five independently randomized rounds, five warmups, at least 10
+  invocations and at least five counter-active seconds per case.
+- K=2 is the prior clean-timing winner, K=4 is an intermediate control, and
+  K=8 is the aggregate-L2 Equation-13 candidate.
+- The combined analysis joins clean timing to the separately profiled L2
+  metrics by exact model/row/backend/K identity. Profiled latency is retained
+  only as a diagnostic.
+
+This experiment may confirm a system-specific crossover region, but it cannot
+validate the 96 MiB aggregate-private-L2 model. A later worker-ownership study
+must measure or control how weight blocks and activation rows map to each
+core's private 1 MiB L2.
 
 ## Fixed controls
 

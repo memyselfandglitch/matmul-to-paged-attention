@@ -14,13 +14,20 @@ set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
 : "${L2_UPROF_JOB_ID:?L2_UPROF_JOB_ID must name the completed profiling job}"
-readonly INPUT_DIR="${PROJECT_ROOT}/results/uprof-decode-l2-core-${L2_UPROF_JOB_ID}/matrix"
-readonly OUTPUT_DIR="${PROJECT_ROOT}/results/uprof-decode-l2-core-${L2_UPROF_JOB_ID}-analysis-${SLURM_JOB_ID}"
+readonly PROFILE_LABEL="${L2_UPROF_RESULT_LABEL:-uprof-decode-l2-core}"
+readonly ANALYSIS_LABEL="${L2_ANALYSIS_RESULT_LABEL:-uprof-decode-l2-core}"
+readonly INPUT_DIR="${PROJECT_ROOT}/results/${PROFILE_LABEL}-${L2_UPROF_JOB_ID}/matrix"
+readonly OUTPUT_DIR="${PROJECT_ROOT}/results/${ANALYSIS_LABEL}-${L2_UPROF_JOB_ID}-analysis-${SLURM_JOB_ID}"
 
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
-python3 src/summarize_uprof_l2.py \
-  --l2-dir "${INPUT_DIR}" \
+summary_args=(
+  --l2-dir "${INPUT_DIR}"
   --output-dir "${OUTPUT_DIR}"
+)
+if [[ -n "${L2_TIMING_SUMMARY:-}" ]]; then
+  summary_args+=(--timing-summary "${L2_TIMING_SUMMARY}")
+fi
+python3 src/summarize_uprof_l2.py "${summary_args[@]}"
 
 echo "Decode L2 core-only summary: ${OUTPUT_DIR}"

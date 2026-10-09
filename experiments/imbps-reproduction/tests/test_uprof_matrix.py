@@ -6,7 +6,11 @@ import unittest
 from pathlib import Path
 
 from src.run_uprof_matrix import experiment_cases, normalized_record
-from src.summarize_uprof_l2 import l2_checks
+from src.summarize_uprof_l2 import (
+    add_clean_timing,
+    add_clean_timing_checks,
+    l2_checks,
+)
 from src.summarize_uprof_matrix import compare_k4_k8, mechanism_checks, summarize_pass
 
 
@@ -239,6 +243,19 @@ L2 Miss (pti),20
             all(case["equation12_fits"] for case in imbps if case["split"] >= 7)
         )
 
+    def test_decode_l2_crossover_matrix_matches_timing_and_profile(self) -> None:
+        cases = experiment_cases("decode_l2_crossover_opt30b")
+        self.assertEqual(len(cases), 12)
+        self.assertEqual({case["batch"] for case in cases}, {256, 384, 512})
+        self.assertEqual(
+            {case["split"] for case in cases if case["backend"] == "imbps"},
+            {2, 4, 8},
+        )
+        self.assertEqual(
+            {case["equation13_author_power_of_two_candidate"] for case in cases},
+            {8},
+        )
+
     def test_l2_mechanism_check_uses_l2_not_l3_ranking(self) -> None:
         cache_rows = self.rows("cache")
         traffic_rows = self.rows("traffic")
@@ -272,6 +289,39 @@ L2 Miss (pti),20
         self.assertEqual(checks[0]["minimum_l2_miss_k"], 8)
         self.assertEqual(checks[0]["maximum_l2_hit_rate_k"], 8)
         self.assertTrue(checks[0]["timing_and_l2_rank_agreement"])
+
+    def test_l2_analysis_joins_clean_timing_without_using_profiled_rank(self) -> None:
+        summary = summarize_pass(self.rows("l2"), "l2")
+        timing = []
+        for backend, split, median_ms, speedup in (
+            ("tpp", 1, 12.0, 1.0),
+            ("imbps", 4, 8.0, 1.5),
+            ("imbps", 8, 9.0, 4 / 3),
+            ("imbps", 16, 11.0, 12 / 11),
+        ):
+            timing.append(
+                {
+                    "model": "opt30b",
+                    "batch": 16,
+                    "sequence": 1920,
+                    "backend": backend,
+                    "split": split,
+                    "median_ms": median_ms,
+                    "paired_speedup_median": speedup,
+                    "paired_speedup_ci95_low": speedup - 0.01,
+                    "paired_speedup_ci95_high": speedup + 0.01,
+                    "paired_speedup_supports_faster": speedup - 0.01 > 1,
+                }
+            )
+        combined = add_clean_timing(summary, timing)
+        checks = l2_checks(summary)
+        add_clean_timing_checks(checks, timing)
+        self.assertEqual(len(combined), len(summary))
+        self.assertEqual(checks[0]["fastest_clean_k"], 4)
+        self.assertEqual(checks[0]["minimum_l2_miss_k"], 8)
+        self.assertFalse(
+            checks[0]["clean_fastest_has_minimum_l2_misses_or_overlap"]
+        )
 
     def test_k4_k8_comparison_is_paired_by_round(self) -> None:
         comparisons = compare_k4_k8(self.rows("cache"), "cache")

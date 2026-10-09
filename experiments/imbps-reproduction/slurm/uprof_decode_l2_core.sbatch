@@ -14,7 +14,9 @@
 set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
-readonly RESULT_ROOT="${PROJECT_ROOT}/results/uprof-decode-l2-core-${SLURM_JOB_ID}"
+readonly CLAIM="${L2_UPROF_CLAIM:-decode_l2_core_pilot_opt30b}"
+readonly RESULT_LABEL="${L2_UPROF_RESULT_LABEL:-uprof-decode-l2-core}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/${RESULT_LABEL}-${SLURM_JOB_ID}"
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 source ./scripts/enable_tcmalloc.sh
@@ -70,7 +72,7 @@ if (( PROBE_STATUS != 0 )); then
 fi
 
 python3 src/run_uprof_matrix.py \
-  --claim decode_l2_core_pilot_opt30b \
+  --claim "${CLAIM}" \
   --pass-name l2 \
   --uprof-bin "${UPROF_BIN}" \
   --package 0 \
@@ -83,4 +85,4 @@ python3 src/run_uprof_matrix.py \
   --seed 20261006 \
   --result-dir "${RESULT_ROOT}/matrix"
 
-echo "Decode L2 core-only uProf: ${RESULT_ROOT}/matrix"
+echo "Decode L2 core-only uProf (${CLAIM}): ${RESULT_ROOT}/matrix"

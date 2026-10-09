@@ -51,6 +51,7 @@ def parse_args() -> argparse.Namespace:
             "decode_l2_opt30b",
             "decode_l2_pilot_opt30b",
             "decode_l2_core_pilot_opt30b",
+            "decode_l2_crossover_opt30b",
         ),
         default="table_ii",
     )
