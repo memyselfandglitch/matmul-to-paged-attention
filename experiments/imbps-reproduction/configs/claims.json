@@ -333,6 +333,46 @@
       "design_note": "KV-cache-inclusive OPT-30B target-forward pilot. Prefill populates the BMC cache but is excluded from target-forward latency. Replayed draft blocks test M=B*gamma while draft-model generation, acceptance, and sampling remain out of scope."
     }
   },
+  "full_decode": {
+    "qwen25_7b_pard": {
+      "target_model": "Qwen/Qwen2.5-7B-Instruct",
+      "draft_model": "amd/PARD-Qwen2.5-0.5B",
+      "dtype": "bf16",
+      "kv_cache_type": "BMC",
+      "batch": 1,
+      "context_tokens": [128, 1024, 2048],
+      "output_tokens": 64,
+      "splits": [2, 4, 8],
+      "draft_tokens": [4, 8, 12],
+      "design_note": "End-to-end greedy generation through PACE v1.0. Normal decode and PARD include prompt prefill, attention, populated target and draft KV caches, MLPs, LM head, sampling, PARD draft generation, target verification, acceptance, and rollback. PACE v1.0 restricts PARD to batch one and applies one OperatorConfig to both target and draft models."
+    }
+  },
+  "per_ccd": {
+    "opt30b_parallel_imbps": {
+      "model": "opt30b",
+      "dtype": "bf16",
+      "activation": "relu",
+      "bias": false,
+      "rows": [128, 512, 1024, 4096],
+      "ccd_cache_mib": 32,
+      "cores_per_ccd": 8,
+      "expected_ccds": 12,
+      "variants": [
+        {"variant_id": "tpp-all96", "mode": "tpp", "ccd_count": 12, "total_splits": 1},
+        {"variant_id": "global-k12-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 12},
+        {"variant_id": "global-k24-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 24},
+        {"variant_id": "global-k48-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 48},
+        {"variant_id": "parallel-p1-k1", "mode": "per_ccd", "ccd_count": 1, "total_splits": 1},
+        {"variant_id": "parallel-p2-k2", "mode": "per_ccd", "ccd_count": 2, "total_splits": 2},
+        {"variant_id": "parallel-p4-k4", "mode": "per_ccd", "ccd_count": 4, "total_splits": 4},
+        {"variant_id": "parallel-p6-k6", "mode": "per_ccd", "ccd_count": 6, "total_splits": 6},
+        {"variant_id": "parallel-p12-k12", "mode": "per_ccd", "ccd_count": 12, "total_splits": 12},
+        {"variant_id": "parallel-p12-k24", "mode": "per_ccd", "ccd_count": 12, "total_splits": 24},
+        {"variant_id": "parallel-p12-k48", "mode": "per_ccd", "ccd_count": 12, "total_splits": 48}
+      ],
+      "design_note": "Prototype of the parallel split loop marked TODO in AMD-PACE v1.0. Persistent processes are pinned one per selected CCD; each process executes its assigned intermediate-dimension blocks with the PACE fused MLP operator, and measured wall time includes synchronization, partial-output publication, and the final cross-CCD reduction. PACE TPP and current global sequential IMBPS are controls."
+    }
+  },
   "e2e": {
     "table_iii": {
       "dtype": "fp32",

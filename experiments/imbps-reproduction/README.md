@@ -626,6 +626,51 @@ submission. By default, the launcher places the Hugging Face cache under
 are written beneath `results/target-verify-ARRAY_JOB_ID/`, with the combined CSV
 at `analysis/summary.csv`.
 
+## Stage 10 - Full normal and PARD speculative decode
+
+The Stage-9 target-forward benchmark deliberately excludes draft generation,
+acceptance, sampling, and iterative generation. `FULL_DECODE_PLAN.md` defines a
+separate end-to-end study using PACE v1.0's supported
+`Qwen/Qwen2.5-7B-Instruct` target and `amd/PARD-Qwen2.5-0.5B` parallel draft.
+It compares normal and PARD generation across TPP and IMBPS K=2/4/8 at context
+lengths 128/1024/2048. The public `LLMModel.generate` call is timed, so prompt
+prefill, populated KV caches, sampling, draft generation, verification,
+acceptance, and rollback are included where applicable.
+
+Run the two-task API/model smoke first (normal TPP and PARD-4 TPP at context
+16/output 4), then submit the serialized 16-variant matrix and dependent
+summary:
+
+```bash
+./scripts/submit_full_decode_smoke.sh
+./scripts/submit_full_decode.sh
+```
+
+Results are written beneath `results/full-decode-ARRAY_JOB_ID/`; the combined
+table is `analysis/summary.csv`. PACE v1.0 restricts PARD to greedy batch-one
+generation and applies the same MLP backend/K to target and draft models.
+
+## Stage 11 - Parallel per-CCD IMBPS
+
+`PER_CCD_PLAN.md` evaluates the split-loop parallelization left as a TODO in
+PACE v1.0. The prototype uses persistent processes pinned one per CCD, runs
+disjoint OPT-30B intermediate blocks with the PACE fused operator, and includes
+partial-output publication plus cross-CCD reduction in measured latency. It
+compares one-to-twelve CCD scaling, all-12-CCD K=12/24/48, current global IMBPS
+at the same K, and all-core TPP over decode-shaped rows 128/512/1024 plus a
+4096-row prefill-shaped control.
+
+Run a global-K12 versus parallel-P12/K12 smoke at M=128 first:
+
+```bash
+./scripts/submit_per_ccd_smoke.sh
+./scripts/submit_per_ccd.sh
+```
+
+Results are written beneath `results/per-ccd-ARRAY_JOB_ID/`; the combined table
+is `analysis/summary.csv`. This is a process-based research prototype, not a
+claim that the installed PACE backend already executes K blocks concurrently.
+
 ## Decision rules
 
 - Timing: report every round, median, IQR, coefficient of variation, and the
