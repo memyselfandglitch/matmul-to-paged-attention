@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "experiment_kind": "parallel_per_ccd_imbps",
+  "claim": "opt30b_parallel_imbps",
+  "scope_note": "Standalone OPT-30B MLP. Per-CCD latency includes persistent-worker synchronization, PACE fused block computation, publication of partial outputs, and cross-CCD reduction; process/model setup is excluded.",
+  "limitations": [
+    "This is a process-based prototype of the PACE v1.0 split-loop TODO, not a patched in-kernel implementation.",
+    "Per-CCD latency includes synchronization, partial-output publication, and final reduction, but excludes worker and weight setup.",
+    "The 32 MiB fit calculation applies to one active split block plus input and intermediate activation on one CCD.",
+    "TPP/global and per-CCD variants run in separate serialized Slurm tasks; confidence intervals therefore use independent samples."
+  ]
+}
