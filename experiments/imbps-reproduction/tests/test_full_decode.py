@@ -56,6 +56,7 @@ class FullDecodeDesignTests(unittest.TestCase):
                             "summary": {
                                 "median_ttft_ms": 10.0,
                                 "median_output_tokens_per_second": 1.0,
+                                "median_post_first_tokens_per_second": 1.1,
                             },
                             "rounds": [
                                 {
@@ -67,6 +68,14 @@ class FullDecodeDesignTests(unittest.TestCase):
                                     "mean_kept_tokens_per_speculative_iteration": (
                                         2.0 if variant["mode"] == "pard" else None
                                     ),
+                                    "accepted_draft_tokens": (
+                                        2 if variant["mode"] == "pard" else None
+                                    ),
+                                    "proposed_draft_tokens": (
+                                        4 if variant["mode"] == "pard" else None
+                                    ),
+                                    "target_forward_iterations": 2,
+                                    "generated_tokens_per_target_forward": 2.0,
                                     "signature": {
                                         "generated_token_sha256": "same"
                                     },
@@ -86,6 +95,8 @@ class FullDecodeDesignTests(unittest.TestCase):
             and row["backend"] == "tpp"
         )
         self.assertEqual(pard_tpp["pard_speedup_vs_normal_same_backend"], 1.25)
+        self.assertEqual(pard_tpp["median_generated_tokens_per_target_forward"], 2.0)
+        self.assertEqual(pard_tpp["median_accepted_draft_fraction"], 0.5)
 
 
 if __name__ == "__main__":

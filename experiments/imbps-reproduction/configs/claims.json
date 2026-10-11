@@ -371,6 +371,30 @@
         {"variant_id": "parallel-p12-k48", "mode": "per_ccd", "ccd_count": 12, "total_splits": 48}
       ],
       "design_note": "Prototype of the parallel split loop marked TODO in AMD-PACE v1.0. Persistent processes are pinned one per selected CCD; each process executes its assigned intermediate-dimension blocks with the PACE fused MLP operator, and measured wall time includes synchronization, partial-output publication, and the final cross-CCD reduction. PACE TPP and current global sequential IMBPS are controls."
+    },
+    "opt30b_pthread_parallel_imbps": {
+      "model": "opt30b",
+      "dtype": "bf16",
+      "activation": "relu",
+      "bias": false,
+      "rows": [128, 512, 1024, 4096],
+      "ccd_cache_mib": 32,
+      "cores_per_ccd": 8,
+      "expected_ccds": 12,
+      "variants": [
+        {"variant_id": "tpp-all96", "mode": "tpp", "ccd_count": 12, "total_splits": 1},
+        {"variant_id": "global-k12-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 12},
+        {"variant_id": "global-k24-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 24},
+        {"variant_id": "global-k48-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 48},
+        {"variant_id": "thread-p1-k1", "mode": "per_ccd_threads", "ccd_count": 1, "total_splits": 1},
+        {"variant_id": "thread-p2-k2", "mode": "per_ccd_threads", "ccd_count": 2, "total_splits": 2},
+        {"variant_id": "thread-p4-k4", "mode": "per_ccd_threads", "ccd_count": 4, "total_splits": 4},
+        {"variant_id": "thread-p6-k6", "mode": "per_ccd_threads", "ccd_count": 6, "total_splits": 6},
+        {"variant_id": "thread-p12-k12", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12},
+        {"variant_id": "thread-p12-k24", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 24},
+        {"variant_id": "thread-p12-k48", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 48}
+      ],
+      "design_note": "Lower-overhead follow-up to the process prototype. Persistent CCD-pinned pthreads share one address space and invoke PACE for disjoint intermediate blocks with an eight-thread inner team. The runner validates process-thread affinity after team initialization. Timing includes synchronization, partial outputs, and final reduction and separately records compute/synchronization and reduction/conversion time."
     }
   },
   "e2e": {

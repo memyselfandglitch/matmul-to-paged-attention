@@ -40,12 +40,18 @@ warmup per context.
 - Total generate latency and output tokens/s
 - Time to first generated emission, which includes prefill
 - Post-first-emission throughput
+- Number of target forward iterations and generated tokens per target forward
 - PARD mean kept tokens per iteration and accepted-draft fraction
+- Accepted and proposed draft-token counts
 - Exact generated-token sequence agreement with the same-mode TPP run
 - Three speedup views:
   - versus normal TPP;
   - versus TPP in the same normal/PARD mode;
   - PARD versus normal generation under the same backend and K.
+
+All three speedup views include bootstrap 95% intervals in the combined
+summary. Full-sequence hashes are compared with the matching same-mode TPP
+configuration.
 
 ## Hypotheses and interpretation
 

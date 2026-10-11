@@ -15,8 +15,13 @@ PACE v1.0 contains an explicit `TODO: Parallelize this loop
   per CCD. Each process executes disjoint intermediate-dimension blocks, then
   the parent reduces the partial M x H outputs.
 
-This is a process-based prototype, not a claim that PACE itself already
-implements the parallel loop.
+The completed first experiment is a process-based prototype, not a claim that
+PACE itself already implements the parallel loop. Its follow-up uses persistent
+CCD-pinned pthreads in one address space. Each outer pthread invokes PACE with
+an eight-thread inner team intended to inherit that CCD's affinity. This removes
+process IPC and separately mapped process state while retaining the required
+partial-output reduction. The runner snapshots every process-thread mask after
+team initialization and fails if a thread escapes the selected CCDs.
 
 ## Workload and variants
 
@@ -71,7 +76,23 @@ performance conclusion.
 
 ## Follow-up
 
-If the prototype wins, move the parallel split loop and reduction into a C++
-PACE backend using OpenMP/TBB/pthreads, then repeat clean timing and CCD-scoped
-uProf measurements. If it loses, separate compute, publication, barrier, and
-reduction costs before rejecting the underlying block placement.
+The process prototype scaled internally but lost to global IMBPS. The pthread
+follow-up therefore records compute/synchronization and reduction/conversion
+latency separately, compares P/K=1/1 through 12/12, and repeats K=12/24/48 at
+all twelve CCDs. Run clean timing with:
+
+```bash
+./scripts/submit_per_ccd_threads.sh
+```
+
+After clean timing succeeds, collect warmup-excluded uProf `ipc,l2,l3` metrics
+with cumulative `-A ccd` aggregation:
+
+```bash
+./scripts/submit_per_ccd_l3.sh
+```
+
+The counter analysis retains every CCD column in `analysis/ccd-l3.csv` and
+also writes a socket-summed `analysis/summary.csv`. The pthread implementation
+is still a research prototype around the PACE op; an in-kernel implementation
+is justified only if it beats global IMBPS after the measured reduction.

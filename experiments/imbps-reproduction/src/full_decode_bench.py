@@ -335,6 +335,16 @@ def main() -> None:
                 proposed_draft = len(speculative_rounds) * max(
                     0, args.draft_tokens - 1
                 )
+                target_forward_iterations = (
+                    len(speculative_rounds)
+                    if args.mode == "pard"
+                    else int(emission["emission_count"])
+                )
+                if emission["emitted_tokens"] != generated_tokens:
+                    raise RuntimeError(
+                        "streamed/generated token mismatch: "
+                        f"{emission['emitted_tokens']} != {generated_tokens}"
+                    )
                 record = {
                     "round": round_number,
                     "order": order_number,
@@ -352,6 +362,18 @@ def main() -> None:
                     ),
                     "accepted_draft_fraction": (
                         accepted_draft / proposed_draft if proposed_draft else None
+                    ),
+                    "accepted_draft_tokens": (
+                        accepted_draft if args.mode == "pard" else None
+                    ),
+                    "proposed_draft_tokens": (
+                        proposed_draft if args.mode == "pard" else None
+                    ),
+                    "target_forward_iterations": target_forward_iterations,
+                    "generated_tokens_per_target_forward": (
+                        generated_tokens / target_forward_iterations
+                        if target_forward_iterations
+                        else None
                     ),
                     "signature": signature,
                 }
@@ -373,6 +395,16 @@ def main() -> None:
             for record in rounds
         ]
         throughput = [float(record["output_tokens_per_second"]) for record in rounds]
+        post_first_throughput = [
+            float(record["emission"]["post_first_tokens_per_second"])
+            for record in rounds
+            if record["emission"]["post_first_tokens_per_second"] is not None
+        ]
+        generated_per_target_forward = [
+            float(record["generated_tokens_per_target_forward"])
+            for record in rounds
+            if record["generated_tokens_per_target_forward"] is not None
+        ]
         records.append(
             {
                 "context_tokens": context,
@@ -383,6 +415,16 @@ def main() -> None:
                     "q3_total_ms": percentile(total_times, 0.75),
                     "median_ttft_ms": statistics.median(ttft),
                     "median_output_tokens_per_second": statistics.median(throughput),
+                    "median_post_first_tokens_per_second": (
+                        statistics.median(post_first_throughput)
+                        if post_first_throughput
+                        else None
+                    ),
+                    "median_generated_tokens_per_target_forward": (
+                        statistics.median(generated_per_target_forward)
+                        if generated_per_target_forward
+                        else None
+                    ),
                 },
             }
         )

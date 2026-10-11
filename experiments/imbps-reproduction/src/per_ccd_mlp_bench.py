@@ -3,8 +3,9 @@
 
 AMD-PACE v1.0 marks its split loop as a future parallelization point.  This
 runner leaves the installed PACE package untouched and evaluates that idea with
-persistent processes: one process and OpenMP team per CCD, disjoint blocks of
-the intermediate dimension, shared input, and an explicit cross-CCD reduction.
+persistent process and pthread variants: one worker and OpenMP team per CCD,
+disjoint blocks of the intermediate dimension, shared input, and an explicit
+cross-CCD reduction.
 """
 
 from __future__ import annotations
@@ -20,11 +21,12 @@ import queue
 import random
 import resource
 import statistics
+import threading
 import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 try:
     from .cache_model import MIB
@@ -33,6 +35,7 @@ try:
         collect_thread_affinity,
         percentile,
         summarize_thread_affinity,
+        wait_for_profiler,
     )
     from .select_llc_cpus import discover_groups_with_source
 except ImportError:  # Direct execution: python3 src/per_ccd_mlp_bench.py
@@ -42,6 +45,7 @@ except ImportError:  # Direct execution: python3 src/per_ccd_mlp_bench.py
         collect_thread_affinity,
         percentile,
         summarize_thread_affinity,
+        wait_for_profiler,
     )
     from select_llc_cpus import discover_groups_with_source
 
@@ -68,10 +72,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threads", type=int, default=None)
     parser.add_argument("--seed", type=int, default=20251001)
     parser.add_argument("--barrier-timeout", type=float, default=900.0)
+    parser.add_argument("--min-measurement-seconds", type=float, default=0.0)
+    parser.add_argument("--ready-file", type=Path, default=None)
+    parser.add_argument("--start-file", type=Path, default=None)
+    parser.add_argument("--done-file", type=Path, default=None)
+    parser.add_argument("--start-timeout", type=float, default=600.0)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    if args.rounds <= 0 or args.warmups < 0 or args.barrier_timeout <= 0:
+    if (
+        args.rounds <= 0
+        or args.warmups < 0
+        or args.barrier_timeout <= 0
+        or args.min_measurement_seconds < 0
+    ):
         parser.error("rounds/timeout must be positive and warmups nonnegative")
+    if (args.ready_file is None) != (args.start_file is None):
+        parser.error("--ready-file and --start-file must be supplied together")
+    if args.done_file is not None and args.ready_file is None:
+        parser.error("--done-file requires --ready-file and --start-file")
     return args
 
 
@@ -331,7 +349,10 @@ def run_per_ccd(
     warmups: int,
     rounds: int,
     timeout: float,
-) -> tuple[list[float], Any, list[dict[str, Any]]]:
+    min_measurement_seconds: float = 0.0,
+    start_measurement: Callable[[], None] | None = None,
+    stop_measurement: Callable[[], None] | None = None,
+) -> tuple[list[float], Any, list[dict[str, Any]], list[dict[str, float]]]:
     worker_count = len(ccd_groups)
     ranges = chunk_ranges(weight1.shape[0], total_splits)
     assignments = assign_blocks(total_splits, worker_count)
@@ -391,22 +412,43 @@ def run_per_ccd(
             except queue.Empty:
                 continue
 
-        def execute_once() -> float:
+        def execute_once() -> tuple[float, dict[str, float]]:
             started = time.perf_counter_ns()
             start_barrier.wait()
             done_barrier.wait()
+            compute_done = time.perf_counter_ns()
             reduction.zero_()
             for partial in partials:
                 reduction.add_(partial)
             final_output.copy_(reduction)
-            return (time.perf_counter_ns() - started) / 1_000_000
+            finished = time.perf_counter_ns()
+            phases = {
+                "compute_and_sync_ms": (compute_done - started) / 1_000_000,
+                "reduction_and_conversion_ms": (finished - compute_done) / 1_000_000,
+            }
+            return (finished - started) / 1_000_000, phases
 
         for _ in range(warmups):
             execute_once()
-        durations = [execute_once() for _ in range(rounds)]
+        if start_measurement is not None:
+            start_measurement()
+        measurement_started = time.monotonic()
+        measured = []
+        while (
+            len(measured) < rounds
+            or time.monotonic() - measurement_started < min_measurement_seconds
+        ):
+            measured.append(execute_once())
+        if stop_measurement is not None:
+            stop_measurement()
+        durations = [value[0] for value in measured]
+        phase_timings = [value[1] for value in measured]
         check_worker_errors(error_queue)
-        return durations, final_output.clone(), sorted(
-            worker_reports, key=lambda report: report["worker"]
+        return (
+            durations,
+            final_output.clone(),
+            sorted(worker_reports, key=lambda report: report["worker"]),
+            phase_timings,
         )
     finally:
         stop_event.set()
@@ -420,6 +462,195 @@ def run_per_ccd(
                 process.terminate()
                 process.join(timeout=5)
         check_worker_errors(error_queue)
+
+
+def run_per_ccd_threads(
+    torch: Any,
+    source: Any,
+    weight1: Any,
+    weight2: Any,
+    ccd_groups: list[tuple[int, ...]],
+    total_splits: int,
+    warmups: int,
+    rounds: int,
+    timeout: float,
+    min_measurement_seconds: float = 0.0,
+    start_measurement: Callable[[], None] | None = None,
+    stop_measurement: Callable[[], None] | None = None,
+) -> tuple[list[float], Any, list[dict[str, Any]], list[dict[str, float]]]:
+    """Run disjoint IMBPS blocks from persistent CCD-pinned pthreads.
+
+    Each Python thread is an OS pthread.  PACE releases the GIL while executing
+    the C++ operator, so workers run concurrently.  The launcher disables
+    OpenMP binding and gives every outer thread a CCD-sized affinity mask;
+    OpenMP workers created inside the call inherit that mask.
+    """
+
+    worker_count = len(ccd_groups)
+    ranges = chunk_ranges(weight1.shape[0], total_splits)
+    assignments = assign_blocks(total_splits, worker_count)
+    if len(ranges) != total_splits:
+        raise ValueError("intermediate dimension produced fewer chunks than requested")
+
+    partials = torch.empty(
+        (worker_count, source.shape[0], source.shape[1]), dtype=source.dtype
+    )
+    reduction = torch.empty_like(source, dtype=torch.float32)
+    final_output = torch.empty_like(source)
+    start_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
+    done_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
+    stop_event = threading.Event()
+    reports: list[dict[str, Any] | None] = [None] * worker_count
+    errors: list[dict[str, Any]] = []
+    error_lock = threading.Lock()
+
+    def worker(worker_index: int, cpus: tuple[int, ...]) -> None:
+        try:
+            native_tid = threading.get_native_id()
+            os.sched_setaffinity(native_tid, set(cpus))
+            local_weight1 = [
+                weight1[ranges[index][0] : ranges[index][1]].contiguous()
+                for index in assignments[worker_index]
+            ]
+            local_weight2 = [
+                weight2[:, ranges[index][0] : ranges[index][1]].contiguous()
+                for index in assignments[worker_index]
+            ]
+            with torch.inference_mode():
+                output = torch.ops.pace.mlp_mlp_fusion(
+                    source,
+                    local_weight1,
+                    None,
+                    local_weight2,
+                    None,
+                    "relu",
+                    None,
+                    None,
+                )
+                partials[worker_index].copy_(output)
+            reports[worker_index] = {
+                "worker": worker_index,
+                "native_tid": native_tid,
+                "pid": os.getpid(),
+                "cpus": list(cpus),
+                "outer_thread_affinity": sorted(os.sched_getaffinity(native_tid)),
+                "block_ids": assignments[worker_index],
+                "requested_inner_threads": torch.get_num_threads(),
+            }
+            while True:
+                start_barrier.wait()
+                if stop_event.is_set():
+                    return
+                with torch.inference_mode():
+                    output = torch.ops.pace.mlp_mlp_fusion(
+                        source,
+                        local_weight1,
+                        None,
+                        local_weight2,
+                        None,
+                        "relu",
+                        None,
+                        None,
+                    )
+                    partials[worker_index].copy_(output)
+                done_barrier.wait()
+        except BaseException:
+            with error_lock:
+                errors.append(
+                    {"worker": worker_index, "traceback": traceback.format_exc()}
+                )
+            try:
+                start_barrier.abort()
+                done_barrier.abort()
+            except BaseException:
+                pass
+
+    threads = [
+        threading.Thread(target=worker, args=(index, cpus), daemon=True)
+        for index, cpus in enumerate(ccd_groups)
+    ]
+    for thread in threads:
+        thread.start()
+
+    try:
+        deadline = time.monotonic() + timeout
+        while any(report is None for report in reports):
+            if errors:
+                raise RuntimeError(f"per-CCD pthread failure: {errors}")
+            if time.monotonic() >= deadline:
+                raise TimeoutError("per-CCD pthreads did not become ready")
+            time.sleep(0.01)
+
+        process_masks, process_affinity_union = collect_thread_affinity()
+        allowed_cpus = {cpu for group in ccd_groups for cpu in group}
+        outside_masks = {
+            tid: cpus
+            for tid, cpus in process_masks.items()
+            if not set(cpus).issubset(allowed_cpus)
+        }
+        if outside_masks:
+            raise RuntimeError(
+                "pthread/OpenMP threads escaped the selected CCDs: "
+                f"{outside_masks}"
+            )
+        assert reports[0] is not None
+        reports[0]["process_affinity_at_ready"] = {
+            "union": process_affinity_union,
+            "masks": summarize_thread_affinity(process_masks),
+        }
+
+        def execute_once() -> tuple[float, dict[str, float]]:
+            started = time.perf_counter_ns()
+            start_barrier.wait()
+            done_barrier.wait()
+            compute_done = time.perf_counter_ns()
+            reduction.zero_()
+            for partial in partials:
+                reduction.add_(partial)
+            final_output.copy_(reduction)
+            finished = time.perf_counter_ns()
+            return (
+                (finished - started) / 1_000_000,
+                {
+                    "compute_and_sync_ms": (compute_done - started) / 1_000_000,
+                    "reduction_and_conversion_ms": (
+                        finished - compute_done
+                    )
+                    / 1_000_000,
+                },
+            )
+
+        for _ in range(warmups):
+            execute_once()
+        if start_measurement is not None:
+            start_measurement()
+        measurement_started = time.monotonic()
+        measured = []
+        while (
+            len(measured) < rounds
+            or time.monotonic() - measurement_started < min_measurement_seconds
+        ):
+            measured.append(execute_once())
+        if stop_measurement is not None:
+            stop_measurement()
+        if errors:
+            raise RuntimeError(f"per-CCD pthread failure: {errors}")
+        return (
+            [value[0] for value in measured],
+            final_output.clone(),
+            [dict(report) for report in reports if report is not None],
+            [value[1] for value in measured],
+        )
+    finally:
+        stop_event.set()
+        try:
+            start_barrier.wait(timeout=5)
+        except BaseException:
+            pass
+        for thread in threads:
+            thread.join(timeout=30)
+        if errors:
+            raise RuntimeError(f"per-CCD pthread failure: {errors}")
 
 
 def build_model(
@@ -463,6 +694,8 @@ def main() -> None:
     variant = select_variant(claim, args.variant)
     model_record = registry["models"][claim["model"]]
     rows = args.rows or [int(value) for value in claim["rows"]]
+    if args.ready_file is not None and len(rows) != 1:
+        raise ValueError("profiler-gated per-CCD runs require exactly one row count")
     hidden = int(model_record["hidden"])
     intermediate = int(model_record["intermediate"])
     total_splits = int(variant["total_splits"])
@@ -479,6 +712,12 @@ def main() -> None:
         expected_group_size=int(claim["cores_per_ccd"]),
     )
     selected_groups = discovered[:ccd_count]
+
+    # For the pthread prototype, initialize PyTorch and the coordinator's
+    # reduction team from CCD 0 rather than from a socket-wide affinity mask.
+    # Every outer worker later replaces its own mask with its assigned CCD.
+    if variant["mode"] == "per_ccd_threads":
+        os.sched_setaffinity(0, set(selected_groups[0]))
 
     import torch
     import pace  # noqa: F401
@@ -517,6 +756,20 @@ def main() -> None:
         )
 
     records = []
+    gate_used = False
+
+    def start_measurement() -> None:
+        nonlocal gate_used
+        if gate_used:
+            raise RuntimeError("profiler gate may only be used once")
+        if args.ready_file is not None and args.start_file is not None:
+            wait_for_profiler(args.ready_file, args.start_file, args.start_timeout)
+        gate_used = True
+
+    def stop_measurement() -> None:
+        if args.done_file is not None:
+            args.done_file.parent.mkdir(parents=True, exist_ok=True)
+            args.done_file.write_text("done\n", encoding="utf-8")
     rng = random.Random(args.seed)
     row_order = list(rows)
     rng.shuffle(row_order)
@@ -528,34 +781,55 @@ def main() -> None:
             (active_rows, hidden), dtype=torch.bfloat16
         ).uniform_(-0.02, 0.02, generator=source_generator)
         worker_reports: list[dict[str, Any]] = []
+        phase_timings: list[dict[str, float]] = []
         numerics = None
-        if variant["mode"] == "per_ccd":
-            with torch.inference_mode():
-                reference = direct_imbps(
-                    torch, source, weight1, weight2, total_splits
-                )
-            durations, output, worker_reports = run_per_ccd(
-                torch,
-                source,
-                weight1,
-                weight2,
-                selected_groups,
-                total_splits,
-                args.warmups,
-                args.rounds,
-                args.barrier_timeout,
+        if variant["mode"] in {"per_ccd", "per_ccd_threads"}:
+            # Do not run the global reference first for the pthread prototype.
+            # Its OpenMP team could otherwise be initialized from the main
+            # thread's socket-wide mask before the CCD-local workers start.
+            reference = None
+            if variant["mode"] == "per_ccd":
+                with torch.inference_mode():
+                    reference = direct_imbps(
+                        torch, source, weight1, weight2, total_splits
+                    )
+            runner = (
+                run_per_ccd_threads
+                if variant["mode"] == "per_ccd_threads"
+                else run_per_ccd
             )
+            durations, output, worker_reports, phase_timings = runner(
+                torch, source, weight1, weight2, selected_groups, total_splits,
+                args.warmups, args.rounds, args.barrier_timeout,
+                args.min_measurement_seconds,
+                start_measurement if args.ready_file is not None else None,
+                stop_measurement if args.done_file is not None else None,
+            )
+            if reference is None:
+                with torch.inference_mode():
+                    reference = direct_imbps(
+                        torch, source, weight1, weight2, total_splits
+                    )
             numerics = numeric_comparison(reference, output)
         else:
             assert model is not None
             with torch.inference_mode():
                 for _ in range(args.warmups):
                     output = model(source)
+                if args.ready_file is not None:
+                    start_measurement()
                 durations = []
-                for _ in range(args.rounds):
+                measurement_started = time.monotonic()
+                while (
+                    len(durations) < args.rounds
+                    or time.monotonic() - measurement_started
+                    < args.min_measurement_seconds
+                ):
                     started = time.perf_counter_ns()
                     output = model(source)
                     durations.append((time.perf_counter_ns() - started) / 1_000_000)
+                if args.done_file is not None:
+                    stop_measurement()
 
         cache_model = per_ccd_working_set(
             active_rows, hidden, intermediate, total_splits
@@ -581,6 +855,22 @@ def main() -> None:
                 "numerics_vs_global_same_k": numerics,
                 "cache_model_per_ccd": cache_model,
                 "workers": worker_reports,
+                "phase_timings": phase_timings,
+                "median_compute_and_sync_ms": (
+                    statistics.median(
+                        value["compute_and_sync_ms"] for value in phase_timings
+                    )
+                    if phase_timings
+                    else None
+                ),
+                "median_reduction_and_conversion_ms": (
+                    statistics.median(
+                        value["reduction_and_conversion_ms"]
+                        for value in phase_timings
+                    )
+                    if phase_timings
+                    else None
+                ),
             }
         )
         print(
@@ -598,7 +888,8 @@ def main() -> None:
         "scope_note": (
             "Standalone OPT-30B MLP. Per-CCD latency includes persistent-worker "
             "synchronization, PACE fused block computation, publication of partial "
-            "outputs, and cross-CCD reduction; process/model setup is excluded."
+            "outputs, and cross-CCD reduction; process/thread and model setup is "
+            "excluded."
         ),
         "claim": args.claim,
         "variant": variant,
@@ -617,6 +908,8 @@ def main() -> None:
             "warmups": args.warmups,
             "seed": args.seed,
             "barrier_timeout": args.barrier_timeout,
+            "min_measurement_seconds": args.min_measurement_seconds,
+            "profiler_gated": args.ready_file is not None,
         },
         "topology": {
             "launch_affinity": sorted(launch_affinity),

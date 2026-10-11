@@ -671,6 +671,28 @@ Results are written beneath `results/per-ccd-ARRAY_JOB_ID/`; the combined table
 is `analysis/summary.csv`. This is a process-based research prototype, not a
 claim that the installed PACE backend already executes K blocks concurrently.
 
+The lower-overhead follow-up replaces the worker processes with persistent
+CCD-pinned pthreads sharing one address space and records compute/synchronization
+and reduction/conversion time separately:
+
+```bash
+./scripts/submit_per_ccd_threads.sh
+```
+
+Once that clean-timing matrix succeeds, collect cumulative L2/L3 metrics at
+individual CCD granularity with uProf 5.3 `-A ccd`:
+
+```bash
+./scripts/submit_per_ccd_l3.sh
+```
+
+To submit every remaining track—private-L2 ownership analysis, pthread CCD
+timing and counters, and full normal/PARD generation—with smoke-test gates:
+
+```bash
+./scripts/submit_remaining_work.sh
+```
+
 ## Decision rules
 
 - Timing: report every round, median, IQR, coefficient of variation, and the

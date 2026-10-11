@@ -14,7 +14,8 @@ set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
 : "${PER_CCD_ARRAY_JOB_ID:?PER_CCD_ARRAY_JOB_ID is required}"
-readonly RESULT_ROOT="${PROJECT_ROOT}/results/per-ccd-${PER_CCD_ARRAY_JOB_ID}"
+readonly RESULT_LABEL="${PER_CCD_RESULT_LABEL:-per-ccd}"
+readonly RESULT_ROOT="${PROJECT_ROOT}/results/${RESULT_LABEL}-${PER_CCD_ARRAY_JOB_ID}"
 
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate

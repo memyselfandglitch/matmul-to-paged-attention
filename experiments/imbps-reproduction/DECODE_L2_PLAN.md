@@ -4,10 +4,11 @@
 
 - Origin skill: `academic-research-suite` / experiment-agent
 - Artifact type: prospective code experiment plan
-- Status: full timing completed; focused crossover validation preregistered
+- Status: clean timing and focused crossover validation completed; private-L2
+  ownership bounds and source audit implemented
 - Target: AMD EPYC 9654 package 0 on `mn01`
 - Implementation: AMD-PACE v1.0, OPT-30B MLP, BF16, ReLU
-- Last updated: 2026-10-09
+- Last updated: 2026-10-11
 
 ## Research question
 
@@ -114,10 +115,24 @@ The profiler jobs require the `amd_l3` and `amd_df` perf devices and probe both
 metric sets before launching the matrix. They fail immediately if either device
 or either uProf metric set is unavailable.
 
-This experiment may confirm a system-specific crossover region, but it cannot
-validate the 96 MiB aggregate-private-L2 model. A later worker-ownership study
-must measure or control how weight blocks and activation rows map to each
-core's private 1 MiB L2.
+The focused experiment narrowed the clean-timing crossover to 384--512 active
+rows. The follow-up private-L2 analysis now reports three bounds: perfect
+partitioning, replicated source, and replicated source plus intermediate
+activation. The perfect-partition model is exactly the earlier 96 MiB
+aggregate interpretation; the replicated models are conservative controls.
+
+The accompanying source audit verifies against PACE commit
+`cfbe8b551cca18c686b771144c18129242796ea1` that Python creates contiguous
+up/down weight chunks, the C++ K loop is sequential, and oneDNN/ZenDNN—not
+PACE—owns GEMM worker tiling. PACE therefore provides no one-block-per-core L2
+ownership guarantee. Run the deterministic audit and bounds with:
+
+```bash
+./scripts/submit_l2_ownership.sh
+```
+
+These bounds resolve the modeling ambiguity, but they remain analytical. The
+existing uProf data remains the empirical L2 evidence.
 
 ## Fixed controls
 

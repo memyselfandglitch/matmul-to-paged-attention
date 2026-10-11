@@ -160,6 +160,14 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 if mode == "pard"
                 else 1.0
             )
+            if mode == "pard":
+                speculative_low, speculative_high = ratio_ci(
+                    normal_same_backend_times,
+                    times,
+                    seed=20261013 + context * 29 + draft_tokens * 31 + split,
+                )
+            else:
+                speculative_low, speculative_high = 1.0, 1.0
             accepted = [
                 round_record["accepted_draft_fraction"]
                 for round_record in record["rounds"]
@@ -170,6 +178,24 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 for round_record in record["rounds"]
                 if round_record["mean_kept_tokens_per_speculative_iteration"]
                 is not None
+            ]
+            accepted_draft_tokens = [
+                int(round_record["accepted_draft_tokens"])
+                for round_record in record["rounds"]
+                if round_record.get("accepted_draft_tokens") is not None
+            ]
+            proposed_draft_tokens = [
+                int(round_record["proposed_draft_tokens"])
+                for round_record in record["rounds"]
+                if round_record.get("proposed_draft_tokens") is not None
+            ]
+            target_forward_iterations = [
+                int(round_record["target_forward_iterations"])
+                for round_record in record["rounds"]
+            ]
+            generated_per_target_forward = [
+                float(round_record["generated_tokens_per_target_forward"])
+                for round_record in record["rounds"]
             ]
             baseline_hashes = [
                 round_record["signature"]["generated_token_sha256"]
@@ -199,6 +225,15 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "median_output_tokens_per_second": record["summary"][
                         "median_output_tokens_per_second"
                     ],
+                    "median_post_first_tokens_per_second": record["summary"][
+                        "median_post_first_tokens_per_second"
+                    ],
+                    "median_target_forward_iterations": statistics.median(
+                        target_forward_iterations
+                    ),
+                    "median_generated_tokens_per_target_forward": statistics.median(
+                        generated_per_target_forward
+                    ),
                     "speedup_vs_normal_tpp": total_speedup,
                     "speedup_vs_normal_tpp_ci95_low": total_low,
                     "speedup_vs_normal_tpp_ci95_high": total_high,
@@ -206,8 +241,20 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "speedup_vs_same_mode_tpp_ci95_low": mode_low,
                     "speedup_vs_same_mode_tpp_ci95_high": mode_high,
                     "pard_speedup_vs_normal_same_backend": speculative_speedup,
+                    "pard_speedup_vs_normal_same_backend_ci95_low": speculative_low,
+                    "pard_speedup_vs_normal_same_backend_ci95_high": speculative_high,
                     "median_accepted_draft_fraction": (
                         statistics.median(accepted) if accepted else None
+                    ),
+                    "median_accepted_draft_tokens": (
+                        statistics.median(accepted_draft_tokens)
+                        if accepted_draft_tokens
+                        else None
+                    ),
+                    "median_proposed_draft_tokens": (
+                        statistics.median(proposed_draft_tokens)
+                        if proposed_draft_tokens
+                        else None
                     ),
                     "median_kept_tokens_per_speculative_iteration": (
                         statistics.median(kept) if kept else None

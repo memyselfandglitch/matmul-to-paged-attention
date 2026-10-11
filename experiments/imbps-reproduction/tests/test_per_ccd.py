@@ -125,6 +125,63 @@ class PerCCDDesignTests(unittest.TestCase):
         )
         self.assertAlmostEqual(parallel["speedup_vs_global_imbps_same_k"], 8 / 6)
 
+    def test_summary_supports_pthread_parallel_mode(self) -> None:
+        variants = [
+            {"variant_id": "tpp-all96", "mode": "tpp", "ccd_count": 12, "total_splits": 1},
+            {"variant_id": "global-k12-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 12},
+            {"variant_id": "thread-p1-k1", "mode": "per_ccd_threads", "ccd_count": 1, "total_splits": 1},
+            {"variant_id": "thread-p12-k12", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12},
+        ]
+        durations = {
+            "tpp-all96": 10.0,
+            "global-k12-all96": 8.0,
+            "thread-p1-k1": 60.0,
+            "thread-p12-k12": 6.0,
+        }
+        results = []
+        for variant in variants:
+            results.append(
+                {
+                    "claim": "synthetic-threaded",
+                    "variant": variant,
+                    "topology": {"cores_per_ccd": 8},
+                    "records": [
+                        {
+                            "active_rows": 128,
+                            "durations_ms": [durations[variant["variant_id"]]],
+                            "q1_ms": durations[variant["variant_id"]],
+                            "q3_ms": durations[variant["variant_id"]],
+                            "cache_model_per_ccd": {
+                                "modeled_working_set_mib": 20.0,
+                                "fits_one_ccd_strict": True,
+                            },
+                            "numerics_vs_global_same_k": (
+                                {
+                                    "max_abs": 0.01,
+                                    "q99_abs": 0.0,
+                                    "output_coordinate_argmax_agreement": 1.0,
+                                }
+                                if variant["mode"] == "per_ccd_threads"
+                                else None
+                            ),
+                            "median_compute_and_sync_ms": (
+                                5.0 if variant["mode"] == "per_ccd_threads" else None
+                            ),
+                            "median_reduction_and_conversion_ms": (
+                                1.0 if variant["mode"] == "per_ccd_threads" else None
+                            ),
+                        }
+                    ],
+                }
+            )
+        rows = summarize(results)
+        threaded = next(
+            row for row in rows if row["variant_id"] == "thread-p12-k12"
+        )
+        self.assertAlmostEqual(threaded["speedup_vs_global_imbps_same_k"], 8 / 6)
+        self.assertAlmostEqual(threaded["parallel_speedup_vs_one_ccd"], 10.0)
+        self.assertEqual(threaded["median_reduction_and_conversion_ms"], 1.0)
+
 
 if __name__ == "__main__":
     unittest.main()

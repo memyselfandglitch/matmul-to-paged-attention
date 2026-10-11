@@ -36,6 +36,40 @@ def parse_uprof_report(path: Path) -> dict[str, dict[str, float]]:
     return sections
 
 
+def parse_uprof_component_report(
+    path: Path,
+) -> dict[str, dict[str, dict[str, float]]]:
+    """Parse reports whose metric rows contain one column per CCD/core/package."""
+
+    sections: dict[str, dict[str, dict[str, float]]] = {}
+    current: str | None = None
+    components: list[str] = []
+    for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw_line.strip()
+        if line in SECTION_HEADERS:
+            current = SECTION_HEADERS[line]
+            sections.setdefault(current, {})
+            components = []
+            continue
+        if not line or current is None:
+            continue
+        fields = next(csv.reader([line]))
+        if fields and fields[0] == "Metric":
+            components = [field.strip() for field in fields[1:]]
+            continue
+        if not components or len(fields) != len(components) + 1:
+            continue
+        values: dict[str, float] = {}
+        for component, raw_value in zip(components, fields[1:]):
+            try:
+                values[component] = float(raw_value)
+            except ValueError:
+                continue
+        if values:
+            sections[current][fields[0].strip()] = values
+    return sections
+
+
 def require_metric(
     report: dict[str, dict[str, float]], section: str, metric: str
 ) -> float:

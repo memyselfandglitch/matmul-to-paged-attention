@@ -80,7 +80,7 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_mode_k = {
         (result["variant"]["mode"], int(result["variant"]["total_splits"])): result
         for result in results
-        if result["variant"]["mode"] != "per_ccd"
+        if result["variant"]["mode"] in {"tpp", "global_imbps"}
     }
     active_rows_values = sorted(
         int(record["active_rows"]) for record in results[0]["records"]
@@ -89,8 +89,6 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for active_rows in active_rows_values:
         tpp_record = record_for(by_id["tpp-all96"], active_rows)
         tpp_times = [float(value) for value in tpp_record["durations_ms"]]
-        serial_record = record_for(by_id["parallel-p1-k1"], active_rows)
-        serial_times = [float(value) for value in serial_record["durations_ms"]]
         for result in sorted(results, key=lambda item: item["variant"]["variant_id"]):
             variant = result["variant"]
             record = record_for(result, active_rows)
@@ -105,14 +103,28 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 ("global_imbps", int(variant["total_splits"]))
             )
             speedup_same_k = None
-            if variant["mode"] == "per_ccd" and global_same_k is not None:
+            if variant["mode"] in {"per_ccd", "per_ccd_threads"} and global_same_k is not None:
                 global_record = record_for(global_same_k, active_rows)
                 speedup_same_k = statistics.median(
                     [float(value) for value in global_record["durations_ms"]]
                 ) / statistics.median(times)
             scaling_speedup = None
             scaling_efficiency = None
-            if variant["mode"] == "per_ccd":
+            if variant["mode"] in {"per_ccd", "per_ccd_threads"}:
+                serial_candidates = [
+                    item
+                    for item in results
+                    if item["variant"]["mode"] == variant["mode"]
+                    and int(item["variant"]["ccd_count"]) == 1
+                ]
+                if len(serial_candidates) != 1:
+                    raise ValueError(
+                        f"expected one single-CCD baseline for {variant['mode']}"
+                    )
+                serial_record = record_for(serial_candidates[0], active_rows)
+                serial_times = [
+                    float(value) for value in serial_record["durations_ms"]
+                ]
                 scaling_speedup = statistics.median(serial_times) / statistics.median(
                     times
                 )
@@ -155,7 +167,13 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                         "output_coordinate_argmax_agreement"
                     ),
                     "timing_includes_cross_ccd_reduction": variant["mode"]
-                    == "per_ccd",
+                    in {"per_ccd", "per_ccd_threads"},
+                    "median_compute_and_sync_ms": record.get(
+                        "median_compute_and_sync_ms"
+                    ),
+                    "median_reduction_and_conversion_ms": record.get(
+                        "median_reduction_and_conversion_ms"
+                    ),
                     "ci_method": "independent bootstrap of iteration latencies",
                 }
             )
@@ -180,8 +198,8 @@ def write_outputs(
         "claim": results[0]["claim"],
         "scope_note": results[0]["scope_note"],
         "limitations": [
-            "This is a process-based prototype of the PACE v1.0 split-loop TODO, not a patched in-kernel implementation.",
-            "Per-CCD latency includes synchronization, partial-output publication, and final reduction, but excludes worker and weight setup.",
+            "The matrix may contain process-based and persistent-pthread prototypes of the PACE v1.0 split-loop TODO; neither patches the PACE kernel.",
+            "Per-CCD latency includes synchronization, partial-output publication, and final reduction, but excludes worker/thread and weight setup.",
             "The 32 MiB fit calculation applies to one active split block plus input and intermediate activation on one CCD.",
             "TPP/global and per-CCD variants run in separate serialized Slurm tasks; confidence intervals therefore use independent samples.",
         ],
