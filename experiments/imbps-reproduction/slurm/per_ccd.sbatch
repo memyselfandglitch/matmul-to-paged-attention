@@ -38,7 +38,10 @@ cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 source ./scripts/enable_tcmalloc.sh
 
-readonly CPU_LIST="$(python3 src/select_llc_cpus.py --threads "${THREADS}")"
+readonly CPU_LIST="$(python3 src/select_llc_cpus.py \
+  --threads "${THREADS}" \
+  --expected-groups 12 \
+  --expected-group-size 8)"
 export OMP_NUM_THREADS="${THREADS}"
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
@@ -57,7 +60,11 @@ numactl --physcpubind="${CPU_LIST}" --membind=0 \
     --expected-l3-mib 384 \
     --output "${CASE_DIR}/runtime-validation.json"
 
-python3 src/select_llc_cpus.py --threads "${THREADS}" --json \
+python3 src/select_llc_cpus.py \
+  --threads "${THREADS}" \
+  --expected-groups 12 \
+  --expected-group-size 8 \
+  --json \
   > "${CASE_DIR}/cpu-selection.json"
 
 optional_args=()

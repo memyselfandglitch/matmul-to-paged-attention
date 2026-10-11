@@ -33,7 +33,7 @@ try:
         percentile,
         summarize_thread_affinity,
     )
-    from .select_llc_cpus import discover_groups
+    from .select_llc_cpus import discover_groups_with_source
 except ImportError:  # Direct execution: python3 src/per_ccd_mlp_bench.py
     from cache_model import MIB
     from pace_mlp_bench import (
@@ -42,7 +42,7 @@ except ImportError:  # Direct execution: python3 src/per_ccd_mlp_bench.py
         percentile,
         summarize_thread_affinity,
     )
-    from select_llc_cpus import discover_groups
+    from select_llc_cpus import discover_groups_with_source
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -434,13 +434,11 @@ def main() -> None:
         raise RuntimeError("REQUIRE_TCMALLOC=1 but tcmalloc is not mapped")
 
     allowed = set(os.sched_getaffinity(0))
-    discovered = discover_groups(allowed)
-    if len(discovered) != int(claim["expected_ccds"]):
-        raise RuntimeError(
-            f"expected {claim['expected_ccds']} CCDs, discovered {len(discovered)}"
-        )
-    if any(len(group) != int(claim["cores_per_ccd"]) for group in discovered):
-        raise RuntimeError(f"unexpected CCD groups: {discovered}")
+    discovered, topology_source, topology_candidates = discover_groups_with_source(
+        allowed,
+        expected_groups=int(claim["expected_ccds"]),
+        expected_group_size=int(claim["cores_per_ccd"]),
+    )
     selected_groups = discovered[:ccd_count]
 
     weight_generator = torch.Generator(device="cpu").manual_seed(args.seed + 1)
@@ -565,6 +563,8 @@ def main() -> None:
             "barrier_timeout": args.barrier_timeout,
         },
         "topology": {
+            "selected_topology_source": topology_source,
+            "topology_candidates": topology_candidates,
             "discovered_ccd_groups": [list(group) for group in discovered],
             "selected_ccd_groups": [list(group) for group in selected_groups],
             "ccd_count": ccd_count,
