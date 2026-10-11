@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import inspect
 import unittest
+from unittest.mock import patch
 
 from src.per_ccd_mlp_bench import (
     assign_blocks,
     chunk_ranges,
+    constrain_auxiliary_threads,
     main,
     per_ccd_working_set,
 )
@@ -13,6 +15,28 @@ from src.summarize_per_ccd import summarize
 
 
 class PerCCDDesignTests(unittest.TestCase):
+    def test_auxiliary_thread_outside_ccd_is_constrained(self) -> None:
+        task_paths = [type("Task", (), {"name": "101"})()]
+        with (
+            patch("src.per_ccd_mlp_bench.Path") as path_type,
+            patch(
+                "src.per_ccd_mlp_bench.os.sched_getaffinity",
+                side_effect=[{0}, {8, 9}, {8, 9}],
+                create=True,
+            ),
+            patch(
+                "src.per_ccd_mlp_bench.os.sched_setaffinity", create=True
+            ) as set_affinity,
+            patch(
+                "src.per_ccd_mlp_bench.collect_thread_affinity",
+                return_value=({101: [8, 9]}, [8, 9]),
+            ),
+        ):
+            path_type.return_value.iterdir.return_value = task_paths
+            union = constrain_auxiliary_threads((8, 9))
+        set_affinity.assert_called_once_with(101, {8, 9})
+        self.assertEqual(union, [8, 9])
+
     def test_topology_is_captured_before_torch_initializes_openmp(self) -> None:
         source = inspect.getsource(main)
         self.assertLess(

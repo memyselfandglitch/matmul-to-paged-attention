@@ -206,6 +206,7 @@ def worker_main(
             )
             partials[worker_index].copy_(output)
 
+        constrain_auxiliary_threads(cpus)
         masks, affinity_union = collect_thread_affinity()
         if set(affinity_union) != set(cpus):
             raise RuntimeError(
@@ -267,6 +268,33 @@ def check_worker_errors(error_queue: Any) -> None:
             break
     if errors:
         raise RuntimeError(f"per-CCD worker failure: {errors}")
+
+
+def constrain_auxiliary_threads(cpus: tuple[int, ...]) -> list[int]:
+    """Keep every process thread inside its worker CCD.
+
+    ``spawn`` may create a resource-sharing helper while tensor arguments are
+    unpickled, before ``worker_main`` can pin its main thread. Leave existing
+    OpenMP masks alone when they are already subsets of the target CCD, and
+    constrain only masks that still include CPUs outside it.
+    """
+
+    target = set(cpus)
+    for _ in range(3):
+        corrected = False
+        for task_path in Path("/proc/self/task").iterdir():
+            try:
+                tid = int(task_path.name)
+                mask = set(os.sched_getaffinity(tid))
+                if not mask.issubset(target):
+                    os.sched_setaffinity(tid, target)
+                    corrected = True
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+        if not corrected:
+            break
+    _, affinity_union = collect_thread_affinity()
+    return affinity_union
 
 
 def run_per_ccd(
