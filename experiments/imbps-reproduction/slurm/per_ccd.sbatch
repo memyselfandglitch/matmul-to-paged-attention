@@ -16,6 +16,8 @@ set -euo pipefail
 
 readonly PROJECT_ROOT="${SLURM_SUBMIT_DIR}"
 readonly THREADS="${SLURM_CPUS_PER_TASK}"
+readonly NUMA_NODE="${PER_CCD_NUMA_NODE:-0}"
+readonly NODE_CPU_LIST_PATH="/sys/devices/system/node/node${NUMA_NODE}/cpulist"
 readonly CLAIM="${PER_CCD_CLAIM:-opt30b_parallel_imbps}"
 readonly VARIANTS=(
   tpp-all96
@@ -38,10 +40,21 @@ cd "${PROJECT_ROOT}"
 source .venv/bin/activate
 source ./scripts/enable_tcmalloc.sh
 
-readonly CPU_LIST="$(python3 src/select_llc_cpus.py \
+if [[ ! -r "${NODE_CPU_LIST_PATH}" ]]; then
+  echo "NUMA-node CPU list is unavailable: ${NODE_CPU_LIST_PATH}" >&2
+  exit 1
+fi
+NODE_CPU_LIST="$(<"${NODE_CPU_LIST_PATH}")"
+readonly NODE_CPU_LIST
+
+# Slurm grants the exclusive job both sockets on mn01.  Restrict topology
+# discovery to the one 96-core socket used by this experiment.
+CPU_LIST="$(taskset --cpu-list "${NODE_CPU_LIST}" \
+  python3 src/select_llc_cpus.py \
   --threads "${THREADS}" \
   --expected-groups 12 \
   --expected-group-size 8)"
+readonly CPU_LIST
 export OMP_NUM_THREADS="${THREADS}"
 export OMP_PROC_BIND=close
 export OMP_PLACES=cores
@@ -52,7 +65,7 @@ export NUMEXPR_NUM_THREADS="${THREADS}"
 export LIBXSMM_BLOCK_SIZE=32
 
 mkdir -p "${CASE_DIR}"
-numactl --physcpubind="${CPU_LIST}" --membind=0 \
+numactl --physcpubind="${CPU_LIST}" --membind="${NUMA_NODE}" \
   python3 src/validate_runtime.py \
     --require-tcmalloc \
     --require-thp "${REQUIRE_THP_MODE:-always}" \
@@ -60,7 +73,8 @@ numactl --physcpubind="${CPU_LIST}" --membind=0 \
     --expected-l3-mib 384 \
     --output "${CASE_DIR}/runtime-validation.json"
 
-python3 src/select_llc_cpus.py \
+taskset --cpu-list "${NODE_CPU_LIST}" \
+  python3 src/select_llc_cpus.py \
   --threads "${THREADS}" \
   --expected-groups 12 \
   --expected-group-size 8 \
@@ -72,7 +86,7 @@ if [[ -n "${PER_CCD_ROWS:-}" ]]; then
   optional_args+=(--rows "${PER_CCD_ROWS}")
 fi
 
-numactl --physcpubind="${CPU_LIST}" --membind=0 \
+numactl --physcpubind="${CPU_LIST}" --membind="${NUMA_NODE}" \
   python3 src/per_ccd_mlp_bench.py \
     --claim "${CLAIM}" \
     --variant "${VARIANT}" \

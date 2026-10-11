@@ -52,6 +52,15 @@ class LlcCpuSelectionTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "l3_cache_id=1 groups"):
             select_grouping(candidates, expected_groups=2, expected_group_size=8)
 
+    def test_dual_socket_view_must_be_restricted_before_selection(self) -> None:
+        candidates = {
+            "l3_cache_id": [
+                tuple(range(start, start + 8)) for start in range(0, 192, 8)
+            ]
+        }
+        with self.assertRaisesRegex(RuntimeError, "l3_cache_id=24 groups"):
+            select_grouping(candidates, expected_groups=12, expected_group_size=8)
+
 
 if __name__ == "__main__":
     unittest.main()
