@@ -416,10 +416,22 @@ def main() -> None:
     total_splits = int(variant["total_splits"])
     ccd_count = int(variant["ccd_count"])
 
+    # Capture and validate the launch mask before importing PyTorch.  With
+    # OMP_PROC_BIND=close, OpenMP may pin the main thread to one CPU during the
+    # import/runtime initialization even though its worker team spans the
+    # complete 96-CPU socket.
+    launch_affinity = set(os.sched_getaffinity(0))
+    discovered, topology_source, topology_candidates = discover_groups_with_source(
+        launch_affinity,
+        expected_groups=int(claim["expected_ccds"]),
+        expected_group_size=int(claim["cores_per_ccd"]),
+    )
+    selected_groups = discovered[:ccd_count]
+
     import torch
     import pace  # noqa: F401
 
-    threads = args.threads or len(os.sched_getaffinity(0))
+    threads = args.threads or len(launch_affinity)
     torch.set_num_threads(threads)
     torch.set_num_interop_threads(1)
     pace_version = importlib.metadata.version("pace")
@@ -432,14 +444,6 @@ def main() -> None:
         "tcmalloc" in path.lower() for path in mapped_allocators
     ):
         raise RuntimeError("REQUIRE_TCMALLOC=1 but tcmalloc is not mapped")
-
-    allowed = set(os.sched_getaffinity(0))
-    discovered, topology_source, topology_candidates = discover_groups_with_source(
-        allowed,
-        expected_groups=int(claim["expected_ccds"]),
-        expected_group_size=int(claim["cores_per_ccd"]),
-    )
-    selected_groups = discovered[:ccd_count]
 
     weight_generator = torch.Generator(device="cpu").manual_seed(args.seed + 1)
     weight1 = torch.empty((intermediate, hidden), dtype=torch.bfloat16).uniform_(
@@ -563,6 +567,7 @@ def main() -> None:
             "barrier_timeout": args.barrier_timeout,
         },
         "topology": {
+            "launch_affinity": sorted(launch_affinity),
             "selected_topology_source": topology_source,
             "topology_candidates": topology_candidates,
             "discovered_ccd_groups": [list(group) for group in discovered],

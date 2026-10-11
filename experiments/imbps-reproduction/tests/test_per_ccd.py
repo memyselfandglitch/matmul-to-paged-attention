@@ -1,16 +1,25 @@
 from __future__ import annotations
 
+import inspect
 import unittest
 
 from src.per_ccd_mlp_bench import (
     assign_blocks,
     chunk_ranges,
+    main,
     per_ccd_working_set,
 )
 from src.summarize_per_ccd import summarize
 
 
 class PerCCDDesignTests(unittest.TestCase):
+    def test_topology_is_captured_before_torch_initializes_openmp(self) -> None:
+        source = inspect.getsource(main)
+        self.assertLess(
+            source.index("launch_affinity = set(os.sched_getaffinity(0))"),
+            source.index("    import torch"),
+        )
+
     def test_chunk_ranges_match_expected_fringe(self) -> None:
         ranges = chunk_ranges(28_672, 12)
         self.assertEqual(len(ranges), 12)
