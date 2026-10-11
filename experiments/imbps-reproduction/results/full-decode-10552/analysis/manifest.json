@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "experiment_kind": "full_autoregressive_and_pard_generation",
+  "claim": "qwen25_7b_pard",
+  "target_model": "Qwen/Qwen2.5-7B-Instruct",
+  "timing_boundary": "LLMModel.generate call",
+  "limitations": [
+    "PACE v1.0 PARD supports greedy batch-one generation only.",
+    "The same OperatorConfig, including the MLP backend and K, is applied to both target and PARD draft models.",
+    "Each array task loads its model independently, so intervals use an independent bootstrap.",
+    "The timed generate call includes prompt prefill; TTFT and total output throughput are reported separately."
+  ]
+}

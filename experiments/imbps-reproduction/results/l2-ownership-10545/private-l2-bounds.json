@@ -1,0 +1,1007 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "model_kind": "private_l2_residency_bounds",
+  "records": [
+    {
+      "rows": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 2,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 1.75,
+        "intermediate_block_mi_over_k": 3.5,
+        "weight_block_hi_over_k": 196.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 2.0963541666666665,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 3.828125,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 7.291666666666666,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.23342175066313,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 4,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 1.75,
+        "intermediate_block_mi_over_k": 1.75,
+        "weight_block_hi_over_k": 98.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 1.0572916666666667,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 2.7890625,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 4.520833333333333,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.23342175066313,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 8,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 1.75,
+        "intermediate_block_mi_over_k": 0.875,
+        "weight_block_hi_over_k": 49.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.5377604166666666,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 2.26953125,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 3.1354166666666665,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.23342175066313,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 128,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 16,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 1.75,
+        "intermediate_block_mi_over_k": 0.4375,
+        "weight_block_hi_over_k": 24.5
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.2779947916666667,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 2.009765625,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 2.4427083333333335,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.23342175066313,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 2,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 3.5,
+        "intermediate_block_mi_over_k": 7.0,
+        "weight_block_hi_over_k": 196.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 2.1510416666666665,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 5.614583333333334,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 12.541666666666666,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.389189189189189,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 4,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 3.5,
+        "intermediate_block_mi_over_k": 3.5,
+        "weight_block_hi_over_k": 98.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 1.09375,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 4.557291666666667,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 8.020833333333334,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.389189189189189,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 8,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 3.5,
+        "intermediate_block_mi_over_k": 1.75,
+        "weight_block_hi_over_k": 49.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.5651041666666666,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 4.028645833333333,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 5.760416666666667,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.389189189189189,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 256,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 16,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 3.5,
+        "intermediate_block_mi_over_k": 0.875,
+        "weight_block_hi_over_k": 24.5
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.30078125,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 3.7643229166666665,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 4.630208333333333,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.389189189189189,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 384,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 2,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 5.25,
+        "intermediate_block_mi_over_k": 10.5,
+        "weight_block_hi_over_k": 196.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 2.2057291666666665,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 7.401041666666666,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 17.791666666666668,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.550964187327824,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 384,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 4,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 5.25,
+        "intermediate_block_mi_over_k": 5.25,
+        "weight_block_hi_over_k": 98.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 1.1302083333333333,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 6.325520833333333,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 11.520833333333334,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.550964187327824,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 384,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 8,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 5.25,
+        "intermediate_block_mi_over_k": 2.625,
+        "weight_block_hi_over_k": 49.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.5924479166666666,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 5.787760416666667,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 8.385416666666666,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.550964187327824,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 384,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 16,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 5.25,
+        "intermediate_block_mi_over_k": 1.3125,
+        "weight_block_hi_over_k": 24.5
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.3235677083333333,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 5.518880208333333,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 6.817708333333333,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.550964187327824,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 512,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 2,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 7.0,
+        "intermediate_block_mi_over_k": 14.0,
+        "weight_block_hi_over_k": 196.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 2.2604166666666665,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 9.1875,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 23.041666666666668,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.719101123595506,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 512,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 4,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 7.0,
+        "intermediate_block_mi_over_k": 7.0,
+        "weight_block_hi_over_k": 98.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 1.1666666666666667,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 8.09375,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 15.020833333333334,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.719101123595506,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 512,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 8,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 7.0,
+        "intermediate_block_mi_over_k": 3.5,
+        "weight_block_hi_over_k": 49.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.6197916666666666,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 7.546875,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 11.010416666666666,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.719101123595506,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 512,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 16,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 7.0,
+        "intermediate_block_mi_over_k": 1.75,
+        "weight_block_hi_over_k": 24.5
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.3463541666666667,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 7.2734375,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 9.005208333333334,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 4.719101123595506,
+          "strict_integer_candidate": 5,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 1024,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 2,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 14.0,
+        "intermediate_block_mi_over_k": 28.0,
+        "weight_block_hi_over_k": 196.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 2.4791666666666665,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 16.333333333333332,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 44.041666666666664,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 5.463414634146342,
+          "strict_integer_candidate": 6,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 1024,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 4,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 14.0,
+        "intermediate_block_mi_over_k": 14.0,
+        "weight_block_hi_over_k": 98.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 1.3125,
+          "fits_strict": false
+        },
+        "source_replicated": {
+          "per_worker_mib": 15.166666666666666,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 29.020833333333332,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 5.463414634146342,
+          "strict_integer_candidate": 6,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 1024,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 8,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 14.0,
+        "intermediate_block_mi_over_k": 7.0,
+        "weight_block_hi_over_k": 49.0
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.7291666666666666,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 14.583333333333334,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 21.510416666666668,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 5.463414634146342,
+          "strict_integer_candidate": 6,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    },
+    {
+      "rows": 1024,
+      "hidden": 7168,
+      "intermediate": 28672,
+      "split": 16,
+      "workers": 96,
+      "bytes_per_element": 2,
+      "l2_mib_per_worker": 1.0,
+      "aggregate_private_l2_mib": 96.0,
+      "terms_mib": {
+        "source_mh": 14.0,
+        "intermediate_block_mi_over_k": 3.5,
+        "weight_block_hi_over_k": 24.5
+      },
+      "models": {
+        "perfect_partition": {
+          "per_worker_mib": 0.4375,
+          "fits_strict": true
+        },
+        "source_replicated": {
+          "per_worker_mib": 14.291666666666666,
+          "fits_strict": false
+        },
+        "activations_replicated": {
+          "per_worker_mib": 17.755208333333332,
+          "fits_strict": false
+        }
+      },
+      "equation_candidates": {
+        "perfect_partition": {
+          "finite": true,
+          "strict_lower_bound": 5.463414634146342,
+          "strict_integer_candidate": 6,
+          "next_power_of_two_candidate": 8
+        },
+        "source_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        },
+        "activations_replicated": {
+          "finite": false,
+          "strict_lower_bound": null,
+          "strict_integer_candidate": null,
+          "next_power_of_two_candidate": null
+        }
+      },
+      "interpretation": "PACE v1.0 does not assign one IMBPS block to one core. The perfect-partition result is an optimistic capacity bound; the replicated bounds show how the answer changes when oneDNN tile ownership does not evenly partition activations."
+    }
+  ]
+}

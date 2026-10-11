@@ -1,0 +1,2 @@
+variant=thread-p12-k12 mode=per_ccd_threads rows=128 P=12 K=12 median_ms=10.832
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k12-m128/benchmark.json

@@ -1,0 +1,3785 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "captured_at_utc": "2026-10-11T08:42:10.281079+00:00",
+  "experiment_kind": "full_autoregressive_and_pard_generation",
+  "scope_note": "Public PACE generate path including prefill, attention, populated KV caches, MLP, LM head, greedy sampling, and iterative generation. PARD also includes draft-model inference, target verification, acceptance, and rollback. Model loading and warmups are excluded.",
+  "claim": "qwen25_7b_pard",
+  "mode": "normal",
+  "backend": "imbps",
+  "split": 4,
+  "draft_tokens": 0,
+  "expected_variants": [
+    {
+      "mode": "normal",
+      "draft_tokens": 0,
+      "backend": "tpp",
+      "split": 1
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 4,
+      "backend": "tpp",
+      "split": 1
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 8,
+      "backend": "tpp",
+      "split": 1
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 12,
+      "backend": "tpp",
+      "split": 1
+    },
+    {
+      "mode": "normal",
+      "draft_tokens": 0,
+      "backend": "imbps",
+      "split": 2
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 4,
+      "backend": "imbps",
+      "split": 2
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 8,
+      "backend": "imbps",
+      "split": 2
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 12,
+      "backend": "imbps",
+      "split": 2
+    },
+    {
+      "mode": "normal",
+      "draft_tokens": 0,
+      "backend": "imbps",
+      "split": 4
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 4,
+      "backend": "imbps",
+      "split": 4
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 8,
+      "backend": "imbps",
+      "split": 4
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 12,
+      "backend": "imbps",
+      "split": 4
+    },
+    {
+      "mode": "normal",
+      "draft_tokens": 0,
+      "backend": "imbps",
+      "split": 8
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 4,
+      "backend": "imbps",
+      "split": 8
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 8,
+      "backend": "imbps",
+      "split": 8
+    },
+    {
+      "mode": "pard",
+      "draft_tokens": 12,
+      "backend": "imbps",
+      "split": 8
+    }
+  ],
+  "model": {
+    "target_requested_reference": "Qwen/Qwen2.5-7B-Instruct",
+    "target_resolved_path": "/data/scratch/deveshisingh/huggingface/hub/models--Qwen--Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28",
+    "target_snapshot_commit": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "draft_requested_reference": null,
+    "draft_resolved_path": null,
+    "draft_snapshot_commit": null,
+    "model_type": "qwen2",
+    "num_hidden_layers": 28,
+    "hidden_size": 3584,
+    "intermediate_size": 18944,
+    "vocab_size": 152064,
+    "dtype": "bf16"
+  },
+  "runner": {
+    "contexts": [
+      128,
+      1024,
+      2048
+    ],
+    "output_tokens": 64,
+    "rounds": 3,
+    "warmups": 1,
+    "seed": 20251001,
+    "model_load_seconds": 2.4839735470013693,
+    "timing_boundary": "LLMModel.generate call"
+  },
+  "records": [
+    {
+      "context_tokens": 128,
+      "rounds": [
+        {
+          "round": 1,
+          "order": 3,
+          "context_tokens": 128,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 6350.733725,
+          "output_tokens_per_second": 10.077575721378555,
+          "emission": {
+            "time_to_first_emission_ms": 474.771734,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 5875.961991,
+            "post_first_tokens_per_second": 10.721648658805968,
+            "events": [
+              {
+                "elapsed_ms": 474.771734,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 566.505173,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 659.319792,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 751.440819,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 843.655408,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 934.82951,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1026.159079,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1117.243135,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1208.376926,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1299.437797,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1390.003026,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1481.145711,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1581.85349,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1685.694378,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1780.420112,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1870.666739,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1961.870817,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2053.478156,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2143.846698,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2234.817411,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2324.92006,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2416.552317,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2506.960138,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2598.334905,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2689.58346,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2780.81562,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2883.290217,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2987.931107,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3080.897344,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3170.758377,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3262.023768,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3352.312869,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3443.457848,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3533.991269,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3625.559699,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3716.33004,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3807.680269,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3898.023833,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3989.308783,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4079.849456,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4182.366697,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4287.860509,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4379.653209,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4470.965972,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4561.169534,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4652.766156,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4744.370991,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4836.521884,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4927.429833,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5020.477545,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5112.020166,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5202.121302,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5294.268219,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5384.68956,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5487.625767,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5593.734951,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5688.352252,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5784.332898,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5877.54612,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5972.224483,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6065.908008,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6162.219346,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6256.412182,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6350.614774,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "e0236e39178015b27d41c2773be7097dcae1ac62cd01ff7b6e7f3c32b4508f5f",
+            "first_generated_token_ids": [
+              198,
+              9,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15
+            ],
+            "last_generated_token_ids": [
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "order": 2,
+          "context_tokens": 128,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 6221.295591,
+          "output_tokens_per_second": 10.287246292007925,
+          "emission": {
+            "time_to_first_emission_ms": 467.195395,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 5754.100196,
+            "post_first_tokens_per_second": 10.948714456483545,
+            "events": [
+              {
+                "elapsed_ms": 467.195395,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 567.247361,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 659.499567,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 750.486397,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 842.354651,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 933.040484,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1025.053518,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1115.273745,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1205.714917,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1296.661675,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1387.568012,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1478.629043,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1577.882449,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1682.407393,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1771.257524,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1859.488287,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1946.719094,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2034.429939,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2121.566383,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2209.353683,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2296.639063,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2383.997474,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2471.318978,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2558.902029,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2646.403536,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2733.995701,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2836.277977,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2941.020511,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3029.448062,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3116.829367,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3204.698652,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3291.806513,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3379.681075,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3466.678188,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3557.15887,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3644.320072,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3732.440026,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3820.142709,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3907.448069,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3994.612786,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4096.721368,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4204.111865,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4292.368056,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4380.306205,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4467.481038,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4555.219654,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4642.643564,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4730.499699,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4818.02348,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4906.299832,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4993.586864,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5082.210231,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5170.096332,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5257.289602,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5360.861182,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5465.677117,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5564.766605,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5659.098533,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5752.817912,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5847.406029,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5939.826971,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6033.726724,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6127.081091,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6221.174708,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "e0236e39178015b27d41c2773be7097dcae1ac62cd01ff7b6e7f3c32b4508f5f",
+            "first_generated_token_ids": [
+              198,
+              9,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15
+            ],
+            "last_generated_token_ids": [
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16
+            ]
+          }
+        },
+        {
+          "round": 3,
+          "order": 1,
+          "context_tokens": 128,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 6175.106952,
+          "output_tokens_per_second": 10.364192960135146,
+          "emission": {
+            "time_to_first_emission_ms": 457.565073,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 5717.541879,
+            "post_first_tokens_per_second": 11.018721215037031,
+            "events": [
+              {
+                "elapsed_ms": 457.565073,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 551.700013,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 642.113944,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 730.851625,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 818.764856,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 907.818466,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 996.788479,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1084.509189,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1172.494259,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1260.447532,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1348.436959,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1436.02607,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1534.724345,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1636.969234,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1725.64409,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1813.10754,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1900.943514,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1988.845289,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2076.485166,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2164.357115,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2251.583215,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2339.345058,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2426.87596,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2514.689881,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2602.187643,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2689.974804,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2791.434163,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2897.159126,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2986.30791,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3074.452061,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3162.807823,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3251.361726,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3339.987087,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3427.752955,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3515.869495,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3603.502893,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3691.224514,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3778.710608,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3866.53135,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3954.056333,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4056.696902,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4160.899979,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4249.7561,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4337.475728,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4425.409801,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4512.934805,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4600.927176,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4688.564309,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4776.515779,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4864.67904,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4952.157072,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5040.129513,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5127.831245,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5216.718883,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5320.748637,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5426.885685,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5520.725307,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5614.658111,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5707.509125,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5801.055062,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5895.050891,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5987.66705,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6080.874544,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6174.992228,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "e0236e39178015b27d41c2773be7097dcae1ac62cd01ff7b6e7f3c32b4508f5f",
+            "first_generated_token_ids": [
+              198,
+              9,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15
+            ],
+            "last_generated_token_ids": [
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "median_total_ms": 6221.295591,
+        "q1_total_ms": 6198.2012715,
+        "q3_total_ms": 6286.014658,
+        "median_ttft_ms": 467.195395,
+        "median_output_tokens_per_second": 10.287246292007925,
+        "median_post_first_tokens_per_second": 10.948714456483545,
+        "median_generated_tokens_per_target_forward": 1.0
+      }
+    },
+    {
+      "context_tokens": 1024,
+      "rounds": [
+        {
+          "round": 1,
+          "order": 2,
+          "context_tokens": 1024,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 7607.074571,
+          "output_tokens_per_second": 8.413221061876193,
+          "emission": {
+            "time_to_first_emission_ms": 1462.780288,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 6144.294283,
+            "post_first_tokens_per_second": 10.253415135780209,
+            "events": [
+              {
+                "elapsed_ms": 1462.780288,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1559.430168,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1649.54874,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1747.050121,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1844.222012,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1942.057128,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2040.137025,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2137.455708,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2235.163572,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2332.480212,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2429.165977,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2526.687377,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2623.543019,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2721.225934,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2817.960403,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2914.259041,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3012.458919,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3109.411127,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3206.296074,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3303.825978,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3400.517761,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3497.700799,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3594.826069,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3691.390369,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3788.718438,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3886.906518,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3984.38862,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4081.75128,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4178.808888,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4275.786024,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4389.287811,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4503.03557,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4593.577815,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4685.077551,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4783.159651,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4879.297185,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4983.918064,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5080.744402,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5176.873672,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5275.138129,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5371.710712,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5468.217035,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5565.174972,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5662.828533,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5760.035968,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5856.831048,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5954.733156,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6051.654818,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6149.304322,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6246.347379,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6343.148698,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6441.356819,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6538.575732,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6637.394629,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6734.036006,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6831.018671,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6927.99165,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7024.485264,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7120.676409,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7219.179707,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7315.554581,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7412.027272,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7510.44394,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7606.950463,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "c9967e10734326ee216f9a95bf390702af6ba498060d7aa7d26f4d2f3a54a783",
+            "first_generated_token_ids": [
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220
+            ],
+            "last_generated_token_ids": [
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "order": 1,
+          "context_tokens": 1024,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 7739.18827,
+          "output_tokens_per_second": 8.269601121875796,
+          "emission": {
+            "time_to_first_emission_ms": 1439.422548,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 6299.765722,
+            "post_first_tokens_per_second": 10.000371883670502,
+            "events": [
+              {
+                "elapsed_ms": 1439.422548,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1540.170558,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1635.388779,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1728.214114,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1821.272051,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1913.444486,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2006.426999,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2098.754219,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2191.817224,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2284.921682,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2377.370896,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2470.36692,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2563.109199,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2656.930273,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2750.011195,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2842.97521,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2935.508492,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3027.895212,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3120.205646,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3213.17532,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3306.10989,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3398.527147,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3492.404065,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3584.908874,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3678.171842,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3771.426057,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3864.526108,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3956.78193,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4049.593073,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4142.67711,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4258.41108,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4364.005575,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4463.622101,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4568.592079,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4674.967057,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4781.711784,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4886.425825,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4992.33675,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5099.021427,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5203.864733,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5308.671524,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5414.118205,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5521.505296,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5626.783202,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5733.773552,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5838.790451,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5944.575004,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6051.482298,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6155.942094,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6262.352685,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6367.924786,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6472.166151,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6578.194503,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6685.272526,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6790.986722,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6895.98916,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7001.438084,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7108.574345,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7214.004,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7318.871984,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7423.950487,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7529.714479,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7634.848076,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7739.065504,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "c9967e10734326ee216f9a95bf390702af6ba498060d7aa7d26f4d2f3a54a783",
+            "first_generated_token_ids": [
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220
+            ],
+            "last_generated_token_ids": [
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16
+            ]
+          }
+        },
+        {
+          "round": 3,
+          "order": 3,
+          "context_tokens": 1024,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 7671.274499,
+          "output_tokens_per_second": 8.342811876741317,
+          "emission": {
+            "time_to_first_emission_ms": 1465.735335,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 6205.539164,
+            "post_first_tokens_per_second": 10.152220191515337,
+            "events": [
+              {
+                "elapsed_ms": 1465.735335,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1563.746309,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1664.372977,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1762.791208,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1860.255423,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 1959.044136,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2058.995059,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2157.022007,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2255.317743,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2354.417537,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2452.038339,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2550.411142,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2649.860455,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2747.727501,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2845.421905,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2943.80374,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3046.189134,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3145.19203,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3242.862468,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3341.425709,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3440.283837,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3538.450927,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3636.635715,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3734.709343,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3833.992555,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3933.055844,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4031.122222,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4129.009758,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4227.557536,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4325.102403,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4438.103133,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4551.226448,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4647.645008,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4744.379057,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4841.737152,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4939.554683,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5036.771032,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5133.804886,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5231.516726,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5329.873534,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5427.784126,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5524.966374,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5622.043163,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5720.521494,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5817.531802,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5914.940623,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6012.921402,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6111.539396,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6209.028879,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6305.795217,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6403.335628,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6501.474336,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6598.507728,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6695.756517,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6793.347615,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6891.026676,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6988.172479,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7085.262778,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7182.873074,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7281.112685,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7378.344959,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7475.208454,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7572.880384,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7671.153626,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "c9967e10734326ee216f9a95bf390702af6ba498060d7aa7d26f4d2f3a54a783",
+            "first_generated_token_ids": [
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220,
+              16,
+              15,
+              15,
+              4,
+              220
+            ],
+            "last_generated_token_ids": [
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "median_total_ms": 7671.274499,
+        "q1_total_ms": 7639.174535,
+        "q3_total_ms": 7705.2313845,
+        "median_ttft_ms": 1462.780288,
+        "median_output_tokens_per_second": 8.342811876741317,
+        "median_post_first_tokens_per_second": 10.152220191515337,
+        "median_generated_tokens_per_target_forward": 1.0
+      }
+    },
+    {
+      "context_tokens": 2048,
+      "rounds": [
+        {
+          "round": 1,
+          "order": 1,
+          "context_tokens": 2048,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 9268.0589,
+          "output_tokens_per_second": 6.905437340282765,
+          "emission": {
+            "time_to_first_emission_ms": 2701.151718,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 6566.907182,
+            "post_first_tokens_per_second": 9.59355724909346,
+            "events": [
+              {
+                "elapsed_ms": 2701.151718,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2799.168639,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2891.679907,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3008.532261,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3138.952555,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3268.169907,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3381.430898,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3493.355595,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3603.697533,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3713.112447,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3822.444725,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3932.755586,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4042.734885,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4157.294385,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4266.039403,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4375.103955,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4485.021901,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4594.041636,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4703.230397,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4812.218403,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4921.440495,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5030.782278,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5159.545441,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5279.612165,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5371.903671,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5471.387926,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5571.384617,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5672.601658,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5771.69455,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5871.502956,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5972.222122,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6073.107671,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6173.174399,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6273.133894,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6372.884042,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6472.507748,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6572.706636,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6672.463164,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6771.6648,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6871.283078,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6971.173879,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7071.08415,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7170.641956,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7270.018088,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7369.791301,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7470.101688,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7569.965097,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7670.481186,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7770.266898,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7869.930915,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7970.545403,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8070.566651,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8170.535801,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8270.145066,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8369.925219,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8469.744001,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8569.164259,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8668.729467,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8768.462409,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8868.348803,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8967.996095,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9067.791662,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9167.737406,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9267.932769,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "b11f476ffe1aace908d77f8187148db91048de7a53fac80fb30439111bd6b534",
+            "first_generated_token_ids": [
+              8,
+              220,
+              16,
+              15,
+              220,
+              17,
+              220,
+              18,
+              220,
+              19,
+              220,
+              20,
+              220,
+              21,
+              220,
+              22
+            ],
+            "last_generated_token_ids": [
+              24,
+              220,
+              17,
+              15,
+              220,
+              17,
+              16,
+              220,
+              17,
+              17,
+              220,
+              17,
+              18,
+              220,
+              17,
+              19
+            ]
+          }
+        },
+        {
+          "round": 2,
+          "order": 3,
+          "context_tokens": 2048,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 9350.588825,
+          "output_tokens_per_second": 6.84448874801208,
+          "emission": {
+            "time_to_first_emission_ms": 2725.370706,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 6625.218119000001,
+            "post_first_tokens_per_second": 9.509120887556394,
+            "events": [
+              {
+                "elapsed_ms": 2725.370706,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2823.931742,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2919.954623,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3036.216303,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3148.032106,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3261.339118,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3377.862775,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3485.257568,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3593.190668,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3711.558609,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3824.734523,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3941.3306,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4060.006809,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4182.704562,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4294.654398,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4406.689983,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4520.073312,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4630.046492,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4760.530604,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4885.512499,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5003.053227,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5115.140822,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5244.097009,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5367.194618,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5468.122652,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5568.270313,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5667.798946,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5767.280128,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5866.724182,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5965.974965,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6065.137944,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6164.275324,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6264.044722,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6363.161752,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6462.120491,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6561.425806,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6660.988421,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6760.091038,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6859.728356,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6958.826276,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7058.19019,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7157.071022,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7256.719477,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7355.95116,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7460.659692,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7560.251632,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7659.149479,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7758.761709,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7857.980433,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7957.82188,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8057.069477,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8156.84831,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8256.209049,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8356.145179,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8455.851562,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8555.813502,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8655.836244,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8755.484969,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8854.679056,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8953.652056,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9052.828987,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9151.870292,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9250.847129,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9350.470736,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "b11f476ffe1aace908d77f8187148db91048de7a53fac80fb30439111bd6b534",
+            "first_generated_token_ids": [
+              8,
+              220,
+              16,
+              15,
+              220,
+              17,
+              220,
+              18,
+              220,
+              19,
+              220,
+              20,
+              220,
+              21,
+              220,
+              22
+            ],
+            "last_generated_token_ids": [
+              24,
+              220,
+              17,
+              15,
+              220,
+              17,
+              16,
+              220,
+              17,
+              17,
+              220,
+              17,
+              18,
+              220,
+              17,
+              19
+            ]
+          }
+        },
+        {
+          "round": 3,
+          "order": 2,
+          "context_tokens": 2048,
+          "requested_output_tokens": 64,
+          "generated_tokens": 64,
+          "total_ms": 9098.037029,
+          "output_tokens_per_second": 7.034484449337803,
+          "emission": {
+            "time_to_first_emission_ms": 2718.652796,
+            "first_emission_tokens": 1,
+            "emission_count": 64,
+            "emitted_tokens": 64,
+            "post_first_emission_ms": 6379.384232999999,
+            "post_first_tokens_per_second": 9.875561292280608,
+            "events": [
+              {
+                "elapsed_ms": 2718.652796,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2817.906223,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 2912.711008,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3005.47485,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3120.807743,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3238.104773,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3349.084629,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3457.178793,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3564.962826,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3672.274734,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3779.44656,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3886.87166,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 3993.985557,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4101.077843,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4208.213865,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4315.625464,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4423.032196,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4531.042162,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4639.001621,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4746.625582,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4854.303265,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 4962.099286,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5092.174299,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5209.784493,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5305.585158,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5402.781016,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5499.757652,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5597.723658,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5694.813776,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5792.363241,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5889.894357,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 5987.242036,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6084.068324,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6181.102718,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6278.035358,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6375.309395,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6471.913857,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6569.892612,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6666.73829,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6763.378086,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6861.109626,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 6959.308625,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7057.407572,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7154.781911,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7251.737545,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7348.44948,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7445.719522,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7542.715547,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7639.131604,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7736.480464,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7834.206958,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 7929.887209,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8026.656712,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8123.717025,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8220.595162,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8317.660353,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8415.190778,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8512.772371,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8610.717565,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8707.831009,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8805.363348,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 8902.53524,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9000.41795,
+                "token_count": 1
+              },
+              {
+                "elapsed_ms": 9097.916397,
+                "token_count": 1
+              }
+            ]
+          },
+          "speculative_iteration_kept_tokens": [],
+          "mean_kept_tokens_per_speculative_iteration": null,
+          "accepted_draft_fraction": null,
+          "accepted_draft_tokens": null,
+          "proposed_draft_tokens": null,
+          "target_forward_iterations": 64,
+          "generated_tokens_per_target_forward": 1.0,
+          "signature": {
+            "generated_token_count": 64,
+            "generated_token_sha256": "b11f476ffe1aace908d77f8187148db91048de7a53fac80fb30439111bd6b534",
+            "first_generated_token_ids": [
+              8,
+              220,
+              16,
+              15,
+              220,
+              17,
+              220,
+              18,
+              220,
+              19,
+              220,
+              20,
+              220,
+              21,
+              220,
+              22
+            ],
+            "last_generated_token_ids": [
+              24,
+              220,
+              17,
+              15,
+              220,
+              17,
+              16,
+              220,
+              17,
+              17,
+              220,
+              17,
+              18,
+              220,
+              17,
+              19
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "median_total_ms": 9268.0589,
+        "q1_total_ms": 9183.0479645,
+        "q3_total_ms": 9309.323862500001,
+        "median_ttft_ms": 2718.652796,
+        "median_output_tokens_per_second": 6.905437340282765,
+        "median_post_first_tokens_per_second": 9.59355724909346,
+        "median_generated_tokens_per_target_forward": 1.0
+      }
+    }
+  ],
+  "environment": {
+    "hostname": "mn01",
+    "pid": 716004,
+    "python": "3.11.4",
+    "torch_version": "2.7.0+cpu",
+    "transformers_version": "4.51.3",
+    "pace_version": "1.0.0",
+    "torch_threads": 96,
+    "torch_interop_threads": 1,
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "main_thread_affinity": [
+      0
+    ],
+    "process_thread_count": 290,
+    "thread_affinity_masks": [
+      {
+        "cpus": [
+          0
+        ],
+        "thread_count": 195
+      },
+      {
+        "cpus": [
+          1
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          2
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          3
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          4
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          5
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          6
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          7
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          8
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          9
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          10
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          11
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          12
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          13
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          14
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          15
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          16
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          17
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          18
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          19
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          20
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          21
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          22
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          23
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          24
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          25
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          26
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          27
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          28
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          29
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          30
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          31
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          32
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          33
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          34
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          35
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          36
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          37
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          38
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          39
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          40
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          41
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          42
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          43
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          44
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          45
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          46
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          47
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          48
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          49
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          50
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          51
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          52
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          53
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          54
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          55
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          56
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          57
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          58
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          59
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          60
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          61
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          62
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          63
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          64
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          65
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          66
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          67
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          68
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          69
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          70
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          71
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          72
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          73
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          74
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          75
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          76
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          77
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          78
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          79
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          80
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          81
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          82
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          83
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          84
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          85
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          86
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          87
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          88
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          89
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          90
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          91
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          92
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          93
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          94
+        ],
+        "thread_count": 1
+      },
+      {
+        "cpus": [
+          95
+        ],
+        "thread_count": 1
+      }
+    ],
+    "omp_num_threads": "96",
+    "omp_proc_bind": "close",
+    "omp_places": "cores",
+    "omp_wait_policy": "ACTIVE",
+    "imbps_block_size": "4",
+    "libxsmm_block_size": "32",
+    "hf_home": "/data/scratch/deveshisingh/huggingface",
+    "hf_hub_cache": "/data/scratch/deveshisingh/huggingface/hub",
+    "slurm_job_id": "10596",
+    "slurm_array_job_id": "10552",
+    "slurm_array_task_id": "2",
+    "ld_preload": "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5",
+    "allocator_mappings": [
+      "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5"
+    ],
+    "max_rss_kib": 25558024
+  }
+}

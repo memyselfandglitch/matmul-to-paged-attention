@@ -1,0 +1,116 @@
+
+AMDuProfPcm Report
+
+Processor Name:,AMD EPYC 9654 96-Core Processor                
+System:,Family(0x19) Model(0x11) Stepping(0x1)
+Operating System:,Linux 6.2.0-39-generic
+Number of Sockets :,2
+Number of Core Complexes(CCX) :,24
+Number of Cores :,192
+Number of Threads :,192
+SMT Enabled in HW:,False
+SMT Enabled by OS :,False
+
+CPU Topology:
+Socket, CCX, Core(s)
+0,0, 0 1 2 3 4 5 6 7
+0,1, 8 9 10 11 12 13 14 15
+0,2, 16 17 18 19 20 21 22 23
+0,3, 24 25 26 27 28 29 30 31
+0,4, 32 33 34 35 36 37 38 39
+0,5, 40 41 42 43 44 45 46 47
+0,6, 48 49 50 51 52 53 54 55
+0,7, 56 57 58 59 60 61 62 63
+0,8, 64 65 66 67 68 69 70 71
+0,9, 72 73 74 75 76 77 78 79
+0,10, 80 81 82 83 84 85 86 87
+0,11, 88 89 90 91 92 93 94 95
+1,12, 96 97 98 99 100 101 102 103
+1,13, 104 105 106 107 108 109 110 111
+1,14, 112 113 114 115 116 117 118 119
+1,15, 120 121 122 123 124 125 126 127
+1,16, 128 129 130 131 132 133 134 135
+1,17, 136 137 138 139 140 141 142 143
+1,18, 144 145 146 147 148 149 150 151
+1,19, 152 153 154 155 156 157 158 159
+1,20, 160 161 162 163 164 165 166 167
+1,21, 168 169 170 171 172 173 174 175
+1,22, 176 177 178 179 180 181 182 183
+1,23, 184 185 186 187 188 189 190 191
+
+Socket-UMC Topology:
+Socket, IODie, UMC(s)
+0,0,0 1 2 3 4 5 6 7 8 9 10 11 
+1,1,12 13 14 15 16 17 18 19 20 21 22 23 
+
+Core P0 state frequency (MHz):,2396.624023
+Multiplex interval for core (ms):,4
+Multiplex interval for l3 (ms):,4
+Multiplex interval for df (ms):,4
+Data Collection Driver:,Linux Perf Driver
+NMI Watchdog Enabled:,1
+Version:,5.3.521.0 (PUBLIC)
+
+Hypervisor Info:
+Hypervisor Enabled:,False
+Command:,"AMDuProfPcm -X -m ipc,l2,l3 -c package=0 -A ccd -C -o /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/global-k12-all96-m512/uprof.csv -- /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/.venv/bin/python3 /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/src/uprof_measurement_gate.py --start-file /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/global-k12-all96-m512/worker.start --done-file /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/global-k12-all96-m512/worker.measurement.done --timing-file /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/global-k12-all96-m512/gate-timing.json --timeout-seconds 7200"
+
+Abbreviation :
+IPC    : Instructions Per CPU Cycle
+CPI    : CPU Cycles Per Instructions
+pti    : Per Thousand Instructions
+ptc    : Per Thousand CPU Cycles
+pto    : Per Thousand Operations
+Topdown metrics are reported in "% slots"
+
+Profile Time: 2026/10/11 14:01:41:618
+CORE METRICS
+Metric,CCD (Aggregated)-0,CCD (Aggregated)-1,CCD (Aggregated)-2,CCD (Aggregated)-3,CCD (Aggregated)-4,CCD (Aggregated)-5,CCD (Aggregated)-6,CCD (Aggregated)-7,CCD (Aggregated)-8,CCD (Aggregated)-9,CCD (Aggregated)-10,CCD (Aggregated)-11
+Retired Instructions,130206754861.00,127939889711.00,127873658190.00,127538012898.00,127614840031.00,127359658077.00,127716734949.00,127419826835.00,127191971926.00,126950094900.00,121851033720.00,109900613711.00
+Retired Macro Ops,132685767185.00,130184215562.00,130137320491.00,129877153581.00,130099756756.00,129964768425.00,130243605427.00,130047153354.00,129713063545.00,129507108415.00,124763642605.00,113466804837.00
+Cycles Not in Halt,129703323574.00,129486993506.00,129481078772.00,129516730700.00,129502474138.00,129481608376.00,129423883316.00,129384436039.00,129371407663.00,129490730595.00,129414601995.00,129001303311.00
+Utilization (%),90.52,90.42,90.43,90.51,90.51,90.51,90.50,90.51,90.51,90.64,90.65,90.63
+System time (%),2.26,2.13,2.39,2.26,2.40,2.28,2.28,2.28,2.47,2.02,1.69,1.37
+User time (%),97.49,97.61,97.36,97.49,97.36,97.47,97.47,97.46,97.27,97.73,98.06,98.39
+System instructions (%),0.47,0.17,0.14,0.15,0.16,0.16,0.15,0.16,0.17,0.19,0.20,0.24
+User instructions (%),99.53,99.83,99.86,99.85,99.84,99.84,99.85,99.84,99.83,99.81,99.80,99.76
+Eff Freq (MHz),2988.57,2989.43,2989.35,2988.87,2989.50,2989.75,2989.27,2989.39,2989.58,2989.14,2987.34,2976.55
+IPC (Sys + User),1.00,0.98,0.98,0.98,0.98,0.98,0.98,0.98,0.98,0.98,0.94,0.85
+IPC (Sys),0.21,0.08,0.06,0.06,0.07,0.07,0.06,0.07,0.07,0.09,0.11,0.15
+IPC (User),1.02,1.00,1.01,1.00,1.00,1.00,1.01,1.00,1.00,1.00,0.95,0.86
+CPI (Sys + User),1.00,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.06,1.18
+CPI (Sys),4.80,12.85,16.81,15.46,15.00,14.44,15.64,14.48,14.99,10.95,8.91,6.75
+CPI (User),0.99,1.00,0.99,1.00,1.00,1.00,0.99,1.00,1.00,1.00,1.05,1.16
+Giga Instructions Per Sec,21.52,21.24,21.23,21.21,21.20,21.13,21.25,21.13,21.14,21.14,20.31,18.29
+Locked Instructions (pti),0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00
+Retired Branches (pti),15.37,13.29,13.15,13.23,13.63,14.10,13.70,14.15,13.87,13.93,15.28,18.72
+Retired Branches Mispredicted (pti),0.16,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.07,0.07
+L2 Access (pti),167.04,165.86,167.16,168.77,173.93,183.08,184.57,183.63,182.64,183.65,183.10,185.79
+L2 Access from IC Miss (pti),0.67,0.55,0.54,0.55,0.55,0.56,0.56,0.56,0.56,0.54,0.57,0.59
+L2 Access from DC Miss (pti),138.26,138.68,139.19,139.20,142.66,148.62,149.67,149.04,148.94,149.07,147.74,148.80
+L2 Access from L2 HWPF (pti),28.60,27.10,27.85,29.08,30.79,33.60,34.02,33.80,32.84,33.43,33.97,35.50
+L2 Miss (pti),16.95,16.74,16.82,16.88,17.02,17.47,17.06,16.84,17.07,17.04,17.16,16.81
+L2 Miss from IC Miss (pti),0.59,0.52,0.51,0.52,0.52,0.53,0.53,0.54,0.53,0.51,0.53,0.55
+L2 Miss from DC Miss (pti),6.96,7.08,6.85,6.66,6.41,6.45,6.36,6.06,6.63,6.69,6.55,6.62
+L2 Miss from L2 HWPF (pti),9.40,9.15,9.46,9.70,10.09,10.49,10.17,10.24,9.92,9.84,10.08,9.65
+L2 Hit (pti),149.66,148.89,149.98,150.62,155.58,164.44,166.34,165.57,164.22,165.83,165.11,168.14
+L2 Hit from IC Miss (pti),0.08,0.04,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.04,0.04
+L2 Hit from DC Miss (pti),130.39,130.90,131.56,131.21,134.86,141.30,142.46,141.97,141.27,142.21,141.18,142.24
+L2 Hit from L2 HWPF (pti),19.20,17.96,18.39,19.38,20.70,23.11,23.85,23.56,22.92,23.59,23.89,25.85
+
+L3 METRICS
+Metric,CCD (Aggregated)-0,CCD (Aggregated)-1,CCD (Aggregated)-2,CCD (Aggregated)-3,CCD (Aggregated)-4,CCD (Aggregated)-5,CCD (Aggregated)-6,CCD (Aggregated)-7,CCD (Aggregated)-8,CCD (Aggregated)-9,CCD (Aggregated)-10,CCD (Aggregated)-11
+L3 Access,2321771453.00,2251694566.00,2257331154.00,2265875179.00,2281657227.00,2308042947.00,2272538576.00,2265277188.00,2261118447.00,2261552089.00,2193771721.00,1938404650.00
+L3 Miss,1363956138.00,1350434652.00,1364100489.00,1365554164.00,1355271292.00,1338891206.00,1349418029.00,1331962464.00,1341818009.00,1323849869.00,1302691261.00,1184583438.00
+L3 Access (pti),17.93,17.67,17.73,17.79,17.90,18.18,17.82,17.82,17.84,17.83,18.00,17.59
+L3 Miss (pti),10.54,10.60,10.71,10.72,10.63,10.54,10.58,10.48,10.59,10.44,10.69,10.75
+L3 Miss %,58.75,59.97,60.43,60.27,59.40,58.01,59.38,58.80,59.34,58.54,59.38,61.11
+L3 Hit %,41.25,40.03,39.57,39.73,40.60,41.99,40.62,41.20,40.66,41.46,40.62,38.89
+Ave L3 Miss Latency (ns),152.97,155.46,155.22,154.43,153.09,153.21,153.40,152.78,155.16,154.88,154.23,153.96
+L3 Miss Latency From Local Memory or I/O (%),97.84,95.99,95.90,96.00,96.12,97.53,97.55,97.51,97.78,97.65,97.81,98.03
+L3 Miss Latency From Remote Memory or I/O (%),0.14,0.05,0.05,0.04,0.04,0.06,0.04,0.03,0.04,0.04,0.03,0.03
+L3 Miss Latency From another CCX in same node (%),2.08,4.02,4.09,4.01,3.90,2.47,2.46,2.51,2.24,2.35,2.23,2.00
+L3 Miss Latency From another CCX in remote node (%),0.01,0.01,0.00,0.01,0.00,0.01,0.01,0.01,0.01,0.01,0.00,0.00
+L3 Miss Latency From Extension Memory (CXL) (%),0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00
+
+

@@ -1,0 +1,2 @@
+variant=global-k24-all96 mode=global_imbps rows=512 P=12 K=24 median_ms=49.978
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/global-k24-all96-m512/benchmark.json

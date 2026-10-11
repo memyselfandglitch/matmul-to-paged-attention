@@ -1,0 +1,1624 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "captured_at_utc": "2026-10-11T08:27:47.304431+00:00",
+  "experiment_kind": "parallel_per_ccd_imbps",
+  "scope_note": "Standalone OPT-30B MLP. Per-CCD latency includes persistent-worker synchronization, PACE fused block computation, publication of partial outputs, and cross-CCD reduction; process/thread and model setup is excluded.",
+  "claim": "opt30b_pthread_parallel_imbps",
+  "variant": {
+    "variant_id": "thread-p2-k2",
+    "mode": "per_ccd_threads",
+    "ccd_count": 2,
+    "total_splits": 2
+  },
+  "expected_variants": [
+    {
+      "variant_id": "tpp-all96",
+      "mode": "tpp",
+      "ccd_count": 12,
+      "total_splits": 1
+    },
+    {
+      "variant_id": "global-k12-all96",
+      "mode": "global_imbps",
+      "ccd_count": 12,
+      "total_splits": 12
+    },
+    {
+      "variant_id": "global-k24-all96",
+      "mode": "global_imbps",
+      "ccd_count": 12,
+      "total_splits": 24
+    },
+    {
+      "variant_id": "global-k48-all96",
+      "mode": "global_imbps",
+      "ccd_count": 12,
+      "total_splits": 48
+    },
+    {
+      "variant_id": "thread-p1-k1",
+      "mode": "per_ccd_threads",
+      "ccd_count": 1,
+      "total_splits": 1
+    },
+    {
+      "variant_id": "thread-p2-k2",
+      "mode": "per_ccd_threads",
+      "ccd_count": 2,
+      "total_splits": 2
+    },
+    {
+      "variant_id": "thread-p4-k4",
+      "mode": "per_ccd_threads",
+      "ccd_count": 4,
+      "total_splits": 4
+    },
+    {
+      "variant_id": "thread-p6-k6",
+      "mode": "per_ccd_threads",
+      "ccd_count": 6,
+      "total_splits": 6
+    },
+    {
+      "variant_id": "thread-p12-k12",
+      "mode": "per_ccd_threads",
+      "ccd_count": 12,
+      "total_splits": 12
+    },
+    {
+      "variant_id": "thread-p12-k24",
+      "mode": "per_ccd_threads",
+      "ccd_count": 12,
+      "total_splits": 24
+    },
+    {
+      "variant_id": "thread-p12-k48",
+      "mode": "per_ccd_threads",
+      "ccd_count": 12,
+      "total_splits": 48
+    }
+  ],
+  "model": {
+    "name": "opt30b",
+    "hidden": 7168,
+    "intermediate": 28672,
+    "dtype": "bf16",
+    "activation": "relu",
+    "bias": false
+  },
+  "runner": {
+    "rows": [
+      128,
+      512,
+      1024,
+      4096
+    ],
+    "rounds": 7,
+    "warmups": 3,
+    "seed": 20251001,
+    "barrier_timeout": 900.0,
+    "min_measurement_seconds": 0.0,
+    "profiler_gated": false
+  },
+  "topology": {
+    "launch_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "selected_topology_source": "l3_cache_id",
+    "topology_candidates": {
+      "l3_shared_cpu_list": {
+        "group_count": 12,
+        "group_sizes": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          [
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          [
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63
+          ],
+          [
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79
+          ],
+          [
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87
+          ],
+          [
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      },
+      "l3_cache_id": {
+        "group_count": 12,
+        "group_sizes": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          [
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          [
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63
+          ],
+          [
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79
+          ],
+          [
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87
+          ],
+          [
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      },
+      "die_id": {
+        "group_count": 1,
+        "group_sizes": [
+          96
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      },
+      "cluster_id": {
+        "group_count": 1,
+        "group_sizes": [
+          96
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      }
+    },
+    "discovered_ccd_groups": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      [
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      [
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79
+      ],
+      [
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87
+      ],
+      [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    ],
+    "selected_ccd_groups": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    ],
+    "ccd_count": 2,
+    "cores_per_ccd": 8,
+    "ccd_cache_mib": 32
+  },
+  "records": [
+    {
+      "active_rows": 128,
+      "row_execution_order": 4,
+      "durations_ms": [
+        60.565858,
+        67.798224,
+        75.600543,
+        78.441237,
+        78.734581,
+        68.983591,
+        78.70135
+      ],
+      "median_ms": 75.600543,
+      "q1_ms": 68.3909075,
+      "q3_ms": 78.5712935,
+      "output": {
+        "shape": [
+          128,
+          7168
+        ],
+        "dtype": "torch.bfloat16",
+        "sum_fp32": -9218.822265625,
+        "max_abs_fp32": 0.0849609375
+      },
+      "numerics_vs_global_same_k": {
+        "max_abs": 0.00048828125,
+        "q99_abs": 0.000244140625,
+        "mean_abs": 2.31481153605273e-05,
+        "output_coordinate_argmax_agreement": 0.96875
+      },
+      "cache_model_per_ccd": {
+        "widest_intermediate_block": 14336,
+        "input_mib": 1.75,
+        "intermediate_block_mib": 3.5,
+        "one_weight_block_mib": 196.0,
+        "modeled_working_set_mib": 201.25,
+        "ccd_cache_mib": 32.0,
+        "fits_one_ccd_strict": false
+      },
+      "workers": [
+        {
+          "worker": 0,
+          "native_tid": 705344,
+          "pid": 705247,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "outer_thread_affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "process_affinity_at_ready": {
+            "union": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "masks": [
+              {
+                "cpus": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "thread_count": 46
+              },
+              {
+                "cpus": [
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "thread_count": 8
+              }
+            ]
+          }
+        },
+        {
+          "worker": 1,
+          "native_tid": 705345,
+          "pid": 705247,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "outer_thread_affinity": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "block_ids": [
+            1
+          ],
+          "requested_inner_threads": 8
+        }
+      ],
+      "phase_timings": [
+        {
+          "compute_and_sync_ms": 59.793308,
+          "reduction_and_conversion_ms": 0.77255
+        },
+        {
+          "compute_and_sync_ms": 67.37972,
+          "reduction_and_conversion_ms": 0.418504
+        },
+        {
+          "compute_and_sync_ms": 75.22182,
+          "reduction_and_conversion_ms": 0.378723
+        },
+        {
+          "compute_and_sync_ms": 77.603388,
+          "reduction_and_conversion_ms": 0.837849
+        },
+        {
+          "compute_and_sync_ms": 78.359643,
+          "reduction_and_conversion_ms": 0.374938
+        },
+        {
+          "compute_and_sync_ms": 68.106592,
+          "reduction_and_conversion_ms": 0.876999
+        },
+        {
+          "compute_and_sync_ms": 78.301094,
+          "reduction_and_conversion_ms": 0.400256
+        }
+      ],
+      "median_compute_and_sync_ms": 75.22182,
+      "median_reduction_and_conversion_ms": 0.418504
+    },
+    {
+      "active_rows": 512,
+      "row_execution_order": 2,
+      "durations_ms": [
+        155.364653,
+        122.188176,
+        121.656511,
+        123.342666,
+        122.286245,
+        120.715164,
+        123.461625
+      ],
+      "median_ms": 122.286245,
+      "q1_ms": 121.9223435,
+      "q3_ms": 123.40214549999999,
+      "output": {
+        "shape": [
+          512,
+          7168
+        ],
+        "dtype": "torch.bfloat16",
+        "sum_fp32": -36738.74609375,
+        "max_abs_fp32": 0.0888671875
+      },
+      "numerics_vs_global_same_k": {
+        "max_abs": 0.00048828125,
+        "q99_abs": 0.000244140625,
+        "mean_abs": 2.325998320884537e-05,
+        "output_coordinate_argmax_agreement": 0.9921875
+      },
+      "cache_model_per_ccd": {
+        "widest_intermediate_block": 14336,
+        "input_mib": 7.0,
+        "intermediate_block_mib": 14.0,
+        "one_weight_block_mib": 196.0,
+        "modeled_working_set_mib": 217.0,
+        "ccd_cache_mib": 32.0,
+        "fits_one_ccd_strict": false
+      },
+      "workers": [
+        {
+          "worker": 0,
+          "native_tid": 705310,
+          "pid": 705247,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "outer_thread_affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "process_affinity_at_ready": {
+            "union": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "masks": [
+              {
+                "cpus": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "thread_count": 46
+              },
+              {
+                "cpus": [
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "thread_count": 8
+              }
+            ]
+          }
+        },
+        {
+          "worker": 1,
+          "native_tid": 705311,
+          "pid": 705247,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "outer_thread_affinity": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "block_ids": [
+            1
+          ],
+          "requested_inner_threads": 8
+        }
+      ],
+      "phase_timings": [
+        {
+          "compute_and_sync_ms": 153.604707,
+          "reduction_and_conversion_ms": 1.759946
+        },
+        {
+          "compute_and_sync_ms": 119.08138,
+          "reduction_and_conversion_ms": 3.106796
+        },
+        {
+          "compute_and_sync_ms": 119.821291,
+          "reduction_and_conversion_ms": 1.83522
+        },
+        {
+          "compute_and_sync_ms": 120.433418,
+          "reduction_and_conversion_ms": 2.909248
+        },
+        {
+          "compute_and_sync_ms": 120.389171,
+          "reduction_and_conversion_ms": 1.897074
+        },
+        {
+          "compute_and_sync_ms": 118.945083,
+          "reduction_and_conversion_ms": 1.770081
+        },
+        {
+          "compute_and_sync_ms": 120.327678,
+          "reduction_and_conversion_ms": 3.133947
+        }
+      ],
+      "median_compute_and_sync_ms": 120.327678,
+      "median_reduction_and_conversion_ms": 1.897074
+    },
+    {
+      "active_rows": 1024,
+      "row_execution_order": 3,
+      "durations_ms": [
+        270.224528,
+        263.685042,
+        243.451011,
+        242.903232,
+        246.249581,
+        244.102859,
+        244.213477
+      ],
+      "median_ms": 244.213477,
+      "q1_ms": 243.77693499999998,
+      "q3_ms": 254.9673115,
+      "output": {
+        "shape": [
+          1024,
+          7168
+        ],
+        "dtype": "torch.bfloat16",
+        "sum_fp32": -73523.96875,
+        "max_abs_fp32": 0.09375
+      },
+      "numerics_vs_global_same_k": {
+        "max_abs": 0.00048828125,
+        "q99_abs": 0.000244140625,
+        "mean_abs": 2.3250799131346866e-05,
+        "output_coordinate_argmax_agreement": 0.9853515625
+      },
+      "cache_model_per_ccd": {
+        "widest_intermediate_block": 14336,
+        "input_mib": 14.0,
+        "intermediate_block_mib": 28.0,
+        "one_weight_block_mib": 196.0,
+        "modeled_working_set_mib": 238.0,
+        "ccd_cache_mib": 32.0,
+        "fits_one_ccd_strict": false
+      },
+      "workers": [
+        {
+          "worker": 0,
+          "native_tid": 705327,
+          "pid": 705247,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "outer_thread_affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "process_affinity_at_ready": {
+            "union": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "masks": [
+              {
+                "cpus": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "thread_count": 46
+              },
+              {
+                "cpus": [
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "thread_count": 8
+              }
+            ]
+          }
+        },
+        {
+          "worker": 1,
+          "native_tid": 705328,
+          "pid": 705247,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "outer_thread_affinity": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "block_ids": [
+            1
+          ],
+          "requested_inner_threads": 8
+        }
+      ],
+      "phase_timings": [
+        {
+          "compute_and_sync_ms": 263.618361,
+          "reduction_and_conversion_ms": 6.606167
+        },
+        {
+          "compute_and_sync_ms": 257.54423,
+          "reduction_and_conversion_ms": 6.140812
+        },
+        {
+          "compute_and_sync_ms": 238.152415,
+          "reduction_and_conversion_ms": 5.298596
+        },
+        {
+          "compute_and_sync_ms": 237.452765,
+          "reduction_and_conversion_ms": 5.450467
+        },
+        {
+          "compute_and_sync_ms": 239.292973,
+          "reduction_and_conversion_ms": 6.956608
+        },
+        {
+          "compute_and_sync_ms": 238.788098,
+          "reduction_and_conversion_ms": 5.314761
+        },
+        {
+          "compute_and_sync_ms": 238.044421,
+          "reduction_and_conversion_ms": 6.169056
+        }
+      ],
+      "median_compute_and_sync_ms": 238.788098,
+      "median_reduction_and_conversion_ms": 6.140812
+    },
+    {
+      "active_rows": 4096,
+      "row_execution_order": 1,
+      "durations_ms": [
+        1002.027912,
+        1011.037772,
+        1025.232205,
+        1011.625956,
+        1020.855378,
+        1015.33693,
+        1031.138578
+      ],
+      "median_ms": 1015.33693,
+      "q1_ms": 1011.331864,
+      "q3_ms": 1023.0437915,
+      "output": {
+        "shape": [
+          4096,
+          7168
+        ],
+        "dtype": "torch.bfloat16",
+        "sum_fp32": -294350.0,
+        "max_abs_fp32": 0.0966796875
+      },
+      "numerics_vs_global_same_k": {
+        "max_abs": 0.00048828125,
+        "q99_abs": 0.000244140625,
+        "mean_abs": 2.3278624212252907e-05,
+        "output_coordinate_argmax_agreement": 0.98779296875
+      },
+      "cache_model_per_ccd": {
+        "widest_intermediate_block": 14336,
+        "input_mib": 56.0,
+        "intermediate_block_mib": 112.0,
+        "one_weight_block_mib": 196.0,
+        "modeled_working_set_mib": 364.0,
+        "ccd_cache_mib": 32.0,
+        "fits_one_ccd_strict": false
+      },
+      "workers": [
+        {
+          "worker": 0,
+          "native_tid": 705278,
+          "pid": 705247,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "outer_thread_affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "process_affinity_at_ready": {
+            "union": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "masks": [
+              {
+                "cpus": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "thread_count": 39
+              },
+              {
+                "cpus": [
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "thread_count": 8
+              }
+            ]
+          }
+        },
+        {
+          "worker": 1,
+          "native_tid": 705279,
+          "pid": 705247,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "outer_thread_affinity": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "block_ids": [
+            1
+          ],
+          "requested_inner_threads": 8
+        }
+      ],
+      "phase_timings": [
+        {
+          "compute_and_sync_ms": 975.909637,
+          "reduction_and_conversion_ms": 26.118275
+        },
+        {
+          "compute_and_sync_ms": 984.733415,
+          "reduction_and_conversion_ms": 26.304357
+        },
+        {
+          "compute_and_sync_ms": 997.459094,
+          "reduction_and_conversion_ms": 27.773111
+        },
+        {
+          "compute_and_sync_ms": 985.273877,
+          "reduction_and_conversion_ms": 26.352079
+        },
+        {
+          "compute_and_sync_ms": 994.489437,
+          "reduction_and_conversion_ms": 26.365941
+        },
+        {
+          "compute_and_sync_ms": 989.002698,
+          "reduction_and_conversion_ms": 26.334232
+        },
+        {
+          "compute_and_sync_ms": 1003.494792,
+          "reduction_and_conversion_ms": 27.643786
+        }
+      ],
+      "median_compute_and_sync_ms": 989.002698,
+      "median_reduction_and_conversion_ms": 26.352079
+    }
+  ],
+  "environment": {
+    "hostname": "mn01",
+    "pid": 705247,
+    "python": "3.11.4",
+    "torch_version": "2.7.0+cpu",
+    "pace_version": "1.0.0",
+    "torch_threads": 8,
+    "torch_interop_threads": 1,
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "main_thread_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "process_thread_count": 38,
+    "thread_affinity_masks": [
+      {
+        "cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "thread_count": 38
+      }
+    ],
+    "omp_num_threads": "8",
+    "omp_proc_bind": "false",
+    "omp_places": null,
+    "omp_wait_policy": "ACTIVE",
+    "libxsmm_block_size": "32",
+    "slurm_job_id": "10561",
+    "slurm_array_job_id": "10547",
+    "slurm_array_task_id": "5",
+    "ld_preload": "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5",
+    "allocator_mappings": [
+      "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5"
+    ],
+    "max_rss_kib": 3050464
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "pace_commit": "cfbe8b551cca18c686b771144c18129242796ea1",
+  "sources": {
+    "pace/ops/backends/imbps.py": "2a2270b127caf2ac7582bd9125166748e930b8cab3b7f54cce1b4be66dbd2bdb",
+    "csrc/ops/kernels/mlp_kernel.cpp": "0ebed6b51b22f60b3d41fb809d270aad1f2a26b2e22b2b4285c3ee9c75a96288"
+  },
+  "facts": {
+    "up_projection_split_contiguously": true,
+    "down_projection_split_contiguously": true,
+    "split_loop_is_sequential": true,
+    "parallel_split_loop_is_todo": true,
+    "each_block_runs_up_then_down": true,
+    "explicit_block_to_core_mapping_in_pace": false,
+    "worker_tiling_owner": "oneDNN/ZenDNN matmul runtime",
+    "conclusion": "PACE v1.0 owns K at the sequential outer loop. It does not bind a split block to a core or private L2. The 96 MiB aggregate-private-L2 equation is therefore an optimistic placement hypothesis, not an implementation guarantee."
+  }
+}

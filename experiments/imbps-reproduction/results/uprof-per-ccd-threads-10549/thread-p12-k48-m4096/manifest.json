@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "captured_at_utc": "2026-10-11T08:36:53.445365+00:00",
+  "status": "complete",
+  "case": {
+    "claim": "opt30b_pthread_parallel_imbps",
+    "variant": "thread-p12-k48",
+    "rows": 4096
+  },
+  "profiler": {
+    "binary": "/data/scratch/deveshisingh/tools/AMDuProf_Linux_x64_5.3.521/bin/AMDuProfPcm",
+    "access_mode": "perf",
+    "metrics": [
+      "ipc",
+      "l2",
+      "l3"
+    ],
+    "scope": "package=0",
+    "aggregation": "ccd",
+    "command": [
+      "/data/scratch/deveshisingh/tools/AMDuProf_Linux_x64_5.3.521/bin/AMDuProfPcm",
+      "-X",
+      "-m",
+      "ipc,l2,l3",
+      "-c",
+      "package=0",
+      "-A",
+      "ccd",
+      "-C",
+      "-o",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/uprof.csv",
+      "--",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/.venv/bin/python3",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/src/uprof_measurement_gate.py",
+      "--start-file",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/worker.start",
+      "--done-file",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/worker.measurement.done",
+      "--timing-file",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/gate-timing.json",
+      "--timeout-seconds",
+      "7200"
+    ]
+  },
+  "measurement": {
+    "threads": 8,
+    "cpu_list": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95",
+    "warmups": 3,
+    "requested_rounds": 3,
+    "minimum_seconds": 5.0,
+    "actual_invocations": 14,
+    "counter_active_seconds": 5.112151041976176
+  },
+  "outputs": {
+    "benchmark": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/benchmark.json",
+    "uprof_csv": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/uprof.csv",
+    "worker_log": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/worker.log",
+    "uprof_log": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/uprof.log",
+    "gate_timing": "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-threads-10549/thread-p12-k48-m4096/gate-timing.json"
+  }
+}
