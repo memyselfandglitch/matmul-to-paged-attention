@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import math
 import multiprocessing as mp
 import os
 import platform
@@ -128,13 +129,36 @@ def per_ccd_working_set(
     }
 
 
+def linear_quantile_ranks(count: int, quantile: float) -> tuple[int, int, float]:
+    """Return zero-based ranks and interpolation weight for a linear quantile."""
+
+    if count <= 0:
+        raise ValueError("quantile input must be nonempty")
+    if not 0.0 <= quantile <= 1.0:
+        raise ValueError("quantile must be between zero and one")
+    position = (count - 1) * quantile
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    return lower, upper, position - lower
+
+
+def exact_linear_quantile(values: Any, quantile: float) -> Any:
+    """Compute a linear quantile without torch.quantile's 2^24 size limit."""
+
+    lower, upper, weight = linear_quantile_ranks(values.numel(), quantile)
+    lower_value = values.kthvalue(lower + 1).values
+    if lower == upper:
+        return lower_value
+    upper_value = values.kthvalue(upper + 1).values
+    return lower_value + (upper_value - lower_value) * weight
+
+
 def numeric_comparison(reference: Any, candidate: Any) -> dict[str, float]:
-    import torch
 
     difference = (reference.float() - candidate.float()).abs().reshape(-1)
     return {
         "max_abs": float(difference.max().item()),
-        "q99_abs": float(torch.quantile(difference, 0.99).item()),
+        "q99_abs": float(exact_linear_quantile(difference, 0.99).item()),
         "mean_abs": float(difference.mean().item()),
         "output_coordinate_argmax_agreement": float(
             (reference.float().argmax(dim=-1) == candidate.float().argmax(dim=-1))

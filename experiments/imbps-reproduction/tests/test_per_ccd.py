@@ -8,6 +8,7 @@ from src.per_ccd_mlp_bench import (
     assign_blocks,
     chunk_ranges,
     constrain_auxiliary_threads,
+    linear_quantile_ranks,
     main,
     per_ccd_working_set,
 )
@@ -15,6 +16,16 @@ from src.summarize_per_ccd import summarize
 
 
 class PerCCDDesignTests(unittest.TestCase):
+    def test_linear_quantile_ranks_match_torch_interpolation_definition(self) -> None:
+        self.assertEqual(linear_quantile_ranks(4, 0.5), (1, 2, 0.5))
+        self.assertEqual(linear_quantile_ranks(101, 0.99), (99, 99, 0.0))
+
+    def test_linear_quantile_ranks_support_output_larger_than_2_to_24(self) -> None:
+        count = 4096 * 7168
+        lower, upper, weight = linear_quantile_ranks(count, 0.99)
+        self.assertEqual((lower, upper), (29_066_525, 29_066_526))
+        self.assertAlmostEqual(weight, 0.73, places=6)
+
     def test_auxiliary_thread_outside_ccd_is_constrained(self) -> None:
         task_paths = [type("Task", (), {"name": "101"})()]
         with (
