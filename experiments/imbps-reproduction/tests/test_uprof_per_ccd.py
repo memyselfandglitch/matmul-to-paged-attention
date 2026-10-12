@@ -41,6 +41,12 @@ class UprofPerCCDSummaryTests(unittest.TestCase):
                 encoding="utf-8",
             )
             (case / "uprof.csv").write_text(
+                "CORE METRICS\n"
+                "Metric,CCD 0,CCD 1\n"
+                "IPC (Sys + User),1.0,2.0\n"
+                "Utilization (%),90,50\n"
+                "L2 Access (pti),100,120\n"
+                "L2 Miss (pti),20,30\n"
                 "L3 METRICS\n"
                 "Metric,CCD 0,CCD 1\n"
                 "L3 Access,100,300\n"
@@ -52,6 +58,9 @@ class UprofPerCCDSummaryTests(unittest.TestCase):
         self.assertEqual(aggregate[0]["l3_access_per_invocation"], 200)
         self.assertEqual(aggregate[0]["l3_miss_per_invocation"], 40)
         self.assertEqual(aggregate[0]["l3_hit_percent"], 80)
+        self.assertEqual(aggregate[0]["ccd0_utilization_percent"], 90)
+        self.assertEqual(aggregate[0]["other_ccd_median_utilization_percent"], 50)
+        self.assertEqual(aggregate[0]["ipc_median_across_ccds"], 1.5)
 
 
 if __name__ == "__main__":

@@ -53,6 +53,11 @@ except ImportError:  # Direct execution: python3 src/per_ccd_mlp_bench.py
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CLAIMS_PATH = PROJECT_ROOT / "configs" / "claims.json"
 EXPECTED_PACE_VERSION = "1.0.0"
+THREAD_REDUCTION_STRATEGIES = {
+    "coordinator_copy",
+    "coordinator_zero_copy",
+    "parallel_row_sharded",
+}
 
 
 def comma_ints(value: str) -> list[int]:
@@ -60,6 +65,25 @@ def comma_ints(value: str) -> list[int]:
     if not values or min(values) <= 0:
         raise argparse.ArgumentTypeError("expected comma-separated positive integers")
     return values
+
+
+def loaded_parallel_libraries() -> list[str]:
+    """Return loaded threading/GEMM runtimes for concurrency diagnosis."""
+
+    markers = ("dnnl", "zendnn", "libgomp", "libiomp", "libomp", "libxsmm")
+    libraries = set()
+    try:
+        lines = Path("/proc/self/maps").read_text(
+            encoding="utf-8", errors="replace"
+        ).splitlines()
+    except OSError:
+        return []
+    for line in lines:
+        path = line.rsplit(maxsplit=1)[-1]
+        lowered = path.lower()
+        if path.startswith("/") and any(marker in lowered for marker in markers):
+            libraries.add(path)
+    return sorted(libraries)
 
 
 def parse_args() -> argparse.Namespace:
@@ -123,6 +147,21 @@ def chunk_ranges(total: int, chunks: int) -> list[tuple[int, int]]:
 def assign_blocks(total_splits: int, workers: int) -> list[list[int]]:
     ranges = chunk_ranges(total_splits, workers)
     return [list(range(start, end)) for start, end in ranges]
+
+
+def balanced_ranges(total: int, workers: int) -> list[tuple[int, int]]:
+    """Return exactly ``workers`` contiguous ranges with at most one-row skew."""
+
+    if min(total, workers) <= 0:
+        raise ValueError("total and workers must be positive")
+    base, remainder = divmod(total, workers)
+    ranges = []
+    start = 0
+    for worker in range(workers):
+        width = base + (1 if worker < remainder else 0)
+        ranges.append((start, start + width))
+        start += width
+    return ranges
 
 
 def per_ccd_working_set(
@@ -477,6 +516,7 @@ def run_per_ccd_threads(
     min_measurement_seconds: float = 0.0,
     start_measurement: Callable[[], None] | None = None,
     stop_measurement: Callable[[], None] | None = None,
+    reduction_strategy: str = "coordinator_copy",
 ) -> tuple[list[float], Any, list[dict[str, Any]], list[dict[str, float]]]:
     """Run disjoint IMBPS blocks from persistent CCD-pinned pthreads.
 
@@ -486,19 +526,35 @@ def run_per_ccd_threads(
     OpenMP workers created inside the call inherit that mask.
     """
 
+    if reduction_strategy not in THREAD_REDUCTION_STRATEGIES:
+        raise ValueError(
+            f"unknown pthread reduction strategy {reduction_strategy!r}; "
+            f"choose {sorted(THREAD_REDUCTION_STRATEGIES)}"
+        )
+
     worker_count = len(ccd_groups)
     ranges = chunk_ranges(weight1.shape[0], total_splits)
     assignments = assign_blocks(total_splits, worker_count)
     if len(ranges) != total_splits:
         raise ValueError("intermediate dimension produced fewer chunks than requested")
 
-    partials = torch.empty(
-        (worker_count, source.shape[0], source.shape[1]), dtype=source.dtype
-    )
+    partials = None
+    if reduction_strategy == "coordinator_copy":
+        partials = torch.empty(
+            (worker_count, source.shape[0], source.shape[1]), dtype=source.dtype
+        )
+    worker_outputs: list[Any | None] = [None] * worker_count
+    worker_phase_state: list[dict[str, float] | None] = [None] * worker_count
+    output_row_ranges = balanced_ranges(source.shape[0], worker_count)
     reduction = torch.empty_like(source, dtype=torch.float32)
     final_output = torch.empty_like(source)
     start_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
-    done_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
+    compute_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
+    reduction_barrier = (
+        threading.Barrier(worker_count + 1, timeout=timeout)
+        if reduction_strategy == "parallel_row_sharded"
+        else None
+    )
     stop_event = threading.Event()
     reports: list[dict[str, Any] | None] = [None] * worker_count
     errors: list[dict[str, Any]] = []
@@ -527,7 +583,10 @@ def run_per_ccd_threads(
                     None,
                     None,
                 )
-                partials[worker_index].copy_(output)
+                if partials is not None:
+                    partials[worker_index].copy_(output)
+                else:
+                    worker_outputs[worker_index] = output
             reports[worker_index] = {
                 "worker": worker_index,
                 "native_tid": native_tid,
@@ -541,6 +600,7 @@ def run_per_ccd_threads(
                 start_barrier.wait()
                 if stop_event.is_set():
                     return
+                operator_started = time.perf_counter_ns()
                 with torch.inference_mode():
                     output = torch.ops.pace.mlp_mlp_fusion(
                         source,
@@ -552,8 +612,40 @@ def run_per_ccd_threads(
                         None,
                         None,
                     )
+                operator_finished = time.perf_counter_ns()
+                if partials is not None:
                     partials[worker_index].copy_(output)
-                done_barrier.wait()
+                else:
+                    worker_outputs[worker_index] = output
+                publication_finished = time.perf_counter_ns()
+                worker_phase_state[worker_index] = {
+                    "operator_ms": (
+                        operator_finished - operator_started
+                    )
+                    / 1_000_000,
+                    "publication_ms": (
+                        publication_finished - operator_finished
+                    )
+                    / 1_000_000,
+                    "reduction_ms": 0.0,
+                }
+                compute_barrier.wait()
+                if reduction_barrier is not None:
+                    row_start, row_end = output_row_ranges[worker_index]
+                    reduction_started = time.perf_counter_ns()
+                    if row_start < row_end:
+                        local_reduction = reduction[row_start:row_end]
+                        local_reduction.zero_()
+                        for partial in worker_outputs:
+                            assert partial is not None
+                            local_reduction.add_(partial[row_start:row_end])
+                        final_output[row_start:row_end].copy_(local_reduction)
+                    reduction_finished = time.perf_counter_ns()
+                    assert worker_phase_state[worker_index] is not None
+                    worker_phase_state[worker_index]["reduction_ms"] = (
+                        reduction_finished - reduction_started
+                    ) / 1_000_000
+                    reduction_barrier.wait()
         except BaseException:
             with error_lock:
                 errors.append(
@@ -561,7 +653,9 @@ def run_per_ccd_threads(
                 )
             try:
                 start_barrier.abort()
-                done_barrier.abort()
+                compute_barrier.abort()
+                if reduction_barrier is not None:
+                    reduction_barrier.abort()
             except BaseException:
                 pass
 
@@ -602,13 +696,28 @@ def run_per_ccd_threads(
         def execute_once() -> tuple[float, dict[str, float]]:
             started = time.perf_counter_ns()
             start_barrier.wait()
-            done_barrier.wait()
+            compute_barrier.wait()
             compute_done = time.perf_counter_ns()
-            reduction.zero_()
-            for partial in partials:
-                reduction.add_(partial)
-            final_output.copy_(reduction)
+            if reduction_barrier is not None:
+                reduction_barrier.wait()
+            else:
+                reduction.zero_()
+                reduction_inputs = (
+                    list(partials)
+                    if partials is not None
+                    else list(worker_outputs)
+                )
+                for partial in reduction_inputs:
+                    assert partial is not None
+                    reduction.add_(partial)
+                final_output.copy_(reduction)
             finished = time.perf_counter_ns()
+            phases = [phase for phase in worker_phase_state if phase is not None]
+            if len(phases) != worker_count:
+                raise RuntimeError("incomplete pthread phase timing state")
+            operator_times = [phase["operator_ms"] for phase in phases]
+            publication_times = [phase["publication_ms"] for phase in phases]
+            reduction_times = [phase["reduction_ms"] for phase in phases]
             return (
                 (finished - started) / 1_000_000,
                 {
@@ -617,6 +726,15 @@ def run_per_ccd_threads(
                         finished - compute_done
                     )
                     / 1_000_000,
+                    "worker_operator_min_ms": min(operator_times),
+                    "worker_operator_max_ms": max(operator_times),
+                    "worker_operator_imbalance": (
+                        max(operator_times) / min(operator_times)
+                        if min(operator_times) > 0
+                        else None
+                    ),
+                    "worker_publication_max_ms": max(publication_times),
+                    "worker_reduction_max_ms": max(reduction_times),
                 },
             )
 
@@ -700,6 +818,9 @@ def main() -> None:
     intermediate = int(model_record["intermediate"])
     total_splits = int(variant["total_splits"])
     ccd_count = int(variant["ccd_count"])
+    reduction_strategy = str(
+        variant.get("reduction_strategy", "coordinator_copy")
+    )
 
     # Capture and validate the launch mask before importing PyTorch.  With
     # OMP_PROC_BIND=close, OpenMP may pin the main thread to one CPU during the
@@ -798,12 +919,23 @@ def main() -> None:
                 if variant["mode"] == "per_ccd_threads"
                 else run_per_ccd
             )
+            runner_kwargs = {}
+            if variant["mode"] == "per_ccd_threads":
+                runner_kwargs["reduction_strategy"] = reduction_strategy
             durations, output, worker_reports, phase_timings = runner(
-                torch, source, weight1, weight2, selected_groups, total_splits,
-                args.warmups, args.rounds, args.barrier_timeout,
+                torch,
+                source,
+                weight1,
+                weight2,
+                selected_groups,
+                total_splits,
+                args.warmups,
+                args.rounds,
+                args.barrier_timeout,
                 args.min_measurement_seconds,
                 start_measurement if args.ready_file is not None else None,
                 stop_measurement if args.done_file is not None else None,
+                **runner_kwargs,
             )
             if reference is None:
                 with torch.inference_mode():
@@ -871,6 +1003,52 @@ def main() -> None:
                     if phase_timings
                     else None
                 ),
+                "median_worker_operator_min_ms": (
+                    statistics.median(
+                        value["worker_operator_min_ms"]
+                        for value in phase_timings
+                    )
+                    if phase_timings
+                    and "worker_operator_min_ms" in phase_timings[0]
+                    else None
+                ),
+                "median_worker_operator_max_ms": (
+                    statistics.median(
+                        value["worker_operator_max_ms"]
+                        for value in phase_timings
+                    )
+                    if phase_timings
+                    and "worker_operator_max_ms" in phase_timings[0]
+                    else None
+                ),
+                "median_worker_operator_imbalance": (
+                    statistics.median(
+                        value["worker_operator_imbalance"]
+                        for value in phase_timings
+                        if value["worker_operator_imbalance"] is not None
+                    )
+                    if phase_timings
+                    and "worker_operator_imbalance" in phase_timings[0]
+                    else None
+                ),
+                "median_worker_publication_max_ms": (
+                    statistics.median(
+                        value["worker_publication_max_ms"]
+                        for value in phase_timings
+                    )
+                    if phase_timings
+                    and "worker_publication_max_ms" in phase_timings[0]
+                    else None
+                ),
+                "median_worker_reduction_max_ms": (
+                    statistics.median(
+                        value["worker_reduction_max_ms"]
+                        for value in phase_timings
+                    )
+                    if phase_timings
+                    and "worker_reduction_max_ms" in phase_timings[0]
+                    else None
+                ),
             }
         )
         print(
@@ -889,7 +1067,8 @@ def main() -> None:
             "Standalone OPT-30B MLP. Per-CCD latency includes persistent-worker "
             "synchronization, PACE fused block computation, publication of partial "
             "outputs, and cross-CCD reduction; process/thread and model setup is "
-            "excluded."
+            "excluded. Thread variants record their reduction strategy and "
+            "per-worker operator imbalance."
         ),
         "claim": args.claim,
         "variant": variant,
@@ -930,6 +1109,8 @@ def main() -> None:
             "pace_version": pace_version,
             "torch_threads": torch.get_num_threads(),
             "torch_interop_threads": torch.get_num_interop_threads(),
+            "torch_parallel_info": torch.__config__.parallel_info(),
+            "loaded_parallel_libraries": loaded_parallel_libraries(),
             "affinity": affinity_union,
             "main_thread_affinity": sorted(os.sched_getaffinity(0)),
             "process_thread_count": len(masks),

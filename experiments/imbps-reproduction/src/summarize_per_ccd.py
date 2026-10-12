@@ -39,15 +39,34 @@ def load_results(root: Path) -> list[dict[str, Any]]:
     paths = sorted(root.glob("*/result.json"))
     if not paths:
         raise FileNotFoundError(f"no per-CCD result.json files below {root}")
-    results = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
-    if any(result.get("status") != "complete" for result in results):
+    fragments = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+    if any(result.get("status") != "complete" for result in fragments):
         raise ValueError("per-CCD matrix contains an incomplete result")
-    claims = {result["claim"] for result in results}
+    claims = {result["claim"] for result in fragments}
     if len(claims) != 1:
         raise ValueError(f"mixed claims: {sorted(claims)}")
+
+    # Shape-isolated matrices intentionally produce one result fragment per
+    # (variant, active_rows). Merge those fragments before applying the same
+    # completeness and summary logic used by the original all-shapes process.
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for result in fragments:
+        grouped.setdefault(result["variant"]["variant_id"], []).append(result)
+    results = []
+    for variant_id, pieces in grouped.items():
+        merged = dict(pieces[0])
+        records = []
+        for piece in pieces:
+            if piece["variant"] != merged["variant"]:
+                raise ValueError(f"variant metadata differs across {variant_id}")
+            records.extend(piece["records"])
+        active_rows = [int(record["active_rows"]) for record in records]
+        if len(active_rows) != len(set(active_rows)):
+            raise ValueError(f"duplicate active-row fragment for {variant_id}")
+        merged["records"] = sorted(records, key=lambda row: int(row["active_rows"]))
+        results.append(merged)
+
     observed = {result["variant"]["variant_id"] for result in results}
-    if len(observed) != len(results):
-        raise ValueError("duplicate per-CCD variant")
     expected_sets = {
         tuple(sorted(row["variant_id"] for row in result["expected_variants"]))
         for result in results
@@ -143,6 +162,7 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                         * int(result["topology"]["cores_per_ccd"])
                     ),
                     "total_splits": variant["total_splits"],
+                    "reduction_strategy": variant.get("reduction_strategy"),
                     "splits_per_ccd": (
                         int(variant["total_splits"]) / int(variant["ccd_count"])
                     ),
@@ -173,6 +193,28 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     ),
                     "median_reduction_and_conversion_ms": record.get(
                         "median_reduction_and_conversion_ms"
+                    ),
+                    "median_worker_operator_min_ms": record.get(
+                        "median_worker_operator_min_ms"
+                    ),
+                    "median_worker_operator_max_ms": record.get(
+                        "median_worker_operator_max_ms"
+                    ),
+                    "median_worker_operator_imbalance": record.get(
+                        "median_worker_operator_imbalance"
+                    ),
+                    "median_worker_publication_max_ms": record.get(
+                        "median_worker_publication_max_ms"
+                    ),
+                    "median_worker_reduction_max_ms": record.get(
+                        "median_worker_reduction_max_ms"
+                    ),
+                    "reduction_fraction_of_latency": (
+                        float(record["median_reduction_and_conversion_ms"])
+                        / statistics.median(times)
+                        if record.get("median_reduction_and_conversion_ms")
+                        is not None
+                        else None
                     ),
                     "ci_method": "independent bootstrap of iteration latencies",
                 }

@@ -407,6 +407,28 @@
         {"variant_id": "thread-p12-k48", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 48}
       ],
       "design_note": "Lower-overhead follow-up to the process prototype. Persistent CCD-pinned pthreads share one address space and invoke PACE for disjoint intermediate blocks with an eight-thread inner team. The runner validates process-thread affinity after team initialization. Timing includes synchronization, partial outputs, and final reduction and separately records compute/synchronization and reduction/conversion time."
+    },
+    "opt30b_per_ccd_optimization": {
+      "model": "opt30b",
+      "dtype": "bf16",
+      "activation": "relu",
+      "bias": false,
+      "rows": [128, 256, 384, 512, 768, 1024, 2048, 4096],
+      "ccd_cache_mib": 32,
+      "cores_per_ccd": 8,
+      "expected_ccds": 12,
+      "variants": [
+        {"variant_id": "tpp-all96", "mode": "tpp", "ccd_count": 12, "total_splits": 1},
+        {"variant_id": "global-k6-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 6},
+        {"variant_id": "global-k12-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 12},
+        {"variant_id": "thread-p1-k1-copy", "mode": "per_ccd_threads", "ccd_count": 1, "total_splits": 1, "reduction_strategy": "coordinator_copy"},
+        {"variant_id": "thread-p6-k6-copy", "mode": "per_ccd_threads", "ccd_count": 6, "total_splits": 6, "reduction_strategy": "coordinator_copy"},
+        {"variant_id": "thread-p12-k12-copy", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "reduction_strategy": "coordinator_copy"},
+        {"variant_id": "thread-p12-k12-zero-copy", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "reduction_strategy": "coordinator_zero_copy"},
+        {"variant_id": "thread-p12-k12-sharded", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "reduction_strategy": "parallel_row_sharded"},
+        {"variant_id": "thread-p12-k24-sharded", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 24, "reduction_strategy": "parallel_row_sharded"}
+      ],
+      "design_note": "Shape-isolated diagnosis of the pthread per-CCD prototype. It separates publication copies, coordinator reduction, row-sharded parallel reduction, worker operator imbalance, CCD count, and split count. Every Slurm task measures one active-row shape so primitive/thread-pool state cannot leak between shapes."
     }
   },
   "e2e": {

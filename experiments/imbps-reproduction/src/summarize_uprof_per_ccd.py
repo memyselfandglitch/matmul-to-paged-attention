@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import re
+import statistics
 from pathlib import Path
 from typing import Any
 
@@ -53,14 +54,19 @@ def summarize(root: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
             raise ValueError(f"no common L3 components in {case_dir}")
         summed_access = 0.0
         summed_miss = 0.0
+        component_rows: list[dict[str, Any]] = []
+        core = report.get("core", {})
+        ipc = core.get("IPC (Sys + User)", {})
+        utilization = core.get("Utilization (%)", {})
+        l2_access_pti = core.get("L2 Access (pti)", {})
+        l2_miss_pti = core.get("L2 Miss (pti)", {})
         for fallback, component in enumerate(components):
             access = accesses[component]
             miss = misses[component]
             index = component_index(component, fallback)
             summed_access += access
             summed_miss += miss
-            long_rows.append(
-                {
+            component_row = {
                     "claim": benchmark["claim"],
                     "active_rows": record["active_rows"],
                     "variant_id": variant["variant_id"],
@@ -74,8 +80,23 @@ def summarize(root: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                     "l3_access_per_invocation": access / invocations,
                     "l3_miss_per_invocation": miss / invocations,
                     "l3_hit_percent": 100 * (access - miss) / access if access else None,
+                    "ipc": ipc.get(component),
+                    "utilization_percent": utilization.get(component),
+                    "l2_access_pti": l2_access_pti.get(component),
+                    "l2_miss_pti": l2_miss_pti.get(component),
                 }
-            )
+            long_rows.append(component_row)
+            component_rows.append(component_row)
+        miss_values = [float(row["l3_miss_per_invocation"]) for row in component_rows]
+        utilization_values = [
+            float(row["utilization_percent"])
+            for row in component_rows
+            if row["utilization_percent"] is not None
+        ]
+        ipc_values = [
+            float(row["ipc"]) for row in component_rows if row["ipc"] is not None
+        ]
+        ccd0 = min(component_rows, key=lambda row: int(row["component_index"]))
         aggregate_rows.append(
             {
                 "claim": benchmark["claim"],
@@ -84,6 +105,7 @@ def summarize(root: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                 "mode": variant["mode"],
                 "ccd_count": variant["ccd_count"],
                 "total_splits": variant["total_splits"],
+                "reduction_strategy": variant.get("reduction_strategy"),
                 "invocations": invocations,
                 "median_ms": record["median_ms"],
                 "median_compute_and_sync_ms": record.get(
@@ -99,6 +121,34 @@ def summarize(root: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                     if summed_access
                     else None
                 ),
+                "l3_miss_max_to_min_ratio": (
+                    max(miss_values) / min(miss_values)
+                    if miss_values and min(miss_values) > 0
+                    else None
+                ),
+                "ccd0_l3_miss_per_invocation": ccd0["l3_miss_per_invocation"],
+                "ccd0_l3_hit_percent": ccd0["l3_hit_percent"],
+                "ccd0_utilization_percent": ccd0["utilization_percent"],
+                "other_ccd_median_utilization_percent": (
+                    statistics.median(
+                        float(row["utilization_percent"])
+                        for row in component_rows
+                        if int(row["component_index"]) != 0
+                        and row["utilization_percent"] is not None
+                    )
+                    if len(utilization_values) > 1
+                    else None
+                ),
+                "utilization_max_to_min_ratio": (
+                    max(utilization_values) / min(utilization_values)
+                    if utilization_values and min(utilization_values) > 0
+                    else None
+                ),
+                "ipc_median_across_ccds": (
+                    statistics.median(ipc_values) if ipc_values else None
+                ),
+                "ipc_min_across_ccds": min(ipc_values) if ipc_values else None,
+                "ipc_max_across_ccds": max(ipc_values) if ipc_values else None,
                 "counter_scope": "uProf package=0 with -A ccd; summed here",
             }
         )

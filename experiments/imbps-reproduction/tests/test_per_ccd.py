@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import inspect
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from src.per_ccd_mlp_bench import (
     assign_blocks,
+    balanced_ranges,
     chunk_ranges,
     constrain_auxiliary_threads,
     linear_quantile_ranks,
     main,
     per_ccd_working_set,
 )
-from src.summarize_per_ccd import summarize
+from src.summarize_per_ccd import load_results, summarize
 
 
 class PerCCDDesignTests(unittest.TestCase):
@@ -66,6 +70,51 @@ class PerCCDDesignTests(unittest.TestCase):
         self.assertEqual(
             assign_blocks(24, 12),
             [list(range(index * 2, index * 2 + 2)) for index in range(12)],
+        )
+
+    def test_balanced_ranges_return_one_range_per_worker(self) -> None:
+        ranges = balanced_ranges(128, 12)
+        self.assertEqual(len(ranges), 12)
+        self.assertEqual(ranges[0], (0, 11))
+        self.assertEqual(ranges[-1], (118, 128))
+        self.assertEqual(sum(end - start for start, end in ranges), 128)
+        self.assertLessEqual(
+            max(end - start for start, end in ranges)
+            - min(end - start for start, end in ranges),
+            1,
+        )
+
+    def test_shape_isolated_fragments_are_merged(self) -> None:
+        variants = [
+            {
+                "variant_id": "tpp-all96",
+                "mode": "tpp",
+                "ccd_count": 12,
+                "total_splits": 1,
+            }
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for rows in (128, 256):
+                case = root / f"tpp-all96-m{rows}"
+                case.mkdir()
+                (case / "result.json").write_text(
+                    json.dumps(
+                        {
+                            "status": "complete",
+                            "claim": "isolated",
+                            "variant": variants[0],
+                            "expected_variants": variants,
+                            "records": [{"active_rows": rows}],
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+            results = load_results(root)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(
+            [record["active_rows"] for record in results[0]["records"]],
+            [128, 256],
         )
 
     def test_k24_fits_one_ccd_at_512_rows(self) -> None:
@@ -170,6 +219,21 @@ class PerCCDDesignTests(unittest.TestCase):
                             "median_reduction_and_conversion_ms": (
                                 1.0 if variant["mode"] == "per_ccd_threads" else None
                             ),
+                            "median_worker_operator_min_ms": (
+                                4.0 if variant["mode"] == "per_ccd_threads" else None
+                            ),
+                            "median_worker_operator_max_ms": (
+                                5.0 if variant["mode"] == "per_ccd_threads" else None
+                            ),
+                            "median_worker_operator_imbalance": (
+                                1.25 if variant["mode"] == "per_ccd_threads" else None
+                            ),
+                            "median_worker_publication_max_ms": (
+                                0.2 if variant["mode"] == "per_ccd_threads" else None
+                            ),
+                            "median_worker_reduction_max_ms": (
+                                0.0 if variant["mode"] == "per_ccd_threads" else None
+                            ),
                         }
                     ],
                 }
@@ -181,6 +245,8 @@ class PerCCDDesignTests(unittest.TestCase):
         self.assertAlmostEqual(threaded["speedup_vs_global_imbps_same_k"], 8 / 6)
         self.assertAlmostEqual(threaded["parallel_speedup_vs_one_ccd"], 10.0)
         self.assertEqual(threaded["median_reduction_and_conversion_ms"], 1.0)
+        self.assertEqual(threaded["median_worker_operator_imbalance"], 1.25)
+        self.assertAlmostEqual(threaded["reduction_fraction_of_latency"], 1 / 6)
 
 
 if __name__ == "__main__":
