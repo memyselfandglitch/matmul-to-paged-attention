@@ -1,0 +1,2 @@
+variant=global-k6-all96 mode=global_imbps rows=4096 P=12 K=6 median_ms=223.126
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-inner-threads-11241/global-k6-all96-m4096/benchmark.json
