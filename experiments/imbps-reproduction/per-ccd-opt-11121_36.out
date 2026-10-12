@@ -1,0 +1,4 @@
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/tpp-all96-m768/runtime-validation.json
+variant=tpp-all96 mode=tpp rows=768 P=12 K=1 median_ms=43.419
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/tpp-all96-m768/result.json
+Optimized per-CCD result: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/tpp-all96-m768/result.json

@@ -1,0 +1,4 @@
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p12-k12-sharded-m1024/runtime-validation.json
+variant=thread-p12-k12-sharded mode=per_ccd_threads rows=1024 P=12 K=12 median_ms=108.239
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p12-k12-sharded-m1024/result.json
+Optimized per-CCD result: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p12-k12-sharded-m1024/result.json

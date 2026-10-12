@@ -1,0 +1,4 @@
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p12-k12-zero-copy-m4096/runtime-validation.json
+variant=thread-p12-k12-zero-copy mode=per_ccd_threads rows=4096 P=12 K=12 median_ms=371.486
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p12-k12-zero-copy-m4096/result.json
+Optimized per-CCD result: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p12-k12-zero-copy-m4096/result.json

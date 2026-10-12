@@ -1,0 +1,2 @@
+variant=tpp-all96 mode=tpp rows=4096 P=12 K=1 median_ms=273.839
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/uprof-per-ccd-optimized-11204/tpp-all96-m4096/benchmark.json

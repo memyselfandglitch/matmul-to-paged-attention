@@ -1,0 +1,4 @@
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p6-k6-copy-m256/runtime-validation.json
+variant=thread-p6-k6-copy mode=per_ccd_threads rows=256 P=6 K=6 median_ms=57.293
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p6-k6-copy-m256/result.json
+Optimized per-CCD result: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/thread-p6-k6-copy-m256/result.json

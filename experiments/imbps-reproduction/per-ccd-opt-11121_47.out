@@ -1,0 +1,4 @@
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/global-k12-all96-m1024/runtime-validation.json
+variant=global-k12-all96 mode=global_imbps rows=1024 P=12 K=12 median_ms=78.319
+/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/global-k12-all96-m1024/result.json
+Optimized per-CCD result: /data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/results/per-ccd-optimized-11121/global-k12-all96-m1024/result.json
