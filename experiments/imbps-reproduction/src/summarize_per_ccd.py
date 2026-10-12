@@ -136,18 +136,19 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     if item["variant"]["mode"] == variant["mode"]
                     and int(item["variant"]["ccd_count"]) == 1
                 ]
-                if len(serial_candidates) != 1:
+                if len(serial_candidates) > 1:
                     raise ValueError(
-                        f"expected one single-CCD baseline for {variant['mode']}"
+                        f"expected at most one single-CCD baseline for {variant['mode']}"
                     )
-                serial_record = record_for(serial_candidates[0], active_rows)
-                serial_times = [
-                    float(value) for value in serial_record["durations_ms"]
-                ]
-                scaling_speedup = statistics.median(serial_times) / statistics.median(
-                    times
-                )
-                scaling_efficiency = scaling_speedup / int(variant["ccd_count"])
+                if serial_candidates:
+                    serial_record = record_for(serial_candidates[0], active_rows)
+                    serial_times = [
+                        float(value) for value in serial_record["durations_ms"]
+                    ]
+                    scaling_speedup = statistics.median(
+                        serial_times
+                    ) / statistics.median(times)
+                    scaling_efficiency = scaling_speedup / int(variant["ccd_count"])
             numerics = record["numerics_vs_global_same_k"] or {}
             cache_model = record["cache_model_per_ccd"]
             rows.append(
@@ -162,6 +163,7 @@ def summarize(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
                         * int(result["topology"]["cores_per_ccd"])
                     ),
                     "total_splits": variant["total_splits"],
+                    "inner_threads": variant.get("inner_threads"),
                     "reduction_strategy": variant.get("reduction_strategy"),
                     "splits_per_ccd": (
                         int(variant["total_splits"]) / int(variant["ccd_count"])

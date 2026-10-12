@@ -429,6 +429,26 @@
         {"variant_id": "thread-p12-k24-sharded", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 24, "reduction_strategy": "parallel_row_sharded"}
       ],
       "design_note": "Shape-isolated diagnosis of the pthread per-CCD prototype. It separates publication copies, coordinator reduction, row-sharded parallel reduction, worker operator imbalance, CCD count, and split count. Every Slurm task measures one active-row shape so primitive/thread-pool state cannot leak between shapes."
+    },
+    "opt30b_per_ccd_inner_threads": {
+      "model": "opt30b",
+      "dtype": "bf16",
+      "activation": "relu",
+      "bias": false,
+      "rows": [2048, 4096],
+      "ccd_cache_mib": 32,
+      "cores_per_ccd": 8,
+      "expected_ccds": 12,
+      "variants": [
+        {"variant_id": "tpp-all96", "mode": "tpp", "ccd_count": 12, "total_splits": 1, "inner_threads": 96},
+        {"variant_id": "global-k6-all96", "mode": "global_imbps", "ccd_count": 12, "total_splits": 6, "inner_threads": 96},
+        {"variant_id": "thread-p12-k12-sharded-t1", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "inner_threads": 1, "reduction_strategy": "parallel_row_sharded"},
+        {"variant_id": "thread-p12-k12-sharded-t2", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "inner_threads": 2, "reduction_strategy": "parallel_row_sharded"},
+        {"variant_id": "thread-p12-k12-sharded-t4", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "inner_threads": 4, "reduction_strategy": "parallel_row_sharded"},
+        {"variant_id": "thread-p12-k12-sharded-t6", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "inner_threads": 6, "reduction_strategy": "parallel_row_sharded"},
+        {"variant_id": "thread-p12-k12-sharded-t8", "mode": "per_ccd_threads", "ccd_count": 12, "total_splits": 12, "inner_threads": 8, "reduction_strategy": "parallel_row_sharded"}
+      ],
+      "design_note": "Shape-isolated clean-timing sweep of concurrent inner-GEMM team size after row-sharded reduction removed the original coordinator hotspot. It holds P=12, K=12, placement, reduction, allocator, THP, NUMA binding, and workload fixed while varying oneDNN/OpenMP inner threads from 1 to 8. Fresh TPP and fastest prior global-IMBPS K=6 controls are included."
     }
   },
   "e2e": {

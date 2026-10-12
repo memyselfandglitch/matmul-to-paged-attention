@@ -248,6 +248,57 @@ class PerCCDDesignTests(unittest.TestCase):
         self.assertEqual(threaded["median_worker_operator_imbalance"], 1.25)
         self.assertAlmostEqual(threaded["reduction_fraction_of_latency"], 1 / 6)
 
+    def test_summary_supports_inner_thread_sweep_without_one_ccd_baseline(self) -> None:
+        variants = [
+            {
+                "variant_id": "tpp-all96",
+                "mode": "tpp",
+                "ccd_count": 12,
+                "total_splits": 1,
+                "inner_threads": 96,
+            },
+            {
+                "variant_id": "thread-p12-k12-sharded-t4",
+                "mode": "per_ccd_threads",
+                "ccd_count": 12,
+                "total_splits": 12,
+                "inner_threads": 4,
+                "reduction_strategy": "parallel_row_sharded",
+            },
+        ]
+        results = []
+        for variant, duration in zip(variants, (10.0, 8.0)):
+            results.append(
+                {
+                    "claim": "inner-thread-sweep",
+                    "variant": variant,
+                    "topology": {"cores_per_ccd": 8},
+                    "records": [
+                        {
+                            "active_rows": 2048,
+                            "durations_ms": [duration],
+                            "q1_ms": duration,
+                            "q3_ms": duration,
+                            "cache_model_per_ccd": {
+                                "modeled_working_set_mib": 20.0,
+                                "fits_one_ccd_strict": True,
+                            },
+                            "numerics_vs_global_same_k": None,
+                        }
+                    ],
+                }
+            )
+
+        rows = summarize(results)
+        threaded = next(
+            row
+            for row in rows
+            if row["variant_id"] == "thread-p12-k12-sharded-t4"
+        )
+        self.assertEqual(threaded["inner_threads"], 4)
+        self.assertIsNone(threaded["parallel_speedup_vs_one_ccd"])
+        self.assertAlmostEqual(threaded["speedup_vs_tpp_all96"], 1.25)
+
 
 if __name__ == "__main__":
     unittest.main()
