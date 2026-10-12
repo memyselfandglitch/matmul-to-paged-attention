@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import unittest
 
-from src.full_decode_bench import expected_variants, summarize_emissions
+from src.full_decode_bench import (
+    equation_13_l2_proxy,
+    expected_variants,
+    nominal_kv_cache_bytes,
+    summarize_emissions,
+)
 from src.summarize_full_decode import summarize
 
 
@@ -97,6 +102,28 @@ class FullDecodeDesignTests(unittest.TestCase):
         self.assertEqual(pard_tpp["pard_speedup_vs_normal_same_backend"], 1.25)
         self.assertEqual(pard_tpp["median_generated_tokens_per_target_forward"], 2.0)
         self.assertEqual(pard_tpp["median_accepted_draft_fraction"], 0.5)
+
+    def test_normal_only_claim_has_no_pard_variants(self) -> None:
+        claim = {"splits": [2, 4, 8], "draft_tokens": []}
+        variants = expected_variants(claim)
+        self.assertEqual(len(variants), 4)
+        self.assertTrue(all(variant["mode"] == "normal" for variant in variants))
+
+    def test_equation_13_qwen_batch_range_selects_k2(self) -> None:
+        for batch in (1, 2, 4, 8, 16):
+            model = equation_13_l2_proxy(batch, 3584, 18944, 96)
+            self.assertEqual(model["next_power_of_two_candidate"], 2)
+            self.assertLess(model["working_set_mib_at_candidate"], 96)
+
+    def test_nominal_kv_bytes_accounts_for_gqa(self) -> None:
+        class Config:
+            num_attention_heads = 28
+            num_key_value_heads = 4
+            hidden_size = 3584
+            num_hidden_layers = 28
+
+        expected = 2 * 2 * 128 * 28 * 4 * 128 * 2
+        self.assertEqual(nominal_kv_cache_bytes(Config(), 2, 128), expected)
 
 
 if __name__ == "__main__":

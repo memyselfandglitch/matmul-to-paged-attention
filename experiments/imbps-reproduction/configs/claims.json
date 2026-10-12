@@ -345,6 +345,18 @@
       "splits": [2, 4, 8],
       "draft_tokens": [4, 8, 12],
       "design_note": "End-to-end greedy generation through PACE v1.0. Normal decode and PARD include prompt prefill, attention, populated target and draft KV caches, MLPs, LM head, sampling, PARD draft generation, target verification, acceptance, and rollback. PACE v1.0 restricts PARD to batch one and applies one OperatorConfig to both target and draft models."
+    },
+    "qwen25_7b_batched_normal_l2": {
+      "target_model": "Qwen/Qwen2.5-7B-Instruct",
+      "dtype": "bf16",
+      "kv_cache_type": "BMC",
+      "batches": [1, 2, 4, 8, 16],
+      "context_tokens": [128, 512, 2048],
+      "output_tokens": 32,
+      "splits": [2, 4, 8],
+      "draft_tokens": [],
+      "aggregate_l2_mib": 96,
+      "design_note": "Normal end-to-end greedy generation only. The full factorial varies live batch size, prompt KV-cache length, and MLP backend. Equation 13 is applied as an aggregate-private-L2, paper-style two-GEMM proxy; Qwen2.5's gated MLP means the derived K is a starting hypothesis rather than an exact footprint. Equal-length synthetic prompts deliberately avoid padding so batch and KV size are isolated."
     }
   },
   "per_ccd": {

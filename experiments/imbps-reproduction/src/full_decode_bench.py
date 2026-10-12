@@ -62,6 +62,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--backend", choices=("tpp", "imbps"), required=True)
     parser.add_argument("--splits", type=int, required=True)
     parser.add_argument("--draft-tokens", type=int, default=0)
+    parser.add_argument("--batch", type=int, default=None)
     parser.add_argument("--contexts", type=comma_ints, default=None)
     parser.add_argument("--output-tokens", type=int, default=None)
     parser.add_argument("--rounds", type=int, default=3)
@@ -74,6 +75,8 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if min(args.splits, args.rounds) <= 0 or args.warmups < 0:
         parser.error("splits/rounds must be positive and warmups nonnegative")
+    if args.batch is not None and args.batch <= 0:
+        parser.error("batch must be positive")
     if args.output_tokens is not None and args.output_tokens <= 0:
         parser.error("output-tokens must be positive")
     if args.backend == "tpp" and args.splits != 1:
@@ -108,7 +111,7 @@ def expected_variants(claim: dict[str, Any]) -> list[dict[str, Any]]:
                 "split": split,
             }
         )
-        for draft_tokens in claim["draft_tokens"]:
+        for draft_tokens in claim.get("draft_tokens", []):
             variants.append(
                 {
                     "mode": "pard",
@@ -118,6 +121,77 @@ def expected_variants(claim: dict[str, Any]) -> list[dict[str, Any]]:
                 }
             )
     return variants
+
+
+def next_power_of_two_strictly_above(value: float) -> int:
+    candidate = 1
+    while candidate <= value:
+        candidate *= 2
+    return candidate
+
+
+def equation_13_l2_proxy(
+    batch: int,
+    hidden: int,
+    intermediate: int,
+    cache_mib: float,
+    bytes_per_element: int = 2,
+) -> dict[str, Any]:
+    """Apply the paper's two-GEMM placement model to one-token decode rows.
+
+    This remains a proxy for gated MLPs and for aggregate private L2 capacity;
+    callers must preserve those limitations when reporting the result.
+    """
+
+    cache_bytes = cache_mib * 1024**2
+    fixed_input_bytes = bytes_per_element * batch * hidden
+    denominator = cache_bytes - fixed_input_bytes
+    if denominator <= 0:
+        return {
+            "status": "infeasible_fixed_input",
+            "strict_lower_bound": None,
+            "next_power_of_two_candidate": None,
+            "working_set_mib_at_candidate": None,
+        }
+    numerator = bytes_per_element * intermediate * (batch + hidden)
+    lower_bound = numerator / denominator
+    candidate = next_power_of_two_strictly_above(lower_bound)
+    working_set = fixed_input_bytes + numerator / candidate
+    return {
+        "status": "candidate_available",
+        "strict_lower_bound": lower_bound,
+        "next_power_of_two_candidate": candidate,
+        "working_set_mib_at_candidate": working_set / 1024**2,
+        "fixed_input_mib": fixed_input_bytes / 1024**2,
+        "cache_mib": cache_mib,
+        "cache_scope": "aggregate_private_l2_proxy",
+        "active_rows": batch,
+        "bytes_per_element": bytes_per_element,
+    }
+
+
+def nominal_kv_cache_bytes(
+    config: Any,
+    batch: int,
+    tokens_per_sequence: int,
+    bytes_per_element: int = 2,
+) -> int:
+    """Logical K+V bytes, accounting for grouped-query attention heads."""
+
+    attention_heads = int(config.num_attention_heads)
+    kv_heads = int(getattr(config, "num_key_value_heads", attention_heads))
+    head_dim = int(
+        getattr(config, "head_dim", int(config.hidden_size) // attention_heads)
+    )
+    return (
+        2
+        * batch
+        * tokens_per_sequence
+        * int(config.num_hidden_layers)
+        * kv_heads
+        * head_dim
+        * bytes_per_element
+    )
 
 
 class EmissionTimer:
@@ -187,11 +261,20 @@ def summarize_emissions(
 def main() -> None:
     args = parse_args()
     claim = load_claim(args.claim)
-    if claim.get("batch") != 1:
+    allowed_batches = [
+        int(value)
+        for value in claim.get("batches", [int(claim.get("batch", 1))])
+    ]
+    batch = args.batch if args.batch is not None else allowed_batches[0]
+    if batch not in allowed_batches:
+        raise ValueError(
+            f"batch={batch} is not preregistered; choose from {allowed_batches}"
+        )
+    if args.mode == "pard" and batch != 1:
         raise ValueError("PACE v1.0 PARD full-decode runner requires batch=1")
     if args.backend == "imbps" and args.splits not in claim["splits"]:
         raise ValueError(f"K={args.splits} is not preregistered")
-    if args.mode == "pard" and args.draft_tokens not in claim["draft_tokens"]:
+    if args.mode == "pard" and args.draft_tokens not in claim.get("draft_tokens", []):
         raise ValueError(f"draft size {args.draft_tokens} is not preregistered")
 
     contexts = args.contexts or [int(value) for value in claim["context_tokens"]]
@@ -228,7 +311,7 @@ def main() -> None:
         raise RuntimeError("REQUIRE_TCMALLOC=1 but tcmalloc is not mapped")
 
     target_reference = args.target_model or claim["target_model"]
-    draft_reference = args.draft_model or claim["draft_model"]
+    draft_reference = args.draft_model or claim.get("draft_model")
     mlp_backend = (
         LLMBackendType.IMBPS if args.backend == "imbps" else LLMBackendType.TPP
     )
@@ -244,6 +327,8 @@ def main() -> None:
     )
     pard_config = None
     if args.mode == "pard":
+        if not draft_reference:
+            raise ValueError("PARD mode requires a registered or explicit draft model")
         pard_config = PardSpecDecodeConfig(
             model_name_or_path=draft_reference,
             num_speculative_tokens=args.draft_tokens,
@@ -267,6 +352,18 @@ def main() -> None:
     )
     config = llm.get_config()
     vocab_size = int(config.vocab_size)
+    intermediate_size = int(
+        getattr(config, "intermediate_size", getattr(config, "ffn_dim", -1))
+    )
+    if intermediate_size <= 0:
+        raise RuntimeError("could not determine the target MLP intermediate size")
+    l2_cache_mib = float(claim.get("aggregate_l2_mib", 96))
+    l2_proxy = equation_13_l2_proxy(
+        batch,
+        int(config.hidden_size),
+        intermediate_size,
+        l2_cache_mib,
+    )
     sampling = SamplingConfig(
         max_new_tokens=output_tokens,
         min_new_tokens=output_tokens,
@@ -277,11 +374,13 @@ def main() -> None:
     streamer = EmissionTimer()
     prompts: dict[int, Any] = {}
     for context in contexts:
-        generator = torch.Generator(device="cpu").manual_seed(args.seed + context * 97)
+        generator = torch.Generator(device="cpu").manual_seed(
+            args.seed + context * 97 + batch * 1009
+        )
         prompts[context] = torch.randint(
             100,
             max(101, vocab_size - 1000),
-            (1, context),
+            (batch, context),
             generator=generator,
             dtype=torch.long,
         )
@@ -348,6 +447,7 @@ def main() -> None:
                 record = {
                     "round": round_number,
                     "order": order_number,
+                    "batch": batch,
                     "context_tokens": context,
                     "requested_output_tokens": output_tokens,
                     "generated_tokens": generated_tokens,
@@ -379,7 +479,7 @@ def main() -> None:
                 }
                 records_by_context[context].append(record)
                 print(
-                    f"round={round_number} context={context} mode={args.mode} "
+                    f"round={round_number} batch={batch} context={context} mode={args.mode} "
                     f"backend={args.backend} K={args.splits} draft={args.draft_tokens} "
                     f"latency_ms={total_ms:.3f} output_tps={record['output_tokens_per_second']:.3f}",
                     flush=True,
@@ -407,7 +507,21 @@ def main() -> None:
         ]
         records.append(
             {
+                "batch": batch,
                 "context_tokens": context,
+                "nominal_kv_cache": {
+                    "prompt_bytes": nominal_kv_cache_bytes(config, batch, context),
+                    "prompt_mib": nominal_kv_cache_bytes(config, batch, context)
+                    / 1024**2,
+                    "final_bytes": nominal_kv_cache_bytes(
+                        config, batch, context + output_tokens
+                    ),
+                    "final_mib": nominal_kv_cache_bytes(
+                        config, batch, context + output_tokens
+                    )
+                    / 1024**2,
+                    "scope": "logical BF16 K+V payload; allocator padding excluded",
+                },
                 "rounds": rounds,
                 "summary": {
                     "median_total_ms": statistics.median(total_times),
@@ -433,7 +547,11 @@ def main() -> None:
         "schema_version": 1,
         "status": "complete",
         "captured_at_utc": datetime.now(timezone.utc).isoformat(),
-        "experiment_kind": "full_autoregressive_and_pard_generation",
+        "experiment_kind": (
+            "full_autoregressive_and_pard_generation"
+            if args.mode == "pard"
+            else "full_autoregressive_generation"
+        ),
         "scope_note": (
             "Public PACE generate path including prefill, attention, populated KV "
             "caches, MLP, LM head, greedy sampling, and iterative generation. PARD "
@@ -442,6 +560,7 @@ def main() -> None:
         ),
         "claim": args.claim,
         "mode": args.mode,
+        "batch": batch,
         "backend": args.backend,
         "split": args.splits,
         "draft_tokens": args.draft_tokens,
@@ -457,10 +576,16 @@ def main() -> None:
             "num_hidden_layers": config.num_hidden_layers,
             "hidden_size": config.hidden_size,
             "intermediate_size": getattr(config, "intermediate_size", None),
+            "resolved_intermediate_size": intermediate_size,
+            "num_attention_heads": int(config.num_attention_heads),
+            "num_key_value_heads": int(
+                getattr(config, "num_key_value_heads", config.num_attention_heads)
+            ),
             "vocab_size": vocab_size,
             "dtype": "bf16",
         },
         "runner": {
+            "batch": batch,
             "contexts": contexts,
             "output_tokens": output_tokens,
             "rounds": args.rounds,
@@ -468,6 +593,13 @@ def main() -> None:
             "seed": args.seed,
             "model_load_seconds": model_load_seconds,
             "timing_boundary": "LLMModel.generate call",
+        },
+        "l2_equation_13_proxy": {
+            **l2_proxy,
+            "model_scope_note": (
+                "The paper's two-GEMM equation is used as a selection proxy. "
+                "Qwen2.5 uses a gated MLP, so this is not an exact footprint model."
+            ),
         },
         "records": records,
         "environment": {

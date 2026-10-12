@@ -693,6 +693,24 @@ timing and counters, and full normal/PARD generation—with smoke-test gates:
 ./scripts/submit_remaining_work.sh
 ```
 
+## Stage 12 - Batched normal decode with populated KV caches
+
+`BATCHED_DECODE_L2_PLAN.md` removes speculative decoding and varies live batch
+size (1/2/4/8/16), prompt context (128/512/2048), and MLP backend (TPP or
+IMBPS K=2/4/8). The primary outcome is post-first-emission decode-tail speedup;
+TTFT and total latency remain secondary because they include prompt prefill.
+
+The launcher first checks batch-two generation under TPP and IMBPS K=2, then
+runs the complete serialized, exclusive matrix only if that smoke test passes:
+
+```bash
+./scripts/submit_batched_decode_l2.sh
+```
+
+Results are written beneath `results/batched-decode-l2-ARRAY_JOB_ID/`; the
+combined table is `analysis/summary.csv`. Equal-length synthetic prompts avoid
+padding in this first matrix so batch size and KV-cache size remain isolated.
+
 ## Decision rules
 
 - Timing: report every round, median, IQR, coefficient of variation, and the
