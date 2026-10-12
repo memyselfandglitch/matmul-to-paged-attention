@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "experiment_kind": "batched_normal_autoregressive_generation",
+  "claim": "qwen25_7b_batched_normal_l2",
+  "target_model": "Qwen/Qwen2.5-7B-Instruct",
+  "primary_metric": "decode_tail_speedup_vs_tpp",
+  "timing_boundary": "LLMModel.generate call",
+  "limitations": [
+    "The Equation-13 K is an aggregate-private-L2 proxy, not a shared-cache guarantee.",
+    "Qwen2.5 has a gated MLP, while Equation 13 is used in its paper-style two-GEMM form.",
+    "Prompts are synthetic and every sequence in a batch has equal length; no padding is used.",
+    "The offline batch is not a continuous-batching serving workload.",
+    "The clean timing run does not collect hardware counters."
+  ]
+}
