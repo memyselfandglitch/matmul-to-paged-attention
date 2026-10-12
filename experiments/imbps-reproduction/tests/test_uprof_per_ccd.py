@@ -26,6 +26,7 @@ class UprofPerCCDSummaryTests(unittest.TestCase):
                             "mode": "per_ccd_threads",
                             "ccd_count": 2,
                             "total_splits": 2,
+                            "inner_threads": 4,
                         },
                         "records": [
                             {
@@ -61,6 +62,8 @@ class UprofPerCCDSummaryTests(unittest.TestCase):
         self.assertEqual(aggregate[0]["ccd0_utilization_percent"], 90)
         self.assertEqual(aggregate[0]["other_ccd_median_utilization_percent"], 50)
         self.assertEqual(aggregate[0]["ipc_median_across_ccds"], 1.5)
+        self.assertEqual(aggregate[0]["inner_threads"], 4)
+        self.assertEqual(long_rows[0]["inner_threads"], 4)
 
 
 if __name__ == "__main__":

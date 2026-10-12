@@ -39,3 +39,15 @@ row counts without changing the existing numerical agreement checks. If the
 winner differs by row count, retain a shape-dependent policy. Run uProf only
 after this sweep, and profile the current t8 case, the clean-timing winner, and
 global K=6 at M=4096.
+
+## Clean-timing outcome and mechanism follow-up
+
+The clean sweep selected eight inner threads at both row counts. Smaller teams
+were monotonically slower, worker imbalance stayed near one, and row-sharded
+reduction accounted for only about five percent of latency. Global K=6 was
+still faster than per-CCD K=12/t8, especially at `M=4096`.
+
+The follow-up therefore profiles only three `M=4096` cases: socket-wide TPP,
+global IMBPS K=6, and per-CCD P=12/K=12/t8. uProf records IPC, utilization,
+L2 metrics, and CCD-granular L3 accesses/misses. Profiled timing is mechanism
+evidence only; the clean sweep remains authoritative for latency.
