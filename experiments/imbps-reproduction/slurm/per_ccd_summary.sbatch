@@ -19,5 +19,11 @@ readonly RESULT_ROOT="${PROJECT_ROOT}/results/${RESULT_LABEL}-${PER_CCD_ARRAY_JO
 
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
+if [[ "${RESULT_LABEL}" == per-ccd-batch-layout ]]; then
+  python3 src/summarize_ccd_batch_layout.py \
+    --result-root "${RESULT_ROOT}" --pairs "${PER_CCD_LAYOUT_PAIRS:-3}" \
+    --shapes "${PER_CCD_LAYOUT_SHAPES:-}"
+  exit
+fi
 python3 src/summarize_per_ccd.py "${RESULT_ROOT}"
 echo "Per-CCD summary: ${RESULT_ROOT}/analysis"

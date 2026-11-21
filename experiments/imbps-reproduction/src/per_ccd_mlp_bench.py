@@ -91,6 +91,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--claim", default="opt30b_parallel_imbps")
     parser.add_argument("--variant", required=True)
     parser.add_argument("--rows", type=comma_ints, default=None)
+    parser.add_argument("--batch-items", type=int, default=None)
     parser.add_argument("--rounds", type=int, default=7)
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--threads", type=int, default=None)
@@ -131,6 +132,16 @@ def select_variant(claim: dict[str, Any], identifier: str) -> dict[str, Any]:
     if len(matches) != 1:
         raise ValueError(f"variant {identifier!r} is not uniquely preregistered")
     return dict(matches[0])
+
+
+def validate_batch_shape(claim: dict[str, Any], batch: int, rows: int) -> int:
+    """Return rows per item, allowing a focused retest between grid points."""
+    if not 1 <= batch <= max(claim["batches"]):
+        raise ValueError(f"batch size outside the configured range: {batch}")
+    q, remainder = divmod(rows, batch)
+    if remainder or not 1 <= q <= max(claim["rows_per_item"]):
+        raise ValueError(f"invalid or out-of-range shape: B={batch}, M={rows}")
+    return q
 
 
 def chunk_ranges(total: int, chunks: int) -> list[tuple[int, int]]:
@@ -517,8 +528,9 @@ def run_per_ccd_threads(
     start_measurement: Callable[[], None] | None = None,
     stop_measurement: Callable[[], None] | None = None,
     reduction_strategy: str = "coordinator_copy",
+    rows_per_item: int | None = None,
 ) -> tuple[list[float], Any, list[dict[str, Any]], list[dict[str, float]]]:
-    """Run disjoint IMBPS blocks from persistent CCD-pinned pthreads.
+    """Run channel blocks or whole batch items from persistent CCD-pinned threads.
 
     Each Python thread is an OS pthread.  PACE releases the GIL while executing
     the C++ operator, so workers run concurrently.  The launcher disables
@@ -534,25 +546,43 @@ def run_per_ccd_threads(
 
     worker_count = len(ccd_groups)
     ranges = chunk_ranges(weight1.shape[0], total_splits)
-    assignments = assign_blocks(total_splits, worker_count)
+    item_ranges = None
+    if rows_per_item is not None:
+        if total_splits != 1 or rows_per_item < 1:
+            raise ValueError("batch-item layout requires positive item lengths and K=1")
+        batch, remaining = divmod(source.shape[0], rows_per_item)
+        if remaining or batch < worker_count:
+            raise ValueError("batch-item layout requires whole items for all workers")
+        item_ranges = [
+            [(item * rows_per_item, (item + 1) * rows_per_item)
+             for item in range(index, batch, worker_count)]
+            for index in range(worker_count)
+        ]
+    assignments = (
+        [[0] for _ in ccd_groups]
+        if item_ranges is not None
+        else assign_blocks(total_splits, worker_count)
+    )
     if len(ranges) != total_splits:
         raise ValueError("intermediate dimension produced fewer chunks than requested")
 
     partials = None
-    if reduction_strategy == "coordinator_copy":
+    if item_ranges is None and reduction_strategy == "coordinator_copy":
         partials = torch.empty(
             (worker_count, source.shape[0], source.shape[1]), dtype=source.dtype
         )
     worker_outputs: list[Any | None] = [None] * worker_count
     worker_phase_state: list[dict[str, float] | None] = [None] * worker_count
     output_row_ranges = balanced_ranges(source.shape[0], worker_count)
-    reduction = torch.empty_like(source, dtype=torch.float32)
+    reduction = (
+        torch.empty_like(source, dtype=torch.float32) if item_ranges is None else None
+    )
     final_output = torch.empty_like(source)
     start_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
     compute_barrier = threading.Barrier(worker_count + 1, timeout=timeout)
     reduction_barrier = (
         threading.Barrier(worker_count + 1, timeout=timeout)
-        if reduction_strategy == "parallel_row_sharded"
+        if item_ranges is None and reduction_strategy == "parallel_row_sharded"
         else None
     )
     stop_event = threading.Event()
@@ -564,6 +594,12 @@ def run_per_ccd_threads(
         try:
             native_tid = threading.get_native_id()
             os.sched_setaffinity(native_tid, set(cpus))
+            work = [(source, None)]
+            if item_ranges is not None:
+                work = [
+                    (source[start:end], final_output[start:end])
+                    for start, end in item_ranges[worker_index]
+                ]
             local_weight1 = [
                 weight1[ranges[index][0] : ranges[index][1]].contiguous()
                 for index in assignments[worker_index]
@@ -572,21 +608,27 @@ def run_per_ccd_threads(
                 weight2[:, ranges[index][0] : ranges[index][1]].contiguous()
                 for index in assignments[worker_index]
             ]
-            with torch.inference_mode():
-                output = torch.ops.pace.mlp_mlp_fusion(
-                    source,
-                    local_weight1,
-                    None,
-                    local_weight2,
-                    None,
-                    "relu",
-                    None,
-                    None,
-                )
-                if partials is not None:
-                    partials[worker_index].copy_(output)
-                else:
-                    worker_outputs[worker_index] = output
+            def run_items() -> tuple[float, float]:
+                operator_ns = publication_ns = 0
+                for worker_input, destination in work:
+                    operator_started = time.perf_counter_ns()
+                    with torch.inference_mode():
+                        output = torch.ops.pace.mlp_mlp_fusion(
+                            worker_input, local_weight1, None, local_weight2,
+                            None, "relu", None, None,
+                        )
+                    operator_finished = time.perf_counter_ns()
+                    if destination is not None:
+                        destination.copy_(output)
+                    elif partials is not None:
+                        partials[worker_index].copy_(output)
+                    else:
+                        worker_outputs[worker_index] = output
+                    operator_ns += operator_finished - operator_started
+                    publication_ns += time.perf_counter_ns() - operator_finished
+                return operator_ns / 1_000_000, publication_ns / 1_000_000
+
+            run_items()
             reports[worker_index] = {
                 "worker": worker_index,
                 "native_tid": native_tid,
@@ -596,41 +638,21 @@ def run_per_ccd_threads(
                 "block_ids": assignments[worker_index],
                 "requested_inner_threads": torch.get_num_threads(),
             }
+            if item_ranges is not None:
+                reports[worker_index]["input_row_ranges"] = item_ranges[worker_index]
             while True:
                 start_barrier.wait()
                 if stop_event.is_set():
                     return
-                operator_started = time.perf_counter_ns()
-                with torch.inference_mode():
-                    output = torch.ops.pace.mlp_mlp_fusion(
-                        source,
-                        local_weight1,
-                        None,
-                        local_weight2,
-                        None,
-                        "relu",
-                        None,
-                        None,
-                    )
-                operator_finished = time.perf_counter_ns()
-                if partials is not None:
-                    partials[worker_index].copy_(output)
-                else:
-                    worker_outputs[worker_index] = output
-                publication_finished = time.perf_counter_ns()
+                operator_ms, publication_ms = run_items()
                 worker_phase_state[worker_index] = {
-                    "operator_ms": (
-                        operator_finished - operator_started
-                    )
-                    / 1_000_000,
-                    "publication_ms": (
-                        publication_finished - operator_finished
-                    )
-                    / 1_000_000,
+                    "operator_ms": operator_ms,
+                    "publication_ms": publication_ms,
                     "reduction_ms": 0.0,
                 }
                 compute_barrier.wait()
                 if reduction_barrier is not None:
+                    assert reduction is not None
                     row_start, row_end = output_row_ranges[worker_index]
                     reduction_started = time.perf_counter_ns()
                     if row_start < row_end:
@@ -700,7 +722,8 @@ def run_per_ccd_threads(
             compute_done = time.perf_counter_ns()
             if reduction_barrier is not None:
                 reduction_barrier.wait()
-            else:
+            elif item_ranges is None:
+                assert reduction is not None
                 reduction.zero_()
                 reduction_inputs = (
                     list(partials)
@@ -811,13 +834,25 @@ def main() -> None:
     registry, claim = load_claim(args.claim)
     variant = select_variant(claim, args.variant)
     model_record = registry["models"][claim["model"]]
-    rows = args.rows or [int(value) for value in claim["rows"]]
+    rows = args.rows or [int(value) for value in claim.get("rows", [])]
+    batch_items = args.batch_items
+    batch_layout = "batches" in claim
+    if batch_layout:
+        if batch_items is None or len(rows) != 1:
+            raise ValueError("batch layout requires --batch-items and a single --rows value")
+        validate_batch_shape(claim, batch_items, rows[0])
+    elif batch_items is not None:
+        raise ValueError("--batch-items requires the batch-layout claim")
+    by_item = variant.get("partition") == "batch_items"
     if args.ready_file is not None and len(rows) != 1:
         raise ValueError("profiler-gated per-CCD runs require exactly one row count")
     hidden = int(model_record["hidden"])
     intermediate = int(model_record["intermediate"])
     total_splits = int(variant["total_splits"])
     ccd_count = int(variant["ccd_count"])
+    if by_item:
+        assert batch_items is not None
+        ccd_count = min(batch_items, ccd_count)
     reduction_strategy = str(
         variant.get("reduction_strategy", "coordinator_copy")
     )
@@ -922,6 +957,8 @@ def main() -> None:
             runner_kwargs = {}
             if variant["mode"] == "per_ccd_threads":
                 runner_kwargs["reduction_strategy"] = reduction_strategy
+                if by_item:
+                    runner_kwargs["rows_per_item"] = active_rows // batch_items
             durations, output, worker_reports, phase_timings = runner(
                 torch,
                 source,
@@ -940,9 +977,19 @@ def main() -> None:
             if reference is None:
                 with torch.inference_mode():
                     reference = direct_imbps(
-                        torch, source, weight1, weight2, total_splits
+                        torch, source, weight1, weight2, 1 if batch_layout else total_splits
                     )
+            if batch_layout:
+                if not all(
+                    bool(torch.isfinite(value).all().item())
+                    for value in (reference, output)
+                ):
+                    raise RuntimeError("nonfinite MLP output in batch layout benchmark")
             numerics = numeric_comparison(reference, output)
+            if batch_layout:
+                numerics["bitwise_equal"] = bool(
+                    torch.equal(reference.view(torch.int16), output.view(torch.int16))
+                )
         else:
             assert model is not None
             with torch.inference_mode():
@@ -964,7 +1011,10 @@ def main() -> None:
                     stop_measurement()
 
         cache_model = per_ccd_working_set(
-            active_rows, hidden, intermediate, total_splits
+            active_rows // batch_items if by_item else active_rows,
+            hidden,
+            intermediate,
+            total_splits,
         )
         cache_model["ccd_cache_mib"] = float(claim["ccd_cache_mib"])
         cache_model["fits_one_ccd_strict"] = (
@@ -984,7 +1034,7 @@ def main() -> None:
                     "sum_fp32": float(output.float().sum().item()),
                     "max_abs_fp32": float(output.float().abs().max().item()),
                 },
-                "numerics_vs_global_same_k": numerics,
+                "numerics_vs_global_same_k": numerics if not batch_layout else None,
                 "cache_model_per_ccd": cache_model,
                 "workers": worker_reports,
                 "phase_timings": phase_timings,
@@ -1051,6 +1101,12 @@ def main() -> None:
                 ),
             }
         )
+        if batch_layout:
+            records[-1].update(
+                batch_items=batch_items,
+                rows_per_item=active_rows // batch_items,
+                numerics_vs_unsplit=numerics,
+            )
         print(
             f"variant={args.variant} mode={variant['mode']} rows={active_rows} "
             f"P={ccd_count} K={total_splits} median_ms={statistics.median(durations):.3f}",
@@ -1068,7 +1124,8 @@ def main() -> None:
             "synchronization, PACE fused block computation, publication of partial "
             "outputs, and cross-CCD reduction; process/thread and model setup is "
             "excluded. Thread variants record their reduction strategy and "
-            "per-worker operator imbalance."
+            "per-worker operator imbalance. Whole-item workers publish distinct "
+            "output rows and skip arithmetic reduction."
         ),
         "claim": args.claim,
         "variant": variant,

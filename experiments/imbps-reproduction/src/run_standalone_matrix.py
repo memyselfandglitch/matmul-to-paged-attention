@@ -55,6 +55,7 @@ def parse_args() -> argparse.Namespace:
             "decode_l2_opt30b",
             "decode_l2_pilot_opt30b",
             "decode_l2_crossover_opt30b",
+            "decode_l2_split_transition_opt30b",
             "decode_l3_sweep_opt30b",
             "cache_fit_opt30b",
             "cache_resident_control",
@@ -276,7 +277,7 @@ def summarize(
         case_median = statistics.median(values)
         paired_speedups = []
         paired_relative_times = []
-        for round_index in sorted(
+        round_indices = sorted(
             record["matrix"]["round"]
             for record in records
             if record["case"]["model"] == model
@@ -285,7 +286,8 @@ def summarize(
             and record["case"]["activation"] == activation
             and record["case"]["backend"] == backend
             and record["case"]["split"] == split
-        ):
+        )
+        for round_index in round_indices:
             baseline_round = per_round[
                 (model, batch, sequence, activation, "tpp", 1, round_index)
             ]
@@ -359,6 +361,23 @@ def summarize(
                 ).get("equation13_author_power_of_two_candidate"),
             }
         )
+        reference_split = claim.get("timing_reference_split")
+        if reference_split is not None:
+            reference_key = (model, batch, sequence, activation, "imbps", reference_split)
+            reference_ratios = [
+                per_round[(*reference_key, index)] / per_round[(*key, index)]
+                for index in round_indices
+            ]
+            reference_low, reference_high = bootstrap_median_ci(reference_ratios)
+            summaries[-1].update(
+                timing_reference_split=reference_split,
+                paired_speedup_vs_reference_median=statistics.median(reference_ratios),
+                paired_speedup_vs_reference_ci95_low=reference_low,
+                paired_speedup_vs_reference_ci95_high=reference_high,
+                larger_k_beats_tpp_and_reference=(
+                    split > reference_split and min(reference_low, speedup_ci_low) > 1
+                ),
+            )
     draft_token_counts = claim.get("semantic_mappings", {}).get(
         "draft_token_counts", []
     )
