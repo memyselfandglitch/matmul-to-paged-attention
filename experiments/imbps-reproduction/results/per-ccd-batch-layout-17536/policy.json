@@ -1,0 +1,19 @@
+{
+  "status": "exploratory",
+  "decision_speedup_ratio": 1.02,
+  "metric": "paired median batch-latency speedup with 95% bootstrap interval",
+  "layout_switch_brackets": [
+    {
+      "rows_per_item": 256,
+      "sweep": "batch_items",
+      "lower": 12,
+      "upper": 13,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 1
+    }
+  ],
+  "equal_row_reversals": [],
+  "holdout_required": "Retest with new paired rounds and intermediate shapes before adopting a crossover.",
+  "numerics": "Check BF16 reference errors before selecting a policy. If bitwise identity is required, exclude layouts that fail the bitwise check."
+}
