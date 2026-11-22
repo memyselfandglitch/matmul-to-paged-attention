@@ -1,0 +1,1798 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "captured_at_utc": "2026-11-22T06:04:45.036574+00:00",
+  "experiment_kind": "parallel_per_ccd_imbps",
+  "scope_note": "Standalone OPT-30B MLP. Per-CCD latency includes persistent-worker synchronization, PACE fused block computation, publication of partial outputs, and cross-CCD reduction; process/thread and model setup is excluded. Thread variants record their reduction strategy and per-worker operator imbalance. Whole-item workers publish distinct output rows and skip arithmetic reduction.",
+  "claim": "opt30b_per_ccd_batch_layout",
+  "variant": {
+    "variant_id": "batch-items-t8",
+    "mode": "per_ccd_threads",
+    "partition": "batch_items",
+    "ccd_count": 12,
+    "total_splits": 1,
+    "inner_threads": 8
+  },
+  "expected_variants": [
+    {
+      "variant_id": "tpp-all96",
+      "mode": "tpp",
+      "ccd_count": 12,
+      "total_splits": 1,
+      "inner_threads": 96
+    },
+    {
+      "variant_id": "global-k6-all96",
+      "mode": "global_imbps",
+      "ccd_count": 12,
+      "total_splits": 6,
+      "inner_threads": 96
+    },
+    {
+      "variant_id": "batch-items-t8",
+      "mode": "per_ccd_threads",
+      "partition": "batch_items",
+      "ccd_count": 12,
+      "total_splits": 1,
+      "inner_threads": 8
+    },
+    {
+      "variant_id": "thread-p12-k12-sharded-t8",
+      "mode": "per_ccd_threads",
+      "ccd_count": 12,
+      "total_splits": 12,
+      "inner_threads": 8,
+      "reduction_strategy": "parallel_row_sharded"
+    }
+  ],
+  "model": {
+    "name": "opt30b",
+    "hidden": 7168,
+    "intermediate": 28672,
+    "dtype": "bf16",
+    "activation": "relu",
+    "bias": false
+  },
+  "runner": {
+    "rows": [
+      4608
+    ],
+    "rounds": 10,
+    "warmups": 3,
+    "seed": 20251009,
+    "barrier_timeout": 900.0,
+    "min_measurement_seconds": 1.0,
+    "profiler_gated": false
+  },
+  "topology": {
+    "launch_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ],
+    "selected_topology_source": "l3_cache_id",
+    "topology_candidates": {
+      "l3_shared_cpu_list": {
+        "group_count": 12,
+        "group_sizes": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          [
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          [
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63
+          ],
+          [
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79
+          ],
+          [
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87
+          ],
+          [
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      },
+      "l3_cache_id": {
+        "group_count": 12,
+        "group_sizes": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          [
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          [
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63
+          ],
+          [
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79
+          ],
+          [
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87
+          ],
+          [
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      },
+      "die_id": {
+        "group_count": 1,
+        "group_sizes": [
+          96
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      },
+      "cluster_id": {
+        "group_count": 1,
+        "group_sizes": [
+          96
+        ],
+        "groups": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ]
+        ]
+      }
+    },
+    "discovered_ccd_groups": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      [
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      [
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79
+      ],
+      [
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87
+      ],
+      [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    ],
+    "selected_ccd_groups": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      [
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      [
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      [
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      [
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79
+      ],
+      [
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87
+      ],
+      [
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ]
+    ],
+    "ccd_count": 12,
+    "cores_per_ccd": 8,
+    "ccd_cache_mib": 32
+  },
+  "records": [
+    {
+      "active_rows": 4608,
+      "row_execution_order": 1,
+      "durations_ms": [
+        242.283903,
+        243.106981,
+        269.668264,
+        259.100252,
+        243.560839,
+        242.769208,
+        242.206275,
+        243.432764,
+        243.446194,
+        244.405587
+      ],
+      "median_ms": 243.439479,
+      "q1_ms": 242.85365125,
+      "q3_ms": 244.1944,
+      "output": {
+        "shape": [
+          4608,
+          7168
+        ],
+        "dtype": "torch.bfloat16",
+        "sum_fp32": -332595.5625,
+        "max_abs_fp32": 0.1025390625
+      },
+      "numerics_vs_global_same_k": null,
+      "cache_model_per_ccd": {
+        "widest_intermediate_block": 28672,
+        "input_mib": 5.25,
+        "intermediate_block_mib": 21.0,
+        "one_weight_block_mib": 392.0,
+        "modeled_working_set_mib": 418.25,
+        "ccd_cache_mib": 32.0,
+        "fits_one_ccd_strict": false
+      },
+      "workers": [
+        {
+          "worker": 0,
+          "native_tid": 2661302,
+          "pid": 2661271,
+          "cpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "outer_thread_affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              0,
+              384
+            ]
+          ],
+          "process_affinity_at_ready": {
+            "union": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95
+            ],
+            "masks": [
+              {
+                "cpus": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "thread_count": 39
+              },
+              {
+                "cpus": [
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  16,
+                  17,
+                  18,
+                  19,
+                  20,
+                  21,
+                  22,
+                  23
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  24,
+                  25,
+                  26,
+                  27,
+                  28,
+                  29,
+                  30,
+                  31
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  32,
+                  33,
+                  34,
+                  35,
+                  36,
+                  37,
+                  38,
+                  39
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  40,
+                  41,
+                  42,
+                  43,
+                  44,
+                  45,
+                  46,
+                  47
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  48,
+                  49,
+                  50,
+                  51,
+                  52,
+                  53,
+                  54,
+                  55
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  56,
+                  57,
+                  58,
+                  59,
+                  60,
+                  61,
+                  62,
+                  63
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  64,
+                  65,
+                  66,
+                  67,
+                  68,
+                  69,
+                  70,
+                  71
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  72,
+                  73,
+                  74,
+                  75,
+                  76,
+                  77,
+                  78,
+                  79
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  80,
+                  81,
+                  82,
+                  83,
+                  84,
+                  85,
+                  86,
+                  87
+                ],
+                "thread_count": 8
+              },
+              {
+                "cpus": [
+                  88,
+                  89,
+                  90,
+                  91,
+                  92,
+                  93,
+                  94,
+                  95
+                ],
+                "thread_count": 8
+              }
+            ]
+          }
+        },
+        {
+          "worker": 1,
+          "native_tid": 2661303,
+          "pid": 2661271,
+          "cpus": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "outer_thread_affinity": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              384,
+              768
+            ]
+          ]
+        },
+        {
+          "worker": 2,
+          "native_tid": 2661306,
+          "pid": 2661271,
+          "cpus": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "outer_thread_affinity": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              768,
+              1152
+            ]
+          ]
+        },
+        {
+          "worker": 3,
+          "native_tid": 2661315,
+          "pid": 2661271,
+          "cpus": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "outer_thread_affinity": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              1152,
+              1536
+            ]
+          ]
+        },
+        {
+          "worker": 4,
+          "native_tid": 2661324,
+          "pid": 2661271,
+          "cpus": [
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          "outer_thread_affinity": [
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              1536,
+              1920
+            ]
+          ]
+        },
+        {
+          "worker": 5,
+          "native_tid": 2661333,
+          "pid": 2661271,
+          "cpus": [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "outer_thread_affinity": [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              1920,
+              2304
+            ]
+          ]
+        },
+        {
+          "worker": 6,
+          "native_tid": 2661340,
+          "pid": 2661271,
+          "cpus": [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          "outer_thread_affinity": [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              2304,
+              2688
+            ]
+          ]
+        },
+        {
+          "worker": 7,
+          "native_tid": 2661351,
+          "pid": 2661271,
+          "cpus": [
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63
+          ],
+          "outer_thread_affinity": [
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              2688,
+              3072
+            ]
+          ]
+        },
+        {
+          "worker": 8,
+          "native_tid": 2661354,
+          "pid": 2661271,
+          "cpus": [
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          "outer_thread_affinity": [
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              3072,
+              3456
+            ]
+          ]
+        },
+        {
+          "worker": 9,
+          "native_tid": 2661360,
+          "pid": 2661271,
+          "cpus": [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79
+          ],
+          "outer_thread_affinity": [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              3456,
+              3840
+            ]
+          ]
+        },
+        {
+          "worker": 10,
+          "native_tid": 2661372,
+          "pid": 2661271,
+          "cpus": [
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87
+          ],
+          "outer_thread_affinity": [
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              3840,
+              4224
+            ]
+          ]
+        },
+        {
+          "worker": 11,
+          "native_tid": 2661378,
+          "pid": 2661271,
+          "cpus": [
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ],
+          "outer_thread_affinity": [
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ],
+          "block_ids": [
+            0
+          ],
+          "requested_inner_threads": 8,
+          "input_row_ranges": [
+            [
+              4224,
+              4608
+            ]
+          ]
+        }
+      ],
+      "phase_timings": [
+        {
+          "compute_and_sync_ms": 242.283082,
+          "reduction_and_conversion_ms": 0.000821,
+          "worker_operator_min_ms": 233.832259,
+          "worker_operator_max_ms": 240.984655,
+          "worker_operator_imbalance": 1.0305877214315413,
+          "worker_publication_max_ms": 0.384913,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 243.10616,
+          "reduction_and_conversion_ms": 0.000821,
+          "worker_operator_min_ms": 233.271569,
+          "worker_operator_max_ms": 242.52607,
+          "worker_operator_imbalance": 1.039672648662984,
+          "worker_publication_max_ms": 0.418855,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 269.667062,
+          "reduction_and_conversion_ms": 0.001202,
+          "worker_operator_min_ms": 232.991214,
+          "worker_operator_max_ms": 268.814019,
+          "worker_operator_imbalance": 1.1537517419004477,
+          "worker_publication_max_ms": 0.355799,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 259.09938,
+          "reduction_and_conversion_ms": 0.000872,
+          "worker_operator_min_ms": 231.764365,
+          "worker_operator_max_ms": 257.642092,
+          "worker_operator_imbalance": 1.111655331482905,
+          "worker_publication_max_ms": 0.319123,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 243.559927,
+          "reduction_and_conversion_ms": 0.000912,
+          "worker_operator_min_ms": 232.465858,
+          "worker_operator_max_ms": 242.554954,
+          "worker_operator_imbalance": 1.0434003345127782,
+          "worker_publication_max_ms": 0.270961,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 242.768197,
+          "reduction_and_conversion_ms": 0.001011,
+          "worker_operator_min_ms": 234.449654,
+          "worker_operator_max_ms": 241.584053,
+          "worker_operator_imbalance": 1.0304304095923298,
+          "worker_publication_max_ms": 0.325434,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 242.205494,
+          "reduction_and_conversion_ms": 0.000781,
+          "worker_operator_min_ms": 231.111616,
+          "worker_operator_max_ms": 240.948841,
+          "worker_operator_imbalance": 1.0425648228776176,
+          "worker_publication_max_ms": 0.35624,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 243.432223,
+          "reduction_and_conversion_ms": 0.000541,
+          "worker_operator_min_ms": 233.208022,
+          "worker_operator_max_ms": 242.175128,
+          "worker_operator_imbalance": 1.0384511043964002,
+          "worker_publication_max_ms": 0.31062,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 243.444892,
+          "reduction_and_conversion_ms": 0.001302,
+          "worker_operator_min_ms": 235.406093,
+          "worker_operator_max_ms": 242.879295,
+          "worker_operator_imbalance": 1.0317460007290467,
+          "worker_publication_max_ms": 0.292974,
+          "worker_reduction_max_ms": 0.0
+        },
+        {
+          "compute_and_sync_ms": 244.405026,
+          "reduction_and_conversion_ms": 0.000561,
+          "worker_operator_min_ms": 235.309727,
+          "worker_operator_max_ms": 243.235875,
+          "worker_operator_imbalance": 1.033683894418865,
+          "worker_publication_max_ms": 0.278332,
+          "worker_reduction_max_ms": 0.0
+        }
+      ],
+      "median_compute_and_sync_ms": 243.4385575,
+      "median_reduction_and_conversion_ms": 0.0008465,
+      "median_worker_operator_min_ms": 233.2397955,
+      "median_worker_operator_max_ms": 242.540512,
+      "median_worker_operator_imbalance": 1.0390618765296922,
+      "median_worker_publication_max_ms": 0.3222785,
+      "median_worker_reduction_max_ms": 0.0,
+      "batch_items": 12,
+      "rows_per_item": 384,
+      "numerics_vs_unsplit": {
+        "max_abs": 0.0,
+        "q99_abs": 0.0,
+        "mean_abs": 0.0,
+        "output_coordinate_argmax_agreement": 1.0,
+        "bitwise_equal": true
+      }
+    }
+  ],
+  "environment": {
+    "hostname": "mn01",
+    "pid": 2661271,
+    "python": "3.11.4",
+    "torch_version": "2.7.0+cpu",
+    "pace_version": "1.0.0",
+    "torch_threads": 8,
+    "torch_interop_threads": 1,
+    "torch_parallel_info": "ATen/Parallel:\n\tat::get_num_threads() : 8\n\tat::get_num_interop_threads() : 1\nOpenMP 201511 (a.k.a. OpenMP 4.5)\n\tomp_get_max_threads() : 8\nIntel(R) oneAPI Math Kernel Library Version 2024.2-Product Build 20240605 for Intel(R) 64 architecture applications\n\tmkl_get_max_threads() : 8\nIntel(R) MKL-DNN v3.7.1 (Git Hash 8d263e693366ef8db40acc569cc7d8edf644556d)\nstd::thread::hardware_concurrency() : 192\nEnvironment variables:\n\tOMP_NUM_THREADS : 8\n\tMKL_NUM_THREADS : [not set]\nATen parallel backend: OpenMP\n",
+    "loaded_parallel_libraries": [
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/.venv/lib/python3.11/site-packages/scikit_learn.libs/libgomp-e985bcbb.so.1.0.0",
+      "/data/scratch/deveshisingh/matmul-to-paged-attention/experiments/imbps-reproduction/.venv/lib/python3.11/site-packages/torch/lib/libgomp-25c89faf.so.1"
+    ],
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "main_thread_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "process_thread_count": 38,
+    "thread_affinity_masks": [
+      {
+        "cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "thread_count": 38
+      }
+    ],
+    "omp_num_threads": "8",
+    "omp_proc_bind": "false",
+    "omp_places": null,
+    "omp_wait_policy": "ACTIVE",
+    "libxsmm_block_size": "32",
+    "slurm_job_id": "17544",
+    "slurm_array_job_id": "17540",
+    "slurm_array_task_id": "2",
+    "ld_preload": "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5",
+    "allocator_mappings": [
+      "/data/scratch/deveshisingh/tools/gperftools-2.18.1/lib/libtcmalloc.so.4.6.5"
+    ],
+    "max_rss_kib": 2707948
+  }
+}
