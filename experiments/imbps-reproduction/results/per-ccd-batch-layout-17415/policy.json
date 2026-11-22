@@ -1,0 +1,222 @@
+{
+  "status": "exploratory",
+  "decision_speedup_ratio": 1.02,
+  "metric": "paired median batch-latency speedup with 95% bootstrap interval",
+  "layout_switch_brackets": [
+    {
+      "rows_per_item": 32,
+      "sweep": "batch_items",
+      "lower": 8,
+      "upper": 10,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 2
+    },
+    {
+      "rows_per_item": 32,
+      "sweep": "batch_items",
+      "lower": 12,
+      "upper": 13,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 2
+    },
+    {
+      "rows_per_item": 64,
+      "sweep": "batch_items",
+      "lower": 11,
+      "upper": 13,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 2
+    },
+    {
+      "rows_per_item": 64,
+      "sweep": "batch_items",
+      "lower": 13,
+      "upper": 16,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 2
+    },
+    {
+      "rows_per_item": 256,
+      "sweep": "batch_items",
+      "lower": 8,
+      "upper": 11,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 3
+    },
+    {
+      "rows_per_item": 256,
+      "sweep": "batch_items",
+      "lower": 12,
+      "upper": 13,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 3
+    },
+    {
+      "rows_per_item": 256,
+      "sweep": "batch_items",
+      "lower": 16,
+      "upper": 24,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 3
+    },
+    {
+      "rows_per_item": 512,
+      "sweep": "batch_items",
+      "lower": 8,
+      "upper": 11,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 3
+    },
+    {
+      "rows_per_item": 512,
+      "sweep": "batch_items",
+      "lower": 12,
+      "upper": 13,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 3
+    },
+    {
+      "rows_per_item": 512,
+      "sweep": "batch_items",
+      "lower": 16,
+      "upper": 24,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 3
+    },
+    {
+      "batch_items": 10,
+      "sweep": "rows_per_item",
+      "lower": 16,
+      "upper": 32,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 2
+    },
+    {
+      "batch_items": 10,
+      "sweep": "rows_per_item",
+      "lower": 32,
+      "upper": 64,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 2
+    },
+    {
+      "batch_items": 11,
+      "sweep": "rows_per_item",
+      "lower": 64,
+      "upper": 256,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 1
+    },
+    {
+      "batch_items": 12,
+      "sweep": "rows_per_item",
+      "lower": 16,
+      "upper": 32,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 3
+    },
+    {
+      "batch_items": 12,
+      "sweep": "rows_per_item",
+      "lower": 32,
+      "upper": 128,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 3
+    },
+    {
+      "batch_items": 12,
+      "sweep": "rows_per_item",
+      "lower": 128,
+      "upper": 256,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 3
+    },
+    {
+      "batch_items": 13,
+      "sweep": "rows_per_item",
+      "lower": 32,
+      "upper": 64,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 2
+    },
+    {
+      "batch_items": 13,
+      "sweep": "rows_per_item",
+      "lower": 64,
+      "upper": 128,
+      "lower_winner": "whole_item",
+      "upper_winner": "channels",
+      "switches_in_slice": 2
+    },
+    {
+      "batch_items": 24,
+      "sweep": "rows_per_item",
+      "lower": 16,
+      "upper": 256,
+      "lower_winner": "channels",
+      "upper_winner": "whole_item",
+      "switches_in_slice": 1
+    }
+  ],
+  "equal_row_reversals": [
+    {
+      "active_rows": 384,
+      "shapes": [
+        {
+          "B": 3,
+          "Q": 128,
+          "winner": "channels"
+        },
+        {
+          "B": 6,
+          "Q": 64,
+          "winner": "channels"
+        },
+        {
+          "B": 12,
+          "Q": 32,
+          "winner": "whole_item"
+        },
+        {
+          "B": 24,
+          "Q": 16,
+          "winner": "channels"
+        }
+      ]
+    },
+    {
+      "active_rows": 3072,
+      "shapes": [
+        {
+          "B": 6,
+          "Q": 512,
+          "winner": "channels"
+        },
+        {
+          "B": 12,
+          "Q": 256,
+          "winner": "whole_item"
+        }
+      ]
+    }
+  ],
+  "holdout_required": "Retest with new paired rounds and intermediate shapes before adopting a crossover.",
+  "numerics": "Check BF16 reference errors before selecting a policy. If bitwise identity is required, exclude layouts that fail the bitwise check."
+}
