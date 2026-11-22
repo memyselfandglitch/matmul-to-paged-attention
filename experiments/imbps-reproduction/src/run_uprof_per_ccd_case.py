@@ -31,11 +31,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--access-mode", choices=("perf", "msr"), default="perf")
     parser.add_argument("--metrics", default="ipc,l2,l3")
     parser.add_argument("--package", type=int, default=0)
-    parser.add_argument("--aggregation", choices=("ccd", "ccx"), default="ccd")
+    parser.add_argument("--aggregation", choices=("ccd", "ccx", "none"), default="ccd")
     parser.add_argument("--cpu-list", required=True)
     parser.add_argument("--claim", required=True)
     parser.add_argument("--variant", required=True)
     parser.add_argument("--rows", type=int, required=True)
+    parser.add_argument("--batch-items", type=int)
+    parser.add_argument("--seed", type=int)
     parser.add_argument("--threads", type=int, required=True)
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--rounds", type=int, default=5)
@@ -90,10 +92,15 @@ def main() -> None:
         "--output",
         str(benchmark),
     ]
+    if args.batch_items is not None:
+        worker_command.extend(("--batch-items", str(args.batch_items)))
+    if args.seed is not None:
+        worker_command.extend(("--seed", str(args.seed)))
     gate_command = build_gate_command(
         start, done, gate_timing, args.measurement_timeout_seconds
     )
     access = ["-X"] if args.access_mode == "perf" else ["--msr"]
+    aggregation = ["-A", args.aggregation] if args.aggregation != "none" else []
     profiler_command = [
         str(args.uprof_bin),
         *access,
@@ -101,8 +108,7 @@ def main() -> None:
         args.metrics,
         "-c",
         f"package={args.package}",
-        "-A",
-        args.aggregation,
+        *aggregation,
         "-C",
         "-o",
         str(csv_path),
@@ -117,6 +123,7 @@ def main() -> None:
             "claim": args.claim,
             "variant": args.variant,
             "rows": args.rows,
+            **({"batch_items": args.batch_items} if args.batch_items is not None else {}),
         },
         "profiler": {
             "binary": str(args.uprof_bin),

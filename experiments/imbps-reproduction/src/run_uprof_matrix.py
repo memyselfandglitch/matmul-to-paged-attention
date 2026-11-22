@@ -52,6 +52,7 @@ def parse_args() -> argparse.Namespace:
             "decode_l2_pilot_opt30b",
             "decode_l2_core_pilot_opt30b",
             "decode_l2_crossover_opt30b",
+            "decode_l2_split_transition_opt30b",
             "decode_l3_sweep_opt30b",
         ),
         default="table_ii",
@@ -84,8 +85,8 @@ def experiment_cases(claim_name: str) -> list[dict[str, Any]]:
             }
             for batch in claim["batches"]
         ]
-        if claim_name == "table_ii"
-        else claim.get("uprof_cases", claim["cases"])
+        if "cases" not in claim and "uprof_cases" not in claim
+        else claim.get("uprof_cases", claim.get("cases"))
     )
     cases = []
     for shape in shapes:
@@ -236,6 +237,9 @@ def normalized_record(
                 "l2_hit_percent": 100 * (l2_access - l2_miss) / l2_access,
             }
         )
+        cycles = report["core"].get("Cycles Not in Halt")
+        if cycles is not None:
+            record["unhalted_cycles_per_invocation"] = cycles / iterations
         if pass_name == "cache":
             access = require_metric(report, "l3", "L3 Access")
             misses = require_metric(report, "l3", "L3 Miss")

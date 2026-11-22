@@ -19,5 +19,12 @@ readonly RESULT_ROOT="${PROJECT_ROOT}/results/${RESULT_LABEL}-${PER_CCD_UPROF_AR
 
 cd "${PROJECT_ROOT}"
 source .venv/bin/activate
-python3 src/summarize_uprof_per_ccd.py "${RESULT_ROOT}"
+timing_args=()
+if [[ -n "${PER_CCD_LAYOUT_TIMING_IDS:-}" ]]; then
+  IFS=+ read -r -a timing_ids <<< "${PER_CCD_LAYOUT_TIMING_IDS}"
+  for id in "${timing_ids[@]}"; do
+    timing_args+=(--timing-summary "${PROJECT_ROOT}/results/per-ccd-batch-layout-${id}/summary.csv")
+  done
+fi
+python3 src/summarize_uprof_per_ccd.py "${RESULT_ROOT}" "${timing_args[@]}"
 echo "CCD-level uProf summary: ${RESULT_ROOT}/analysis"

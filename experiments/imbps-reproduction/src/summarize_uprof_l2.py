@@ -100,7 +100,7 @@ def l2_checks(summary: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     equation_k in minimum_miss_ties
                     and equation_k in maximum_hit_rate_ties
                 ),
-                "timing_note": "uProf-instrumented; use job 9974 for clean timing",
+                "timing_note": "uProf-instrumented; use the matching clean timing for latency",
             }
         )
     return checks

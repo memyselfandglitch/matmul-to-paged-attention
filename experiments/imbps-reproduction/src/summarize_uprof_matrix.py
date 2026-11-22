@@ -221,6 +221,7 @@ def summarize_pass(rows: list[dict[str, Any]], pass_name: str) -> list[dict[str,
                 )
             optional_l2_metrics = [
                 "retired_instructions_per_invocation",
+                "unhalted_cycles_per_invocation",
                 "l2_access_per_invocation",
                 "l2_miss_per_invocation",
                 "l2_hit_per_invocation",
